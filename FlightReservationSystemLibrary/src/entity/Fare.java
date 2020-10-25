@@ -26,14 +26,17 @@ public class Fare implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long fareId;
-    // Cabin class?
-    @Column(nullable=false, length=8)
+    @Column(nullable = false, length = 8)
     private String fareBasisCode;
-    @Column(nullable=false, precision=6, scale=2)
+    @Column(nullable = false, precision = 7, scale = 2)
     private BigDecimal fareAmount;
     
-    @ManyToOne(optional=false)
-    @JoinColumn(nullable=false)
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
+    private CabinClass cabinClass;
+    
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
     private FlightSchedulePlan flightSchedulePlan;
 
     public Fare() {
@@ -100,6 +103,14 @@ public class Fare implements Serializable {
 
     public void setFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan) {
         this.flightSchedulePlan = flightSchedulePlan;
+    }
+
+    public CabinClass getCabinClass() {
+        return cabinClass;
+    }
+
+    public void setCabinClass(CabinClass cabinClass) {
+        this.cabinClass = cabinClass;
     }
     
 }

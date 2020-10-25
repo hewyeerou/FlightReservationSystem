@@ -6,6 +6,8 @@
 package entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -25,33 +27,36 @@ public class Airport implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long airportId;
-    @Column(nullable = false, unique = true, length = 8)
+    @Column(nullable = false, unique = true, length = 5)
     private String iataCode;
-    @Column(nullable = false, length = 32)
+    @Column(nullable = false, length = 64)
     private String name;
-    @Column(nullable = false, unique = true, length = 32)
+    @Column(nullable = false, length = 64)
     private String city;
     @Column(length = 32)
-    private String state;
-    @Column(nullable = false, length = 32)
+    private String province;
+    @Column(nullable = false, length = 64)
     private String country;
 
-    @OneToOne(mappedBy = "origin")
-    private FlightRoute departure;
-    @OneToOne(mappedBy = "destination")
-    private FlightRoute arrival;
+    @OneToMany(mappedBy = "origin")
+    private List<FlightRoute> departureRoutes;
     
+    @OneToMany(mappedBy = "destination")
+    private List<FlightRoute> arrivalRoutes;
     
-
     public Airport() {
-        
+        this.departureRoutes = new ArrayList<>();
+        this.arrivalRoutes = new ArrayList<>();
     }
 
-    public Airport(String iataCode, String name, String city, String state, String country) {
+    public Airport(String iataCode, String name, String city, String province, String country) {
+        
+        this();
+        
         this.iataCode = iataCode;
         this.name = name;
         this.city = city;
-        this.state = state;
+        this.province = province;
         this.country = country;
     }
 
@@ -112,12 +117,12 @@ public class Airport implements Serializable {
         this.city = city;
     }
 
-    public String getState() {
-        return state;
+    public String getProvince() {
+        return province;
     }
 
-    public void setState(String state) {
-        this.state = state;
+    public void setProvince(String province) {
+        this.province = province;
     }
 
     public String getCountry() {
@@ -128,20 +133,20 @@ public class Airport implements Serializable {
         this.country = country;
     }
 
-    public FlightRoute getDeparture() {
-        return departure;
+    public List<FlightRoute> getDepartureRoutes() {
+        return departureRoutes;
     }
 
-    public void setDeparture(FlightRoute departure) {
-        this.departure = departure;
+    public void setDepartureRoutes(List<FlightRoute> departureRoutes) {
+        this.departureRoutes = departureRoutes;
     }
 
-    public FlightRoute getArrival() {
-        return arrival;
+    public List<FlightRoute> getArrivalRoutes() {
+        return arrivalRoutes;
     }
 
-    public void setArrival(FlightRoute arrival) {
-        this.arrival = arrival;
+    public void setArrivalRoutes(List<FlightRoute> arrivalRoutes) {
+        this.arrivalRoutes = arrivalRoutes;
     }
 
 }

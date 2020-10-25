@@ -34,25 +34,29 @@ public class FlightSchedulePlan implements Serializable {
     private String flightScheduleType;
     @Temporal(javax.persistence.TemporalType.DATE)
     private Date endDate;
+    private Integer intervalDays;
     
     @ManyToOne(optional=false)
     @JoinColumn(nullable=false)
     private Flight flight;
+    
     @OneToMany
     private List<Fare> fares;
     
-    // @OneToMany
-    // private List<FlightSchedule> flightSchedules;
+    @OneToMany(mappedBy = "flightSchedulePlan")
+    private List<FlightSchedule> flightSchedules;
 
     public FlightSchedulePlan() {
-        fares = new ArrayList<>();
+        this.fares = new ArrayList<>();
+        this.flightSchedules = new ArrayList<>();
     }
 
-    public FlightSchedulePlan(String flightScheduleType, Date endDate) {
+    public FlightSchedulePlan(String flightScheduleType, Date endDate, Integer intervalDays) {
         this();
         
         this.flightScheduleType = flightScheduleType;
         this.endDate = endDate;
+        this.intervalDays = intervalDays;
     }
 
     public Long getFlightSchedulePlanId() {
@@ -118,6 +122,22 @@ public class FlightSchedulePlan implements Serializable {
 
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
+    }
+
+    public List<FlightSchedule> getFlightSchedules() {
+        return flightSchedules;
+    }
+
+    public void setFlightSchedules(List<FlightSchedule> flightSchedules) {
+        this.flightSchedules = flightSchedules;
+    }
+
+    public Integer getIntervalDays() {
+        return intervalDays;
+    }
+
+    public void setIntervalDays(Integer intervalDays) {
+        this.intervalDays = intervalDays;
     }
     
 }

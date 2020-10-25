@@ -46,9 +46,6 @@ public class Employee implements Serializable {
         this.username = username;
         this.password = password;
     }
-
-    
-    
     
     @Override
     public int hashCode() {

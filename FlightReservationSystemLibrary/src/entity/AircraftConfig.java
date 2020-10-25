@@ -19,6 +19,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
 
 /**
  *
@@ -34,16 +35,17 @@ public class AircraftConfig implements Serializable {
     @Column(nullable=false, length=32)
     private String name;
     @Column(nullable=false)
-    @Min(1)
-    @Max(4)
+    @Size(min = 1, max = 4)
     private Integer numOfCabinClasses;
     @Column(nullable=false)
     private Integer maxSeatCapacity;
     
     @OneToOne(mappedBy="aircraftConfig")
     private Flight flight;
+    
     @OneToMany(mappedBy="aircraftConfig")
     private List<CabinClass> cabinClasses;
+    
     @ManyToOne(optional=false)
     @JoinColumn(nullable=false)
     private AircraftType aircraftType;

@@ -25,30 +25,27 @@ public class Passenger implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long passengerId;
-    @Column(nullable = false)
+    @Column(nullable = false, length = 32)
     private String firstName;
-    @Column(nullable = false)
+    @Column(nullable = false, length = 32)
     private String lastName;
-    @Column(nullable = false)
+    @Column(nullable = false, length = 9)
     private String passportNum;
     
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private FlightReservationRecord flightReservationRecord;
-    
 
     public Passenger() 
     {
     }
 
     public Passenger(String firstName, String lastName, String passportNum) {
-        this();
         
         this.firstName = firstName;
         this.lastName = lastName;
         this.passportNum = passportNum;
     }
-
     
     @Override
     public int hashCode() {
@@ -106,6 +103,12 @@ public class Passenger implements Serializable {
     public void setPassportNum(String passportNum) {
         this.passportNum = passportNum;
     }
-    
-    
+
+    public FlightReservationRecord getFlightReservationRecord() {
+        return flightReservationRecord;
+    }
+
+    public void setFlightReservationRecord(FlightReservationRecord flightReservationRecord) {
+        this.flightReservationRecord = flightReservationRecord;
+    }
 }

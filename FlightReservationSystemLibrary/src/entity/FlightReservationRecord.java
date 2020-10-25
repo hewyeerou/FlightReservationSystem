@@ -10,8 +10,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.Min;
 
 /**
  *
@@ -25,8 +27,9 @@ public class FlightReservationRecord implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long recordId;
     @Column(nullable = false)
+    @Min(1)
     private Integer numOfPassengers;
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 7, scale = 2)
     private BigDecimal totalAmount;
     
     @ManyToOne(optional = false)
@@ -35,23 +38,25 @@ public class FlightReservationRecord implements Serializable {
     
     @OneToMany(mappedBy = "flightReservationRecord")
     private List<Passenger> passengers;
+    
+    @ManyToMany(mappedBy = "flightReservationRecords")
+    private List<FlightSchedule> flightSchedules;
+    
 
     public FlightReservationRecord() 
     {
         this.passengers = new ArrayList<>();
+        this.flightSchedules = new ArrayList<>();
     }
 
-    public FlightReservationRecord(Integer numOfPassengers, BigDecimal totalAmount, Person person, List<Passenger> passengers) 
+    public FlightReservationRecord(Integer numOfPassengers, BigDecimal totalAmount, Person person) 
     {
         this();
         
         this.numOfPassengers = numOfPassengers;
         this.totalAmount = totalAmount;
         this.person = person;
-        this.passengers = passengers;
-    }
-    
-    
+    } 
 
     @Override
     public int hashCode() {
@@ -116,6 +121,14 @@ public class FlightReservationRecord implements Serializable {
 
     public void setPassengers(List<Passenger> passengers) {
         this.passengers = passengers;
+    }
+
+    public List<FlightSchedule> getFlightSchedules() {
+        return flightSchedules;
+    }
+
+    public void setFlightSchedules(List<FlightSchedule> flightSchedules) {
+        this.flightSchedules = flightSchedules;
     }
     
     

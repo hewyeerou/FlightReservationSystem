@@ -28,23 +28,28 @@ public class FlightRoute implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long flightRouteId;
+    @OneToOne
+    private FlightRoute returnFlightRoute;
     
-    @OneToOne(optional=false)
-    @JoinColumn(nullable=false)
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
     private Airport origin;
     
-    @OneToOne(optional=false)
-    @JoinColumn(nullable=false)
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
     private Airport destination;
     
     @OneToMany(mappedBy = "flightRoute")
     private List<Flight> flights;
 
-    
     public FlightRoute() {
         flights = new ArrayList<>();
     }
 
+    public FlightRoute(FlightRoute returnFlightRoute) {
+        this.returnFlightRoute = returnFlightRoute;
+    }
+   
     public Long getFlightRouteId() {
         return flightRouteId;
     }
@@ -100,6 +105,14 @@ public class FlightRoute implements Serializable {
 
     public void setFlights(List<Flight> flights) {
         this.flights = flights;
+    }
+
+    public FlightRoute getReturnFlightRoute() {
+        return returnFlightRoute;
+    }
+
+    public void setReturnFlightRoute(FlightRoute returnFlightRoute) {
+        this.returnFlightRoute = returnFlightRoute;
     }
     
 }
