@@ -9,7 +9,13 @@ import ejb.session.stateless.AircraftTypeSessionBeanRemote;
 import ejb.session.stateless.AirportSessionBeanRemote;
 import ejb.session.stateless.EmployeeSessionBeanRemote;
 import ejb.session.stateless.PartnerSessionBeanRemote;
+import entity.Employee;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import util.enumeration.UserRoleEnum;
+import util.exception.InvalidAccessRightsException;
+import util.exception.InvalidLoginCredentialException;
 
 /**
  *
@@ -22,6 +28,12 @@ public class MainApp {
     private AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote;
     private EmployeeSessionBeanRemote employeeSessionBeanRemote;
 
+    private Employee currentEmployee;
+    
+    private FlightPlanningModule flightPlanningModule;
+    private FlightOperationModule flightOperationModule;
+    private SalesManagementModule salesManagementModule;
+            
     public MainApp()
     {
     }
@@ -41,7 +53,7 @@ public class MainApp {
         
         while (true)
         {
-            System.out.println("*** Welcome to Flight Reservation System Management ***\n");
+            System.out.println("*** Welcome to Flight Reservation System (FRS) Management ***\n");
             System.out.println("1: Login");
             System.out.println("2: Exit\n");
             response = 0;
@@ -50,6 +62,25 @@ public class MainApp {
             {
                 System.out.print("> ");
                 response = scanner.nextInt();
+                
+                if(response == 1)
+                {
+                    try 
+                    {
+                        doLogin();
+                        System.out.println("Login successful! \n");
+                        
+                        flightPlanningModule = new FlightPlanningModule(currentEmployee);
+                        flightOperationModule = new FlightOperationModule(currentEmployee);
+                        salesManagementModule = new SalesManagementModule(currentEmployee);
+                        
+                        mainMenu();
+                    } 
+                    catch (InvalidLoginCredentialException ex) 
+                    {
+                        System.out.println("Invalid login credential: " + ex.getMessage() + "\n");
+                    }
+                }
                 
                 if (response == 2)
                 {
@@ -61,6 +92,126 @@ public class MainApp {
             {
                 break;
             }
+        }
+    }
+    
+    private void doLogin() throws InvalidLoginCredentialException
+    {
+        Scanner scanner = new Scanner(System.in);
+        String username = "";
+        String password = "";
+        
+        System.out.println("*** FRS Management :: Login ***\n");
+        System.out.print("Enter username> ");
+        username = scanner.nextLine().trim();
+        System.out.print("Enter password> ");
+        password = scanner.nextLine().trim();
+        
+        if(username.length() > 0 && password.length() > 0)
+        {
+            currentEmployee = employeeSessionBeanRemote.employeeLogin(username, password);
+        }
+        else
+        {
+            throw new InvalidLoginCredentialException("Missing login credential!");
+        }
+    }
+    
+    private void mainMenu()
+    {
+        Scanner scanner = new Scanner(System.in);
+        Integer response = 0;
+        
+        while(true)
+        {
+            System.out.println("*** Flight Reservation System (FRS) Management ***\n");
+            String userRole = "";
+            
+            if(currentEmployee.getUserRoleEnum() == UserRoleEnum.EMPLOYEE)
+            {
+                userRole = "employee";
+            }
+            else if(currentEmployee.getUserRoleEnum() == UserRoleEnum.FLEET_MANAGER)
+            {
+                userRole = "fleet manager";
+            }
+            else if(currentEmployee.getUserRoleEnum() == UserRoleEnum.ROUTE_PLANNER)
+            {
+                userRole = "route planner";
+            }
+            else if(currentEmployee.getUserRoleEnum() == UserRoleEnum.SCHEDULE_MANAGER)
+            {
+                userRole = "schedule manager";
+            }
+            else
+            {
+                userRole = "sales manager";
+            }
+            
+            System.out.println("You are login as " + currentEmployee.getFirstName() + " " + currentEmployee.getLastName() + " with " + userRole + " rights\n");
+            System.out.println("1: Flight Planning");
+            System.out.println("2: Flight Operation");
+            System.out.println("3: Sales Management");
+            System.out.println("4: Logout\n");
+            
+            response = 0;
+            
+            while(response < 1 || response > 4)
+            {
+                System.out.print("> ");
+                
+                response = scanner.nextInt();
+                
+                if(response == 1)
+                {
+                    try 
+                    {
+                        flightPlanningModule.menuFlightPlanning();
+                        
+                    } 
+                    catch (InvalidAccessRightsException ex) 
+                    {
+                        System.out.println("Invalid option, please try again!: " + ex.getMessage() + "\n");
+                    }
+                }
+                else if(response == 2)
+                {
+                    try 
+                    {
+                        flightOperationModule.menuFlightOperation();
+                    } 
+                    catch (InvalidAccessRightsException ex) 
+                    {
+                        System.out.println("Invalid option, please try again!: " + ex.getMessage() + "\n");
+                    }
+                    
+                }
+                else if(response == 3)
+                {
+                    try 
+                    {
+                        salesManagementModule.menuSalesManagement();
+                    } 
+                    catch (InvalidAccessRightsException ex) 
+                    {
+                        System.out.println("Invalid option, please try again!: " + ex.getMessage() + "\n");
+                    }
+                }
+                else if(response == 4)
+                {
+                    break;
+                }
+                else
+                {
+                    System.out.println("Invalid option, please try again!\n");
+                }
+            }
+            
+            if(response == 4)
+            {
+                break;
+            }
+            
         }
     }
 }

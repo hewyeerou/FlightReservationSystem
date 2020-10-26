@@ -15,6 +15,7 @@ import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import util.exception.EmployeeNotFoundException;
 import util.exception.EmployeeUsernameExistException;
+import util.exception.InvalidLoginCredentialException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -70,5 +71,27 @@ public class EmployeeSessionBean implements EmployeeSessionBeanRemote, EmployeeS
         {
             throw new EmployeeNotFoundException("Employee username " + username + " does not exist!");
         }
+    }
+    
+    @Override
+    public Employee employeeLogin(String username, String password) throws InvalidLoginCredentialException
+    {
+        try
+        {
+            Employee employee = retrieveEmployeeByUsername(username);
+
+            if(employee.getPassword().equals(password))
+            {
+                return employee;
+            }
+            else
+            {
+                throw new InvalidLoginCredentialException("Employee username " + username + " does not exist or invalid password!");
+            }
+        }
+        catch(EmployeeNotFoundException ex)
+        {
+            throw new InvalidLoginCredentialException("Employee username " + username + " does not exist or invalid password!");
+        }   
     }
 }

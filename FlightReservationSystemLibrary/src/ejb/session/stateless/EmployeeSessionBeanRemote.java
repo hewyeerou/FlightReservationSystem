@@ -9,6 +9,7 @@ import entity.Employee;
 import javax.ejb.Remote;
 import util.exception.EmployeeNotFoundException;
 import util.exception.EmployeeUsernameExistException;
+import util.exception.InvalidLoginCredentialException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -21,5 +22,7 @@ public interface EmployeeSessionBeanRemote {
     public Long createNewEmployee(Employee newEmployee) throws EmployeeUsernameExistException, UnknownPersistenceException;
     
     public Employee retrieveEmployeeByUsername(String username) throws EmployeeNotFoundException;
+
+    public Employee employeeLogin(String username, String password) throws InvalidLoginCredentialException;
     
 }
