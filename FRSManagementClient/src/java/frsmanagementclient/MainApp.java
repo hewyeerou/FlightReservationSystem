@@ -5,6 +5,7 @@
  */
 package frsmanagementclient;
 
+import ejb.session.stateless.AircraftConfigSessionBeanRemote;
 import ejb.session.stateless.AircraftTypeSessionBeanRemote;
 import ejb.session.stateless.AirportSessionBeanRemote;
 import ejb.session.stateless.EmployeeSessionBeanRemote;
@@ -27,6 +28,7 @@ public class MainApp {
     private AirportSessionBeanRemote airportSessionBeanRemote;
     private AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote;
     private EmployeeSessionBeanRemote employeeSessionBeanRemote;
+    private AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote;
 
     private Employee currentEmployee;
     
@@ -38,12 +40,13 @@ public class MainApp {
     {
     }
 
-    public MainApp(PartnerSessionBeanRemote partnerSessionBeanRemote, AirportSessionBeanRemote airportSessionBeanRemote, AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote, EmployeeSessionBeanRemote employeeSessionBeanRemote)
+    public MainApp(PartnerSessionBeanRemote partnerSessionBeanRemote, AirportSessionBeanRemote airportSessionBeanRemote, AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote, EmployeeSessionBeanRemote employeeSessionBeanRemote, AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote)
     {
         this.partnerSessionBeanRemote = partnerSessionBeanRemote;
         this.airportSessionBeanRemote = airportSessionBeanRemote;
         this.aircraftTypeSessionBeanRemote = aircraftTypeSessionBeanRemote;
         this.employeeSessionBeanRemote = employeeSessionBeanRemote;
+        this.aircraftConfigSessionBeanRemote = aircraftConfigSessionBeanRemote;
     }
     
     public void runApp()
@@ -62,6 +65,7 @@ public class MainApp {
             {
                 System.out.print("> ");
                 response = scanner.nextInt();
+                scanner.nextLine();
                 
                 if(response == 1)
                 {
@@ -70,7 +74,7 @@ public class MainApp {
                         doLogin();
                         System.out.println("Login successful! \n");
                         
-                        flightPlanningModule = new FlightPlanningModule(currentEmployee);
+                        flightPlanningModule = new FlightPlanningModule(aircraftTypeSessionBeanRemote, aircraftConfigSessionBeanRemote, currentEmployee);
                         flightOperationModule = new FlightOperationModule(currentEmployee);
                         salesManagementModule = new SalesManagementModule(currentEmployee);
                         
@@ -81,10 +85,13 @@ public class MainApp {
                         System.out.println("Invalid login credential: " + ex.getMessage() + "\n");
                     }
                 }
-                
-                if (response == 2)
+                else if (response == 2)
                 {
                     break;
+                }
+                else
+                {
+                    System.out.println("Invalid option, please try again!\n");
                 }
             }
             
@@ -161,6 +168,7 @@ public class MainApp {
                 System.out.print("> ");
                 
                 response = scanner.nextInt();
+                scanner.nextLine();
                 
                 if(response == 1)
                 {

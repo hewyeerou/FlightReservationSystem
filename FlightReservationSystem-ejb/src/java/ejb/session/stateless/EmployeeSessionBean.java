@@ -6,6 +6,7 @@
 package ejb.session.stateless;
 
 import entity.Employee;
+import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -58,6 +59,7 @@ public class EmployeeSessionBean implements EmployeeSessionBeanRemote, EmployeeS
         }
     }
     
+    @Override
     public Employee retrieveEmployeeByUsername(String username) throws EmployeeNotFoundException
     {
         Query query = em.createQuery("SELECT e FROM Employee e WHERE e.username = :inUsername");
@@ -65,7 +67,11 @@ public class EmployeeSessionBean implements EmployeeSessionBeanRemote, EmployeeS
         
         try
         {
-            return (Employee)query.getSingleResult();
+            
+            Employee employee = (Employee)query.getSingleResult();
+            System.out.println(employee.getUsername());
+            
+            return employee;
         }
         catch(NoResultException | NonUniqueResultException ex)
         {

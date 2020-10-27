@@ -32,12 +32,14 @@ public class AircraftConfig implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long aircraftConfigId;
-    @Column(nullable=false, length=32)
+    @Column(nullable = false, unique = true, length = 32)
     private String name;
-    @Column(nullable=false)
-    @Size(min = 1, max = 4)
+    @Column(nullable = false)
+    @Min(1)
+    @Max(4)
     private Integer numOfCabinClasses;
-    @Column(nullable=false)
+    @Column(nullable = false)
+    @Min(1)
     private Integer maxSeatCapacity;
     
     @OneToOne(mappedBy="aircraftConfig")

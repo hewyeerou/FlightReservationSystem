@@ -6,10 +6,12 @@
 package ejb.session.stateless;
 
 import entity.AircraftType;
+import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
+import javax.persistence.Query;
 import util.exception.AircraftTypeNameExistException;
 import util.exception.UnknownPersistenceException;
 
@@ -51,5 +53,13 @@ public class AircraftTypeSessionBean implements AircraftTypeSessionBeanRemote, A
                 throw new UnknownPersistenceException(ex.getMessage());
             }
         }
-    }   
+    }
+    
+    @Override
+    public List<AircraftType> retrieveAllAircraftTypes()
+    {
+        Query query = em.createQuery("SELECT a FROM AircraftType a ORDER BY a.aircraftTypeId ASC");
+        
+        return query.getResultList();
+    }
 }

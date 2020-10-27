@@ -16,7 +16,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
 import util.enumeration.CabinClassEnum;
 
 /**
@@ -34,11 +36,15 @@ public class CabinClass implements Serializable {
     @Column(nullable=false)
     private CabinClassEnum cabinClassType;
     @Column(nullable=false)
+    @Min(0)
+    @Max(2)
     private Integer numOfAisle;
     @Column(nullable=false)
     private Integer numOfRows;
     @Column(nullable=false)
-    private List<Integer> numOfSeatsAbreast;
+    @Min(1)
+    @Max(10)
+    private Integer numOfSeatsAbreast;
     @Column(nullable=false, length=8)
     private String seatConfigPerColumn;
     @Column(nullable=false)
@@ -46,13 +52,13 @@ public class CabinClass implements Serializable {
     
     @ManyToOne(optional=false)
     @JoinColumn(nullable=false)
-    protected AircraftConfig aircraftConfig;
+    private AircraftConfig aircraftConfig;
 
     public CabinClass() {
         
     }
 
-    public CabinClass(CabinClassEnum cabinClassType, Integer numOfAisle, Integer numOfRows, List<Integer> numOfSeatsAbreast, String seatConfigPerColumn, Integer maxSeatCapacity) {
+    public CabinClass(CabinClassEnum cabinClassType, Integer numOfAisle, Integer numOfRows, Integer numOfSeatsAbreast, String seatConfigPerColumn, Integer maxSeatCapacity) {
         this.cabinClassType = cabinClassType;
         this.numOfAisle = numOfAisle;
         this.numOfRows = numOfRows;
@@ -110,11 +116,11 @@ public class CabinClass implements Serializable {
         this.numOfRows = numOfRows;
     }
 
-    public List<Integer> getNumOfSeatsAbreast() {
+    public Integer getNumOfSeatsAbreast() {
         return numOfSeatsAbreast;
     }
 
-    public void setNumOfSeatsAbreast(List<Integer> numOfSeatsAbreast) {
+    public void setNumOfSeatsAbreast(Integer numOfSeatsAbreast) {
         this.numOfSeatsAbreast = numOfSeatsAbreast;
     }
 

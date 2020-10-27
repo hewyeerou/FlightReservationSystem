@@ -34,8 +34,10 @@ public class FlightSchedule implements Serializable {
     @Temporal(javax.persistence.TemporalType.DATE)
     @Column(nullable = false)
     private Date departure;
-    @Column(nullable = false, precision = 3, scale = 1)
-    private Double flightDuration;
+    @Column(nullable = false)
+    private Integer flightHours;
+    @Column(nullable = false)
+    private Integer flightMinutes;
     
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
@@ -52,11 +54,12 @@ public class FlightSchedule implements Serializable {
         this.flightReservationRecords = new ArrayList<>();
     }
 
-    public FlightSchedule(Date departure, Double flightDuration) {
+    public FlightSchedule(Date departure, Integer flightHours, Integer flightMinutes) {
         this();
         
         this.departure = departure;
-        this.flightDuration = flightDuration;
+        this.flightHours = flightHours;
+        this.flightMinutes = flightMinutes;
     }
 
     public Long getFlightScheduleId() {
@@ -100,12 +103,12 @@ public class FlightSchedule implements Serializable {
         this.departure = departure;
     }
 
-    public Double getFlightDuration() {
-        return flightDuration;
+    public Integer getFlightHours() {
+        return flightHours;
     }
 
-    public void setFlightDuration(Double flightDuration) {
-        this.flightDuration = flightDuration;
+    public void setFlightHours(Integer flightHours) {
+        this.flightHours = flightHours;
     }
 
     public FlightSchedulePlan getFlightSchedulePlan() {
@@ -130,6 +133,14 @@ public class FlightSchedule implements Serializable {
 
     public void setFlightReservationRecords(List<FlightReservationRecord> flightReservationRecords) {
         this.flightReservationRecords = flightReservationRecords;
+    }
+
+    public Integer getFlightMinutes() {
+        return flightMinutes;
+    }
+
+    public void setFlightMinutes(Integer flightMinutes) {
+        this.flightMinutes = flightMinutes;
     }
     
 }
