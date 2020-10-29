@@ -32,8 +32,11 @@ public class Flight implements Serializable {
     @Column(nullable=false, unique=true, length=8)
     private String flightNumber;
     
+    @OneToOne
+    private Flight returnFlight;
+    
     @OneToMany
-    List<FlightSchedulePlan> flightSchedulePlans;
+    private List<FlightSchedulePlan> flightSchedulePlans;
     
     @ManyToOne(optional=false)
     @JoinColumn(nullable=false)
@@ -109,5 +112,24 @@ public class Flight implements Serializable {
     public void setAircraftConfig(AircraftConfig aircraftConfig) {
         this.aircraftConfig = aircraftConfig;
     }
+
+    public List<FlightSchedulePlan> getFlightSchedulePlans() {
+        return flightSchedulePlans;
+    }
+
+    public void setFlightSchedulePlans(List<FlightSchedulePlan> flightSchedulePlans) {
+        this.flightSchedulePlans = flightSchedulePlans;
+    }
+
+    public Flight getReturnFlight() {
+        return returnFlight;
+    }
+
+    public void setReturnFlight(Flight returnFlight) {
+        this.returnFlight = returnFlight;
+    }
+    
+    
+    
     
 }

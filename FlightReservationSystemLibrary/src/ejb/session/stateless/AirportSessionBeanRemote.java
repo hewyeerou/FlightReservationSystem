@@ -6,8 +6,10 @@
 package ejb.session.stateless;
 
 import entity.Airport;
+import java.util.List;
 import javax.ejb.Remote;
 import util.exception.AirportIataCodeExistException;
+import util.exception.AirportNotFoundException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -19,4 +21,7 @@ public interface AirportSessionBeanRemote {
     
     public Long createNewAirport(Airport newAirport) throws AirportIataCodeExistException, UnknownPersistenceException;
     
+    public List<Airport> getAllAirports();
+    
+    public Airport getAirportByAirportId(Long airportId) throws AirportNotFoundException;
 }

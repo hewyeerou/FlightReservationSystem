@@ -74,6 +74,7 @@ public class DataInitSessionBean {
         {
             if(em.find(Employee.class, 1l) == null && em.find(Partner.class, 1l) == null && em.find(Airport.class, 1l) == null && em.find(AircraftType.class, 1l) == null)
             {
+                employeeSessionBeanLocal.createNewEmployee(new Employee("Admin", "01", UserRoleEnum.SYSTEM_ADMIN, "admin", "password"));
                 employeeSessionBeanLocal.createNewEmployee(new Employee("Alice", "Maison", UserRoleEnum.EMPLOYEE, "employee", "password"));
                 employeeSessionBeanLocal.createNewEmployee(new Employee("Jane", "Kwa", UserRoleEnum.FLEET_MANAGER, "fleet manager", "password"));
                 employeeSessionBeanLocal.createNewEmployee(new Employee("John", "Doe", UserRoleEnum.ROUTE_PLANNER, "route planner", "password"));

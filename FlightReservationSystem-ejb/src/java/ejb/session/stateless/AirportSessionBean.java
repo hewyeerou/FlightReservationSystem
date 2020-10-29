@@ -6,11 +6,14 @@
 package ejb.session.stateless;
 
 import entity.Airport;
+import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
+import javax.persistence.Query;
 import util.exception.AirportIataCodeExistException;
+import util.exception.AirportNotFoundException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -50,6 +53,29 @@ public class AirportSessionBean implements AirportSessionBeanRemote, AirportSess
             {
                 throw new UnknownPersistenceException(ex.getMessage());
             }
+        }
+    }
+    
+    @Override
+    public List<Airport> getAllAirports()
+    {
+        Query query = em.createQuery("SELECT a FROM Airport a ORDER BY a.airportId ASC");
+        
+        return query.getResultList();
+    }
+    
+    @Override
+    public Airport getAirportByAirportId(Long airportId) throws AirportNotFoundException
+    {
+        Airport airport = em.find(Airport.class, airportId);
+        
+        if(airport != null)
+        {
+            return airport;
+        }
+        else
+        {
+            throw new AirportNotFoundException("Airport Id " + airportId + " does not exist!");
         }
     }
 }

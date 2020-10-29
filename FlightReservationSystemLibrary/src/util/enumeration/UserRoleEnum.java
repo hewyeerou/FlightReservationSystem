@@ -6,6 +6,7 @@ package util.enumeration;
  */
 public enum UserRoleEnum 
 {
+    SYSTEM_ADMIN,
     EMPLOYEE,
     FLEET_MANAGER,
     ROUTE_PLANNER,

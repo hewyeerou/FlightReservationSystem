@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -40,10 +41,10 @@ public class Airport implements Serializable {
     @Column(nullable=false)
     private Integer timeZoneDiff;
 
-    @OneToMany(mappedBy = "origin")
+    @OneToMany(mappedBy = "origin", fetch=FetchType.LAZY)
     private List<FlightRoute> departureRoutes;
     
-    @OneToMany(mappedBy = "destination")
+    @OneToMany(mappedBy = "destination", fetch=FetchType.LAZY)
     private List<FlightRoute> arrivalRoutes;
     
     public Airport() {

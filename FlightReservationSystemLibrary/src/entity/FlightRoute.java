@@ -8,7 +8,9 @@ package entity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -28,6 +30,7 @@ public class FlightRoute implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long flightRouteId;
+    
     @OneToOne
     private FlightRoute returnFlightRoute;
     
@@ -39,6 +42,12 @@ public class FlightRoute implements Serializable {
     @JoinColumn(nullable = false)
     private Airport destination;
     
+    @Column(nullable = false, unique = false)
+    private String flightRouteType;
+    
+    @Column(nullable = false)
+    private Boolean enabled;
+    
     @OneToMany(mappedBy = "flightRoute")
     private List<Flight> flights;
 
@@ -49,6 +58,18 @@ public class FlightRoute implements Serializable {
     public FlightRoute(FlightRoute returnFlightRoute) {
         this.returnFlightRoute = returnFlightRoute;
     }
+
+    public FlightRoute(Airport origin, Airport destination, String flightRouteType, Boolean enabled) 
+    {
+        this();
+       
+        this.origin = origin;
+        this.destination = destination;
+        this.flightRouteType = flightRouteType;
+        this.enabled = enabled;
+    }
+    
+    
    
     public Long getFlightRouteId() {
         return flightRouteId;
@@ -114,5 +135,23 @@ public class FlightRoute implements Serializable {
     public void setReturnFlightRoute(FlightRoute returnFlightRoute) {
         this.returnFlightRoute = returnFlightRoute;
     }
+
+    public String getFlightRouteType() {
+        return flightRouteType;
+    }
+
+    public void setFlightRouteType(String flightRouteType) {
+        this.flightRouteType = flightRouteType;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+    
+    
     
 }

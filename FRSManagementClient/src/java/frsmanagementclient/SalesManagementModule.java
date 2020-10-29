@@ -34,7 +34,7 @@ public class SalesManagementModule {
     
     public void menuSalesManagement() throws InvalidAccessRightsException
     {
-        if(currentEmployee.getUserRoleEnum() != UserRoleEnum.SALES_MANAGER)
+        if(currentEmployee.getUserRoleEnum() != UserRoleEnum.SALES_MANAGER && currentEmployee.getUserRoleEnum() != UserRoleEnum.SYSTEM_ADMIN)
         {
             throw new InvalidAccessRightsException("You don't have the rights to access sales management module.");
         }

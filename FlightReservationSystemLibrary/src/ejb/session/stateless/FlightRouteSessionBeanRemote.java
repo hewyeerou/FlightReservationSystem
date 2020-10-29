@@ -5,13 +5,27 @@
  */
 package ejb.session.stateless;
 
+import entity.FlightRoute;
+import java.util.List;
 import javax.ejb.Remote;
+import util.exception.FlightRouteExistException;
+import util.exception.FlightRouteNotFoundException;
+import util.exception.UnknownPersistenceException;
 
 /**
  *
  * @author yeerouhew
  */
 @Remote
-public interface FlightRouteSessionBeanRemote {
+public interface FlightRouteSessionBeanRemote 
+{
+    public Long createNewFlightRoute(FlightRoute flightRoute, Long originAirportId, Long destinationAirportId) throws FlightRouteExistException, UnknownPersistenceException;  
     
+    public Long createNewReturnFlightRoute(FlightRoute returnFlightRoute, Long flightRouteId) throws FlightRouteExistException, UnknownPersistenceException;
+
+    public List<FlightRoute> getAllFlightRoute();
+    
+    public FlightRoute getFlightRouteById(Long flightRouteId, Boolean fetchAirport, Boolean fetchFlights) throws FlightRouteNotFoundException;
+
+    public void removeFlightRoute(Long flightRouteId) throws FlightRouteNotFoundException;
 }
