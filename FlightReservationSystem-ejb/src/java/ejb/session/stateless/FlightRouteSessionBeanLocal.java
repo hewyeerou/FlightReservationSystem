@@ -29,5 +29,7 @@ public interface FlightRouteSessionBeanLocal
     public FlightRoute getFlightRouteById(Long flightRouteId, Boolean fetchAirport, Boolean fetchFlights) throws FlightRouteNotFoundException;
 
     public void removeFlightRoute(Long flightRouteId) throws FlightRouteNotFoundException;
+
+    public void setFlightRouteDisabled(Long flightRouteId);
     
 }

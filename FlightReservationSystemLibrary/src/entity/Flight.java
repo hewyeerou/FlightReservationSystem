@@ -32,6 +32,9 @@ public class Flight implements Serializable {
     @Column(nullable=false, unique=true, length=8)
     private String flightNumber;
     
+    @Column(nullable = false)
+    private String flightType;
+    
     @OneToOne
     private Flight returnFlight;
     
@@ -50,10 +53,11 @@ public class Flight implements Serializable {
         flightSchedulePlans = new ArrayList<>();      
     }
 
-    public Flight(String flightNumber) {
+    public Flight(String flightNumber, String flightType) {
         this();
         
         this.flightNumber = flightNumber;
+        this.flightType = flightType;
     }
 
     public Long getFlightId() {
@@ -127,6 +131,14 @@ public class Flight implements Serializable {
 
     public void setReturnFlight(Flight returnFlight) {
         this.returnFlight = returnFlight;
+    }
+
+    public String getFlightType() {
+        return flightType;
+    }
+
+    public void setFlightType(String flightType) {
+        this.flightType = flightType;
     }
     
     

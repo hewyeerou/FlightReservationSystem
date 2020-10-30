@@ -58,7 +58,7 @@ public class AircraftTypeSessionBean implements AircraftTypeSessionBeanRemote, A
     @Override
     public List<AircraftType> retrieveAllAircraftTypes()
     {
-        Query query = em.createQuery("SELECT a FROM Airport a ORDER BY a.airportId ASC");
+        Query query = em.createQuery("SELECT a FROM AircraftType a ORDER BY a.aircraftTypeId ASC");
         
         return query.getResultList();
        

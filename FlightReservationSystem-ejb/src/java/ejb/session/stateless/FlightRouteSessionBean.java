@@ -216,8 +216,21 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
         flightRouteRemove.getFlights().clear();
             
         em.remove(flightRouteRemove);
-        
 
     }
+    
+    
+    @Override
+    public void setFlightRouteDisabled(Long flightRouteId)
+    {
+        FlightRoute flightRouteToUpdate = em.find(FlightRoute.class, flightRouteId);
+        
+        if(flightRouteToUpdate != null)
+        {
+            flightRouteToUpdate.setEnabled(false);
+        }       
+    }
+    
+    
     
 }

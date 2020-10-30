@@ -8,6 +8,7 @@ package ejb.session.stateless;
 import entity.AircraftConfig;
 import entity.AircraftType;
 import entity.CabinClass;
+import entity.Flight;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -94,5 +95,17 @@ public class AircraftConfigSessionBean implements AircraftConfigSessionBeanRemot
         {
             throw new AircraftConfigNotFoundException("Name " + name + " does not exist!");
         }
+    }
+    
+
+    @Override
+    public AircraftConfig retrieveAircraftConfigById(Long aircraftId) 
+    {
+        AircraftConfig aircraftConfig = em.find(AircraftConfig.class, aircraftId);
+        
+        aircraftConfig.getCabinClasses().size();
+        aircraftConfig.getAircraftType();
+       
+        return aircraftConfig;
     }
 }

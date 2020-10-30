@@ -24,4 +24,6 @@ public interface AircraftConfigSessionBeanRemote {
     public List<AircraftConfig> retrieveAllAircraftConfigs();
     
     public AircraftConfig retrieveAircraftConfigByName(String name) throws AircraftConfigNotFoundException;
+
+    public AircraftConfig retrieveAircraftConfigById(Long aircraftId);
 }

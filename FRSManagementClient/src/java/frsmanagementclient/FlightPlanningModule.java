@@ -619,10 +619,7 @@ public class FlightPlanningModule
             newFlightRoute.setDestination(destinationAirport);
             newFlightRoute.setFlightRouteType("OUTBOUND");
             newFlightRoute.setEnabled(true);
-            
-            Long flightRouteId = flightRouteSessionBeanRemote.createNewFlightRoute(newFlightRoute, originAirportId, destinationAirportId);
 
-            System.out.println("New flight route created successfully!: " + flightRouteId + "\n");
             System.out.println("Do you want to create a complementary return route?");
             
             
@@ -649,16 +646,19 @@ public class FlightPlanningModule
                         newReturnFlightRoute.setEnabled(true);
                         newFlightRoute.setReturnFlightRoute(newReturnFlightRoute);
                         
+                        Long flightRouteId = flightRouteSessionBeanRemote.createNewFlightRoute(newFlightRoute, originAirportId, destinationAirportId);
                         Long returnFlightRouteId = flightRouteSessionBeanRemote.createNewReturnFlightRoute(newReturnFlightRoute, flightRouteId);
                         
+                        System.out.println("New flight route created successfully!: " + flightRouteId + "\n");
                         System.out.println("Return flight route for " + flightRouteId +  " created successfully!: " + returnFlightRouteId + "\n"); 
                         break;
                     }
                     else if(option == 2)
                     {
+                        Long flightRouteId = flightRouteSessionBeanRemote.createNewFlightRoute(newFlightRoute, originAirportId, destinationAirportId);
+                        System.out.println("New flight route created successfully!: " + flightRouteId + "\n");
                         break;
                     }
-
                 }
                 else
                 {
@@ -684,33 +684,40 @@ public class FlightPlanningModule
     
     private void doViewAllFlightRoute()
     {
+        Scanner scanner = new Scanner (System.in);
         System.out.println("*** FRS Management :: Flight Planning :: Flight Route :: View All Flight Routes ***\n");
         
         Integer option = 0;
         
         List<FlightRoute> flightRoutes = flightRouteSessionBeanRemote.getAllFlightRoute();
-        List<FlightRoute> outboundFlights = new ArrayList<>();
+        List<FlightRoute> outboundFlightRoutes = new ArrayList<>();
+        
+        System.out.printf("%20s%30s%30s\n", "#" ,"Flight Route", "Route Type");
         
         for(FlightRoute flightRoute: flightRoutes)
         {
             if(flightRoute.getFlightRouteType().equals("OUTBOUND"))
             {
-                outboundFlights.add(flightRoute);
+                outboundFlightRoutes.add(flightRoute);
             }
         }
         
-        for(FlightRoute outboundFlight: outboundFlights)
+        for(FlightRoute outboundFlightRoute: outboundFlightRoutes)
         {
             option++;
-            System.out.println(option + ": " + outboundFlight.getOrigin().getIataCode() + " - " + outboundFlight.getDestination().getIataCode() + ", outbound flight"); 
+            System.out.printf("%20s%30s%30s\n", option, outboundFlightRoute.getOrigin().getIataCode() + " - " + outboundFlightRoute.getDestination().getIataCode() , outboundFlightRoute.getFlightRouteType());
             
             //if flight has return flight
-            if(outboundFlight.getReturnFlightRoute().getFlightRouteId() != outboundFlight.getFlightRouteId())
+            if(outboundFlightRoute.getReturnFlightRoute().getFlightRouteId() != outboundFlightRoute.getFlightRouteId())
             {
                 option++;
-                System.out.println(option + ": " + outboundFlight.getReturnFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getReturnFlightRoute().getDestination().getIataCode() + ", return flight");
+                System.out.printf("%20s%30s%30s\n", option, outboundFlightRoute.getReturnFlightRoute().getOrigin().getIataCode() + " - " + outboundFlightRoute.getReturnFlightRoute().getDestination().getIataCode(), outboundFlightRoute.getReturnFlightRoute().getFlightRouteType());
             }       
         }
+        
+        System.out.println("------------------------------------------");
+        System.out.print("Press any key to continue...> ");
+        scanner.nextLine();
     }
     
     private void doDeleteFlightRoute()
@@ -761,6 +768,19 @@ public class FlightPlanningModule
                 if(flightRouteInt >=1 && flightRouteInt <= option)
                 {
                     flightRouteId = outboundFlightRoutes.get(flightRouteInt-1).getFlightRouteId();
+                    FlightRoute flightRoute = flightRouteSessionBeanRemote.getFlightRouteById(flightRouteId, false, false);
+                
+                    if(flightRoute.getFlights() == null)
+                    {
+                        flightRouteSessionBeanRemote.removeFlightRoute(flightRouteId);
+                        System.out.println("Existing flight route removed successfully!\n");
+                    }
+                    else
+                    {
+                        flightRouteSessionBeanRemote.setFlightRouteDisabled(flightRouteId);
+                        System.out.println("Existing flight route has been set to disabled!\n");
+                    }
+       
                     break;
                 }
                 else
@@ -768,19 +788,7 @@ public class FlightPlanningModule
                     System.out.println("Invalid option, please try again! \n");
                 }
                 
-                FlightRoute flightRoute = flightRouteSessionBeanRemote.getFlightRouteById(flightRouteId, false, false);
                 
-                if(flightRoute.getFlights() == null)
-                {
-                    flightRouteSessionBeanRemote.removeFlightRoute(flightRouteId);
-                    System.out.println("Existing flight route removed successfully!\n");
-                }
-                else
-                {
-                    flightRoute.setEnabled(false);
-                    System.out.println("Existing flight route has been set to disabled!\n");
-                }
-       
             }
         }
         catch(FlightRouteNotFoundException ex)
