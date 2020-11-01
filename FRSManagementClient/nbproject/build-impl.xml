@@ -770,18 +770,18 @@ exists or setup the property manually. For example like this:
     </target>
     <target depends="compile" if="is.server.weblogic" name="library-inclusion-in-archive">
         <basename file="${reference.FlightReservationSystemLibrary.jar}" property="manifest.reference.FlightReservationSystemLibrary.jar"/>
-        <basename file="${libs.Java_EE_8_API_Library_2.classpath}" property="manifest.libs.Java_EE_8_API_Library_2.classpath"/>
+        <basename file="${libs.javaee-api-8.0.classpath}" property="manifest.libs.javaee-api-8.0.classpath"/>
         <manifest file="${build.ear.classes.dir}/META-INF/MANIFEST.MF" mode="update">
             <attribute name="Extension-List" value="jar-1 jar-2 "/>
             <attribute name="jar-1-Extension-Name" value="${manifest.reference.FlightReservationSystemLibrary.jar}"/>
-            <attribute name="jar-2-Extension-Name" value="${manifest.libs.Java_EE_8_API_Library_2.classpath}"/>
+            <attribute name="jar-2-Extension-Name" value="${manifest.libs.javaee-api-8.0.classpath}"/>
         </manifest>
     </target>
     <target depends="compile" if="dist.ear.dir" name="library-inclusion-in-manifest">
         <copyfiles files="${reference.FlightReservationSystemLibrary.jar}" manifestproperty="manifest.reference.FlightReservationSystemLibrary.jar" todir="${dist.ear.dir}/lib"/>
-        <copyfiles files="${libs.Java_EE_8_API_Library_2.classpath}" manifestproperty="manifest.libs.Java_EE_8_API_Library_2.classpath" todir="${dist.ear.dir}/lib"/>
+        <copyfiles files="${libs.javaee-api-8.0.classpath}" manifestproperty="manifest.libs.javaee-api-8.0.classpath" todir="${dist.ear.dir}/lib"/>
         <manifest file="${build.ear.classes.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Class-Path" value="${manifest.reference.FlightReservationSystemLibrary.jar} lib/${manifest.reference.FlightReservationSystemLibrary.jar} ${manifest.libs.Java_EE_8_API_Library_2.classpath} lib/${manifest.libs.Java_EE_8_API_Library_2.classpath} "/>
+            <attribute name="Class-Path" value="${manifest.reference.FlightReservationSystemLibrary.jar} lib/${manifest.reference.FlightReservationSystemLibrary.jar} ${manifest.libs.javaee-api-8.0.classpath} lib/${manifest.libs.javaee-api-8.0.classpath} "/>
         </manifest>
     </target>
     <target name="-copy-meta-inf">
