@@ -33,6 +33,7 @@ import util.exception.AirportNotFoundException;
 import util.exception.FlightRouteExistException;
 import util.exception.FlightRouteNotFoundException;
 import util.exception.InvalidAccessRightsException;
+import util.exception.InvalidSeatNumberInputException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -448,16 +449,28 @@ public class FlightPlanningModule
                 try
                 {
                     Integer numOfSeatsInColumn = Integer.valueOf(seatConfigPerColumnString.substring(0, pos));
+                    
+                    if (numOfSeatsInColumn == 0)
+                    {
+                        throw new InvalidSeatNumberInputException();
+                    }
+                    
                     seatConfigPerColumnString = seatConfigPerColumnString.substring(pos + 1);
                     seatsCountPerRow = seatsCountPerRow + numOfSeatsInColumn;
                     aisleCount++;
                 }
                 catch (NumberFormatException ex)
                 {
-                    System.out.println("Invalid input, please try again!\n");
+                    System.out.println("Invalid input format, please try again!\n");
                     validInput = false;
                     break;
-                }  
+                }
+                catch (InvalidSeatNumberInputException ex)
+                {
+                    System.out.println("Seat number in each column must be more than zero, please try again!\n");
+                    validInput = false;
+                    break;
+                }
             }
             
             Integer numOfSeatsInColumn = Integer.valueOf(seatConfigPerColumnString);

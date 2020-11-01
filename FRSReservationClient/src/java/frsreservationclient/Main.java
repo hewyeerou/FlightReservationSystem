@@ -5,17 +5,22 @@
  */
 package frsreservationclient;
 
+import ejb.session.stateless.CustomerSessionBeanRemote;
+import javax.ejb.EJB;
+
 /**
  *
  * @author seowtengng
  */
 public class Main {
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        // TODO code application logic here
-    }
+    @EJB
+    private static CustomerSessionBeanRemote customerSessionBeanRemote;
     
+    
+    public static void main(String[] args) {
+        
+        MainApp mainApp = new MainApp(customerSessionBeanRemote);
+        mainApp.runApp();
+    }    
 }
