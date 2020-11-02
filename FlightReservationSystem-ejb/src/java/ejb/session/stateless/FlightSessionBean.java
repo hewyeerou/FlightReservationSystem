@@ -53,11 +53,18 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
             FlightRoute flightRoute = em.find(FlightRoute.class, flightRouteId);
             AircraftConfig aircraftConfig = em.find(AircraftConfig.class, aircraftConfigId);
 
+            //flight - flight route 
             newFlight.setFlightRoute(flightRoute);
-            newFlight.setAircraftConfig(aircraftConfig);
+            flightRoute.getFlights().add(newFlight);
             
+            //flight - aircraft config
+            newFlight.setAircraftConfig(aircraftConfig);
+            aircraftConfig.setFlight(newFlight);
+            
+            //flight - return flight
             newFlight.setReturnFlight(newFlight);
 
+            //flight - flightSchedulePlan
             for(FlightSchedulePlan flightSchedulePlan: newFlight.getFlightSchedulePlans())
             {
                 flightSchedulePlan.setFlight(newFlight);
@@ -99,9 +106,15 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
         
             FlightRoute returnFlightRoute = flight.getFlightRoute().getReturnFlightRoute();
 
+            //return flight - return flight route
             newReturnFlight.setFlightRoute(returnFlightRoute);
+            returnFlightRoute.getFlights().add(newReturnFlight);
+            
+            //return flight - aircraftConfig
             newReturnFlight.setAircraftConfig(flight.getAircraftConfig());
-
+            flight.getAircraftConfig().setFlight(newReturnFlight);
+            
+            //flight - return flight
             flight.setReturnFlight(newReturnFlight);
             newReturnFlight.setReturnFlight(newReturnFlight);
 
@@ -185,14 +198,25 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
     }
     
     @Override
-    public Flight getFlightById(Long flightId)
+    public Flight getFlightById(Long flightId) throws FlightNotFoundException
     {
         Flight flight = em.find(Flight.class, flightId);
         
-        flight.getAircraftConfig();
-        flight.getFlightRoute();
+        if(flight != null)
+        {
+            flight.getAircraftConfig();
+            flight.getFlightRoute();
+            flight.getFlightSchedulePlans().size();
+            
+            return flight;
+        }
+        else
+        {
+            throw new FlightNotFoundException("Flight " + flightId + " does not exist!");
+        }
+        
 
-        return flight;
+        
     }
     
     @Override
@@ -210,6 +234,46 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
         {
             throw new FlightNotFoundException("Flight ID not provided for flight to be updated");
         }
+    }
+    
+    @Override
+    public void removeFlight(Long flightId) throws FlightNotFoundException
+    {
+        Flight flightRemove = getFlightById(flightId);
+        
+        flightRemove.getFlightRoute().getFlights().remove(flightRemove);
+        
+        flightRemove.setReturnFlight(null);
+        
+        em.remove(flightRemove);
+    }
+    
+    @Override
+    public void removeReturnFlight(Long flightId, Long flightIdAssociatedWithReturnFlight) throws FlightNotFoundException
+    {
+        Flight flightRemove = getFlightById(flightId);
+        
+        flightRemove.getFlightRoute().getFlights().remove(flightRemove);
+        
+        flightRemove.setReturnFlight(null);
+        
+        //if it is return flight, set the flight associated to this return flight to itself
+        //disassociate 
+        Flight flightAssociatedToReturnFlight = em.find(Flight.class, flightIdAssociatedWithReturnFlight);
+        flightAssociatedToReturnFlight.setReturnFlight(flightAssociatedToReturnFlight);
+
+        em.remove(flightRemove);
+    }
+    
+    @Override
+    public void setFlightDisabled(Long flightId)
+    {
+        Flight flightToUpdate = em.find(Flight.class, flightId);
+        
+        if(flightToUpdate != null)
+        {
+            flightToUpdate.setEnabled(false);
+        } 
     }
        
 }

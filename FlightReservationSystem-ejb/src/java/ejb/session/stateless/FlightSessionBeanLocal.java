@@ -31,8 +31,14 @@ public interface FlightSessionBeanLocal {
 
     public void updateFlight(Flight flight) throws FlightNotFoundException;
 
-    public Flight getFlightById(Long flightId);
+    public Flight getFlightById(Long flightId) throws FlightNotFoundException;
 
     public Long createOutboundReturnFlightCheck(Flight newFlight, Long flightRouteId, Long aircraftConfigId, Flight newReturnFlight) throws createOutboundReturnFlightCheckException;
+
+    public void removeFlight(Long flightId) throws FlightNotFoundException;
+
+    public void removeReturnFlight(Long flightId, Long flightIdAssociatedWithReturnFlight) throws FlightNotFoundException;
+
+    public void setFlightDisabled(Long flightId);
     
 }

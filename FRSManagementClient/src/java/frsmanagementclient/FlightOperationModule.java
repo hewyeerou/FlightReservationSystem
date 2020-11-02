@@ -41,7 +41,7 @@ public class FlightOperationModule
     private AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote;
     private EmployeeSessionBeanRemote employeeSessionBeanRemote;
     
-    private FlightSessionBeanRemote flightSessionBean;
+    private FlightSessionBeanRemote flightSessionBeanRemote;
     private FlightRouteSessionBeanRemote flightRouteSessionBeanRemote;
     private AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote;
 
@@ -55,7 +55,7 @@ public class FlightOperationModule
     {
         this();
         this.currentEmployee  = currentEmployee;
-        this.flightSessionBean = flightSessionBean;
+        this.flightSessionBeanRemote = flightSessionBean;
         this.flightRouteSessionBeanRemote = flightRouteSessionBeanRemote;
         this.aircraftConfigSessionBeanRemote = aircraftConfigSessionBeanRemote;
     }
@@ -233,6 +233,7 @@ public class FlightOperationModule
         Scanner scanner = new Scanner(System.in);
         Flight newFlight = new Flight();
         Flight newReturnFlight = new Flight();
+        
         List<FlightRoute> flightRoutes = flightRouteSessionBeanRemote.getAllFlightRoute();
         List<AircraftConfig> aircraftConfigs = aircraftConfigSessionBeanRemote.retrieveAllAircraftConfigs();
         
@@ -240,17 +241,20 @@ public class FlightOperationModule
         Long flightRouteId;
         Integer aircraftConfigInt = 0;
         Integer flightRouteInt = 0;
-       
         
+        List<FlightRoute> filteredFlightRoutes = new ArrayList<>();
+       
         System.out.println("*** FRS Management :: Flight Operation :: Flight :: Create New Flight ***\n");
         
-        //Outbound Flight
-        System.out.print("Enter Flight Number> ");
+        System.out.print("Enter Flight Number (eg. ML001)> ");
         String flightNumber = scanner.nextLine().trim();
         
+        //prompt user a list of aircraft config
         while(true)
         {
             Integer option = 0;
+            
+            System.out.println("List of aircraft configurations: ");
             for(AircraftConfig aircraftConfig: aircraftConfigs)
             {
                 option++;
@@ -271,16 +275,22 @@ public class FlightOperationModule
             {
                 System.out.println("Invalid option, please try again!\n");
             }  
-        }
-                
+        }           
+        
+        //prompt user a list of flight routes
         while(true)
         {
             Integer option = 0;
-
+            
+            System.out.println("List of flight routes: ");
             for(FlightRoute flightRoute: flightRoutes)
             {
-                option++;
-                System.out.println(option + ": " + flightRoute.getOrigin().getIataCode() + " - " + flightRoute.getDestination().getIataCode() + ", " + flightRoute.getFlightRouteType());
+                if(flightRoute.getEnabled() == true)
+                {
+                    option++;
+                    System.out.println(option + ": " + flightRoute.getOrigin().getIataCode() + " - " + flightRoute.getDestination().getIataCode());
+                    filteredFlightRoutes.add(flightRoute);
+                }
             }
             
             System.out.println("");
@@ -290,7 +300,7 @@ public class FlightOperationModule
             
             if(flightRouteInt >= 1 && flightRouteInt <= option)
             {
-                flightRouteId = flightRoutes.get(flightRouteInt-1).getFlightRouteId();
+                flightRouteId = filteredFlightRoutes.get(flightRouteInt-1).getFlightRouteId();
                 break;
             }
             else
@@ -303,14 +313,24 @@ public class FlightOperationModule
         {
             if(flightNumber.substring(0,2).equals("ML"))
             {
-                newFlight.setFlightNumber(flightNumber);
-                newFlight.setFlightType("OUTBOUND");
-
-                //Return Flight 
                 FlightRoute flightRoute = flightRouteSessionBeanRemote.getFlightRouteById(flightRouteId, true, false);
-
-                if(flightRoute.getReturnFlightRoute().getFlightRouteId() != flightRoute.getFlightRouteId())
+                
+                if(flightRoute.getFlightRouteType().equals("RETURN") && flightRoute.getReturnFlightRoute().getFlightRouteId() == flightRoute.getFlightRouteId())
                 {
+                   newReturnFlight.setFlightNumber(flightNumber);
+                   newReturnFlight.setEnabled(true);
+                   newReturnFlight.setFlightType("RETURN");
+                   
+                   Long flightId = flightSessionBeanRemote.createFlight(newReturnFlight, flightRouteId, aircraftConfigId);
+                                  
+                   System.out.println("New flight created successfully!: " + flightId + "\n");
+                }
+                else if(flightRoute.getFlightRouteType().equals("OUTBOUND") && flightRoute.getReturnFlightRoute().getFlightRouteId() != flightRoute.getFlightRouteId())         //this flight route has complimentary flight route 
+                {
+                    newFlight.setFlightNumber(flightNumber);
+                    newFlight.setEnabled(true);
+                    newFlight.setFlightType("OUTBOUND");
+                    
                     System.out.println("Do you want to create a complementary return flight?");
                     while(true)
                     {
@@ -329,16 +349,19 @@ public class FlightOperationModule
                                 System.out.print("Enter Return Flight Number> ");
                                 String returnFlightNumber = scanner.nextLine().trim();
 
+                                
                                 if(returnFlightNumber.substring(0,2).equals("ML"))
                                 {
                                     newReturnFlight.setFlightNumber(returnFlightNumber);
+                                    newReturnFlight.setEnabled(true);
                                     newReturnFlight.setFlightType("RETURN");
                                     
-                                    Long flightId = flightSessionBean.createOutboundReturnFlightCheck(newFlight, flightRouteId, aircraftConfigId, newReturnFlight);
+                                    //create both outbound and return in the same transaction
+                                    Long flightId = flightSessionBeanRemote.createOutboundReturnFlightCheck(newFlight, flightRouteId, aircraftConfigId, newReturnFlight);
                                   
                                     System.out.println("New flight created successfully!: " + flightId + "\n");
                                     
-                                    Flight flight = flightSessionBean.getFlightById(flightId);
+                                    Flight flight = flightSessionBeanRemote.getFlightById(flightId);
                                     
                                     System.out.println("New return flight created successfully!: " + flight.getReturnFlight().getFlightId() + "\n");
                                     break;
@@ -351,12 +374,22 @@ public class FlightOperationModule
                             }
                             else if(option == 2)
                             {
-                                Long flightId = flightSessionBean.createFlight(newFlight, flightRouteId, aircraftConfigId);
+                                Long flightId = flightSessionBeanRemote.createFlight(newFlight, flightRouteId, aircraftConfigId);
                                 System.out.println("New flight created successfully!: " + flightId + "\n");
                                 break;
                             }
                         }
                     }
+                }
+                else
+                {
+                    newFlight.setFlightNumber(flightNumber);
+                    newFlight.setEnabled(true);
+                    newFlight.setFlightType("OUTBOUND");
+                    
+                    Long flightId = flightSessionBeanRemote.createFlight(newFlight, flightRouteId, aircraftConfigId);
+                                  
+                    System.out.println("New flight created successfully!: " + flightId + "\n");
                 }
             }
             else
@@ -377,6 +410,10 @@ public class FlightOperationModule
         {
             System.out.println("An unknown error has occurred while creating the new flight!: " + ex.getMessage() + "\n");
         } 
+        catch (FlightNotFoundException ex) 
+        {
+            System.out.println("Flight does not exist!\n");
+        } 
        
     }
   
@@ -386,30 +423,35 @@ public class FlightOperationModule
         System.out.println("*** FRS Management :: Flight Operation :: Flight :: View All Flights ***\n");
         
         Integer option = 0;
-        List<Flight> flights = flightSessionBean.getAllFlights();
+        List<Flight> flights = flightSessionBeanRemote.getAllFlights();
         List<Flight> outboundFlights = new ArrayList<>();
         
-        System.out.printf("%20s%30s%30s\n", "#" ,"Flight Number", "Type of Flight");
+        System.out.printf("%20s%30s%30s\n", "#" ,"Flight Number", "Flight Route");
         
         for(Flight flight: flights)
         {
-            if(flight.getFlightType().equals("OUTBOUND"))
+            if(flight.getFlightType().equals("OUTBOUND"))                       //outbound flight
             {
                 outboundFlights.add(flight);
+                
+                if(flight.getReturnFlight().getFlightId() != flight.getFlightId()) //outbound flight that has return flight 
+                {
+                    outboundFlights.add(flight.getReturnFlight());
+                }
+            }
+            else if(flight.getFlightType().equals("RETURN"))                    //return flight that does not have outbound flight associated to it
+            {
+                if(!outboundFlights.contains(flight))
+                {
+                    outboundFlights.add(flight);
+                }
             }
         }
         
         for(Flight outboundFlight: outboundFlights)
         {
             option++;
-            System.out.printf("%20s%30s%30s\n", option, outboundFlight.getFlightNumber(), outboundFlight.getFlightType());
-            
-            //if flight has return flight
-            if(outboundFlight.getReturnFlight().getFlightId() != outboundFlight.getFlightId())
-            {
-                option++;
-                System.out.printf("%20s%30s%30s\n", option, outboundFlight.getReturnFlight().getFlightNumber(), outboundFlight.getReturnFlight().getFlightType());
-            }       
+            System.out.printf("%20s%30s%30s\n", option, outboundFlight.getFlightNumber(), outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode());
         }
         
         System.out.println("------------------------------------------");
@@ -426,7 +468,7 @@ public class FlightOperationModule
         
         try
         {
-            Flight flight = flightSessionBean.getFlightByFlightNum(flightNum);
+            Flight flight = flightSessionBeanRemote.getFlightByFlightNum(flightNum);
             
             System.out.printf("%40s%40s\n", "Flight Number", "Flight Route");
             
@@ -461,7 +503,7 @@ public class FlightOperationModule
 
             System.out.println("");
 
-            Flight flight = flightSessionBean.getFlightByFlightNum(flightNumber);
+            Flight flight = flightSessionBeanRemote.getFlightByFlightNum(flightNumber);
             List<FlightRoute> flightRoutes = flightRouteSessionBeanRemote.getAllFlightRoute();
             List<AircraftConfig> aircraftConfigs = aircraftConfigSessionBeanRemote.retrieveAllAircraftConfigs();
             
@@ -489,7 +531,7 @@ public class FlightOperationModule
                         flightRouteId = updateFlightRoute(flightRoutes);
                         FlightRoute flightRoute = flightRouteSessionBeanRemote.getFlightRouteById(flightRouteId, true, true);
                         flight.setFlightRoute(flightRoute);
-                        flightSessionBean.updateFlight(flight);
+                        flightSessionBeanRemote.updateFlight(flight);
                         
                         System.out.println("Flight updated successfully! \n");
                     }
@@ -500,7 +542,7 @@ public class FlightOperationModule
                         aircraftConfigId = updateAircraftConfig(aircraftConfigs);
                         AircraftConfig aircraftConfig = aircraftConfigSessionBeanRemote.retrieveAircraftConfigById(aircraftConfigId);
                         flight.setAircraftConfig(aircraftConfig);
-                        flightSessionBean.updateFlight(flight);
+                        flightSessionBeanRemote.updateFlight(flight);
                         System.out.println("Flight updated successfully! \n");
                     }
                     else if(option == 3)
@@ -601,6 +643,99 @@ public class FlightOperationModule
     
     private void doDeleteFlight()
     {
+        try{
+            Scanner scanner = new Scanner(System.in);
+
+            List<Flight> flights = flightSessionBeanRemote.getAllFlights();
+            List<Flight> sortedFlights = new ArrayList<>();
+
+            Integer flightInt = 0;
+            Long flightId = 0l;
+            Long flightIdAssociatedWithReturnFlight = 0l;
+
+            System.out.println("*** FRS Management :: Flight Operation :: Flight :: Delete Flight ***\n");
+
+
+            for(Flight flight: flights)
+            {
+                if(flight.getFlightType().equals("OUTBOUND"))
+                {
+                    sortedFlights.add(flight);
+
+                    if(flight.getReturnFlight().getFlightId() != flight.getFlightId())
+                    {
+                        sortedFlights.add(flight.getReturnFlight());
+                    }
+                }
+                else if(flight.getFlightType().equals("RETURN"))
+                {
+                    if(!sortedFlights.contains(flight))
+                    {
+                        sortedFlights.add(flight);
+                    }
+                }
+            }
+
+            while(true)
+            {
+                Integer option = 0;
+
+                System.out.println("List of Flights: ");
+                for(Flight sortedFlight: sortedFlights)
+                {
+                    option++;
+                    System.out.println(option + ": " + sortedFlight.getFlightNumber());
+                }
+
+                System.out.println("");
+                System.out.print("Select a Flight to remove> ");
+                flightInt = scanner.nextInt();
+                scanner.nextLine();
+
+                if(flightInt >=1 && flightInt <= option)
+                {
+                    flightId = sortedFlights.get(flightInt-1).getFlightId();
+                    Flight flight = flightSessionBeanRemote.getFlightById(flightId);
+
+                    if(flight.getFlightSchedulePlans().isEmpty())
+                    {
+                        if(flight.getFlightType().equals("OUTBOUND"))
+                        {
+                            flightSessionBeanRemote.removeFlight(flightId);
+                            System.out.println("Existing flight removed successfully!\n");
+                        }
+
+                        else if(flight.getFlightType().equals("RETURN"))
+                        {
+                            for(Flight flightWithReturnFlightToRemove: sortedFlights)
+                            {
+                                //if return flight route and there is outbound flight route associated to the return flight route   
+                                if(flightWithReturnFlightToRemove.getFlightType().equals("OUTBOUND") && flightWithReturnFlightToRemove.getReturnFlight().getFlightId().equals(flightId))
+                                {
+                                    flightIdAssociatedWithReturnFlight = flightWithReturnFlightToRemove.getFlightId();
+                                }
+                            }
+                            flightSessionBeanRemote.removeReturnFlight(flightId, flightIdAssociatedWithReturnFlight);
+                            System.out.println("Existing flight removed successfully!\n");
+                        }   
+                    }
+                    else if(!flight.getFlightSchedulePlans().isEmpty())
+                    {
+                        flightSessionBeanRemote.setFlightDisabled(flightId);
+                        System.out.println("Existing flight has been set to disabled!\n");
+                    }
+                    break;
+                }  
+                else
+                {
+                    System.out.println("Invalid option, please try again! \n");
+                }
+            }
+        } 
+        catch (FlightNotFoundException ex) 
+        {
+            System.out.println("An error has occurred while removing flight record: " + ex.getMessage() + "!\n");
+        }
         
     }
     

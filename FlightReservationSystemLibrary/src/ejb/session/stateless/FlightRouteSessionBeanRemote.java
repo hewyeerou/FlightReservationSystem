@@ -30,4 +30,6 @@ public interface FlightRouteSessionBeanRemote
     public void removeFlightRoute(Long flightRouteId) throws FlightRouteNotFoundException;
     
     public void setFlightRouteDisabled(Long flightRouteId);
+    
+    public void removeReturnFlightRoute(Long flightRouteId, Long flightRouteIdAssociatedWithReturnFlightRoute) throws FlightRouteNotFoundException;
 }

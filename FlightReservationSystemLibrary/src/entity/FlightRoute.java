@@ -31,7 +31,7 @@ public class FlightRoute implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long flightRouteId;
     
-    @OneToOne
+    @OneToOne(optional = true)
     private FlightRoute returnFlightRoute;
     
     @ManyToOne(optional = false)
