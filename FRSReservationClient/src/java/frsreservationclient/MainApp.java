@@ -9,6 +9,7 @@ import ejb.session.stateless.CustomerSessionBeanRemote;
 import entity.Customer;
 import java.util.Scanner;
 import util.exception.CustomerUsernameExistException;
+import util.exception.InvalidLoginCredentialException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -38,8 +39,7 @@ public class MainApp {
         while (true)
         {
             response = 0;
-            
-            if (currentCustomer == null)
+    
             {
                 System.out.println("*** Welcome to Flight Reservation System (FRS) Reservation ***\n");
                 System.out.println("1: Register Account");
@@ -56,10 +56,27 @@ public class MainApp {
                     if (response == 1)
                     {
                         doRegisterCustomer();
+                        
+                        if (currentCustomer != null)
+                        {
+                            customerMenu();
+                        }
                     }
                     else if (response == 2)
                     {
-                        doLogin();
+                        try{
+                            doLogin();
+                            System.out.println("Login successful! \n");
+                            
+                            if (currentCustomer != null)
+                            {
+                                customerMenu();
+                            }
+                        }
+                        catch (InvalidLoginCredentialException ex)
+                        {
+                            System.out.println("Invalid login credential: " + ex.getMessage() + "\n");
+                        }  
                     }
                     else if (response == 3)
                     {
@@ -75,46 +92,62 @@ public class MainApp {
                     }
                 }
             }
-            else
+            
+            if (response == 4)
             {
-                System.out.println("*** Flight Reservation System (FRS) Reservation ***\n");
-                System.out.println("You are login as " + currentCustomer.getFirstName() + " " + currentCustomer.getLastName() + "\n");
-                System.out.println("1: Search for flights");
-                System.out.println("2: View Flight Reservations");
-                System.out.println("3: View Flight Reservation Details");
-                System.out.println("4: Logout\n");
+                break;
+            }
+        }
+    }
+    
+    public void customerMenu()
+    {
+        Scanner scanner = new Scanner(System.in);
+        Integer response = 0;
+        
+        while (true)
+        {
+            System.out.println("*** Flight Reservation System (FRS) Reservation ***\n");
+            System.out.println("You are login as " + currentCustomer.getFirstName() + " " + currentCustomer.getLastName() + "\n");
+            System.out.println("1: Search for flights");
+            System.out.println("2: View Flight Reservations");
+            System.out.println("3: View Flight Reservation Details");
+            System.out.println("4: Logout\n");
+            
+            response = 0;
 
-                while (response < 1 || response > 4)
+            while (response < 1 || response > 4)
+            {
+                System.out.print("> ");
+                response = scanner.nextInt();
+                scanner.nextLine();
+
+                if (response == 1)
                 {
-                    System.out.print("> ");
-                    response = scanner.nextInt();
-                    scanner.nextLine();
-
-                    if (response == 1)
-                    {
-                        doSearchFlight();
-                    }
-                    else if (response == 2)
-                    {
-                        doViewAllFlightReservations();
-                    }
-                    else if (response == 3)
-                    {
-                        doViewFlightReservationDetails();
-                    }
-                    else if (response == 4)
-                    {
-                        doLogout();
-                    }
-                    else
-                    {
-                        System.out.println("Invalid option, please try again!\n");
-                    }
+                    doSearchFlight();
+                }
+                else if (response == 2)
+                {
+                    doViewAllFlightReservations();
+                }
+                else if (response == 3)
+                {
+                    doViewFlightReservationDetails();
+                }
+                else if (response == 4)
+                {
+                    doLogout();
+                }
+                else
+                {
+                    System.out.println("Invalid option, please try again!\n");
                 }
             }
             
-            if (response == 4 && currentCustomer == null)
+            if (response == 4)
             {
+                doLogout();
+                System.out.println("You have logged out successfully!\n");
                 break;
             }
         }
@@ -263,9 +296,26 @@ public class MainApp {
         }
     }
     
-    public void doLogin()
+    public void doLogin() throws InvalidLoginCredentialException
     {
+        Scanner scanner = new Scanner (System.in);
+        String username = "";
+        String password = "";
         
+        System.out.println("*** FRS Reservation :: Customer Login ***\n");
+        System.out.print("Enter username> ");
+        username = scanner.nextLine().trim();
+        System.out.print("Enter password> ");
+        password = scanner.nextLine().trim();
+        
+        if(username.length() > 0 && password.length() > 0)
+        {
+            currentCustomer = customerSessionBeanRemote.customerLogin(username, password);
+        }
+        else
+        {
+            throw new InvalidLoginCredentialException("Missing login credential!");
+        }
     }
     
     public void doSearchFlight()
@@ -285,6 +335,6 @@ public class MainApp {
     
     public void doLogout()
     {
-        
+        currentCustomer = null;
     }
 }

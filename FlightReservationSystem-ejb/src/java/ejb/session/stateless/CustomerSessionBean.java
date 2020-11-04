@@ -8,10 +8,14 @@ package ejb.session.stateless;
 import entity.Customer;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
-import util.exception.AircraftConfigNameExistException;
+import javax.persistence.Query;
+import util.exception.CustomerNotFoundException;
 import util.exception.CustomerUsernameExistException;
+import util.exception.InvalidLoginCredentialException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -52,5 +56,43 @@ public class CustomerSessionBean implements CustomerSessionBeanRemote, CustomerS
                 throw new UnknownPersistenceException(ex.getMessage());
             }
         } 
+    }
+    
+    @Override
+    public Customer retrieveCustomerByUsername (String username) throws CustomerNotFoundException
+    {
+        try
+        {
+           Query query = em.createQuery("SELECT c FROM Customer c WHERE c.username = :inUsername");
+            query.setParameter("inUsername", username);
+        
+            return (Customer)query.getSingleResult(); 
+        }
+        catch (NoResultException | NonUniqueResultException ex)
+        {
+            throw new CustomerNotFoundException("Customer username " + username + " does not exist!");
+        }
+    }
+    
+    @Override
+    public Customer customerLogin (String username, String password) throws InvalidLoginCredentialException
+    {
+        try
+        {
+            Customer customer = retrieveCustomerByUsername(username);
+            
+            if (customer.getPassword().equals(password))
+            {
+                return customer;
+            }
+            else
+            {
+                throw new InvalidLoginCredentialException("Customer username " + username + " does not exist or invalid password!");
+            }
+        }
+        catch (CustomerNotFoundException ex)
+        {
+            throw new InvalidLoginCredentialException("Customer username " + username + " does not exist or invalid password!");
+        }
     }
 }

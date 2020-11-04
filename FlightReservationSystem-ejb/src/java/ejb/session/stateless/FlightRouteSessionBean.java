@@ -53,18 +53,21 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
                 Airport originAirport = em.find(Airport.class, originAirportId);
                 Airport destinationAirport = em.find(Airport.class, destinationAirportId);
 
+                //flightRoute - origin airport
                 flightRoute.setOrigin(originAirport);
                 originAirport.getDepartureRoutes().add(flightRoute);
+                
+                //flightRoute - destination airport
                 flightRoute.setDestination(destinationAirport);
                 destinationAirport.getArrivalRoutes().add(flightRoute);
                 
+                //flightRoute - returnflightRoute
                 flightRoute.setReturnFlightRoute(flightRoute);
 
                 for(Flight flight: flightRoute.getFlights())
                 {
                     flight.setFlightRoute(flightRoute);
                     flightRoute.getFlights().add(flight);
-                    em.persist(flight);
                 }
 
                 em.persist(flightRoute);
@@ -111,12 +114,15 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
                 Airport originAirport = flightRoute.getDestination();
                 Airport destinationAirport = flightRoute.getOrigin();
 
+                //returnFlightRoute - originAirport
                 returnFlightRoute.setOrigin(originAirport);
-                returnFlightRoute.setDestination(destinationAirport);
-
                 originAirport.getDepartureRoutes().add(returnFlightRoute);
+                
+                //returnFlightRoute - destinationAirport
+                returnFlightRoute.setDestination(destinationAirport);
                 destinationAirport.getArrivalRoutes().add(returnFlightRoute);
 
+                //flightRoute - returnFlightRoute
                 flightRoute.setReturnFlightRoute(returnFlightRoute);
                 returnFlightRoute.setReturnFlightRoute(returnFlightRoute);
 
@@ -124,7 +130,6 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
                 {
                     flight.setFlightRoute(returnFlightRoute);
                     returnFlightRoute.getFlights().add(flight);
-                    em.persist(flight);
                 }
 
                 em.persist(returnFlightRoute);
@@ -196,29 +201,35 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
     @Override
     public void removeFlightRoute(Long flightRouteId) throws FlightRouteNotFoundException
     {
-        FlightRoute flightRouteRemove = getFlightRouteById(flightRouteId, false, false);
+        FlightRoute flightRouteRemove = getFlightRouteById(flightRouteId, true, true);
         
-        //outbound
-        flightRouteRemove.setOrigin(null);
-        flightRouteRemove.setDestination(null);
-                
-        //return
-        flightRouteRemove.getReturnFlightRoute().setOrigin(null);
-        flightRouteRemove.getReturnFlightRoute().setDestination(null);
+        flightRouteRemove.getOrigin().getDepartureRoutes().remove(flightRouteRemove);
+        flightRouteRemove.getDestination().getArrivalRoutes().remove(flightRouteRemove);
         
         flightRouteRemove.setReturnFlightRoute(null);
-            
-        for(Flight flight: flightRouteRemove.getFlights())
-        {
-            flight.setFlightRoute(null);
-        }
-            
-        flightRouteRemove.getFlights().clear();
-            
+        
         em.remove(flightRouteRemove);
-
     }
     
+    @Override
+    public void removeReturnFlightRoute(Long flightRouteId, Long flightRouteIdAssociatedWithReturnFlightRoute) throws FlightRouteNotFoundException
+    {
+        FlightRoute flightRouteRemove = getFlightRouteById(flightRouteId, true, true);
+        
+        flightRouteRemove.getOrigin().getDepartureRoutes().remove(flightRouteRemove);
+        flightRouteRemove.getDestination().getArrivalRoutes().remove(flightRouteRemove);
+        
+        flightRouteRemove.setReturnFlightRoute(null);
+        
+         //if it is return flight route, set the flight route associated to this return flight to itself
+         //disassociate 
+        FlightRoute flightRouteAssociatedToReturnFlightRoute = em.find(FlightRoute.class, flightRouteIdAssociatedWithReturnFlightRoute);
+        flightRouteAssociatedToReturnFlightRoute.setReturnFlightRoute(flightRouteAssociatedToReturnFlightRoute);
+               
+
+        em.remove(flightRouteRemove);
+    }
+
     
     @Override
     public void setFlightRouteDisabled(Long flightRouteId)

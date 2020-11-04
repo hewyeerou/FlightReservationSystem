@@ -35,6 +35,9 @@ public class Flight implements Serializable {
     @Column(nullable = false)
     private String flightType;
     
+    @Column(nullable = false)
+    private Boolean enabled;
+    
     @OneToOne
     private Flight returnFlight;
     
@@ -53,11 +56,12 @@ public class Flight implements Serializable {
         flightSchedulePlans = new ArrayList<>();      
     }
 
-    public Flight(String flightNumber, String flightType) {
+    public Flight(String flightNumber, String flightType, Boolean enabled) {
         this();
         
         this.flightNumber = flightNumber;
         this.flightType = flightType;
+        this.enabled = enabled;
     }
 
     public Long getFlightId() {
@@ -139,6 +143,14 @@ public class Flight implements Serializable {
 
     public void setFlightType(String flightType) {
         this.flightType = flightType;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
     
     

@@ -7,7 +7,9 @@ package ejb.session.stateless;
 
 import entity.Customer;
 import javax.ejb.Remote;
+import util.exception.CustomerNotFoundException;
 import util.exception.CustomerUsernameExistException;
+import util.exception.InvalidLoginCredentialException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -19,4 +21,7 @@ public interface CustomerSessionBeanRemote {
     
     public Customer createNewCustomer(Customer newCustomer) throws CustomerUsernameExistException, UnknownPersistenceException;
     
+    public Customer retrieveCustomerByUsername(String username) throws CustomerNotFoundException;
+
+    public Customer customerLogin(String username, String password) throws InvalidLoginCredentialException;
 }

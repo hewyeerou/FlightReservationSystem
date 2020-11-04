@@ -116,7 +116,7 @@ public class MainApp {
         String username = "";
         String password = "";
         
-        System.out.println("*** FRS Management :: Login ***\n");
+        System.out.println("*** FRS Management :: Management Login ***\n");
         System.out.print("Enter username> ");
         username = scanner.nextLine().trim();
         System.out.print("Enter password> ");
