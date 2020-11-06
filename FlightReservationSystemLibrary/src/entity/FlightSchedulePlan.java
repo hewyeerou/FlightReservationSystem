@@ -17,6 +17,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 
 /**
@@ -32,9 +33,12 @@ public class FlightSchedulePlan implements Serializable {
     private Long flightSchedulePlanId;
     @Column(nullable=false, length=32)
     private String flightScheduleType;
-    @Temporal(javax.persistence.TemporalType.DATE)
+    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date endDate;
     private Integer intervalDays;
+    
+    @OneToOne
+    private FlightSchedulePlan returnFlightSchedulePlan;
     
     @ManyToOne(optional=false)
     @JoinColumn(nullable=false)
@@ -139,5 +143,14 @@ public class FlightSchedulePlan implements Serializable {
     public void setIntervalDays(Integer intervalDays) {
         this.intervalDays = intervalDays;
     }
+
+    public FlightSchedulePlan getReturnFlightSchedulePlan() {
+        return returnFlightSchedulePlan;
+    }
+
+    public void setReturnFlightSchedulePlan(FlightSchedulePlan returnFlightSchedulePlan) {
+        this.returnFlightSchedulePlan = returnFlightSchedulePlan;
+    }
+    
     
 }

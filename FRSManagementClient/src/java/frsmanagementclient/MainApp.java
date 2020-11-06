@@ -10,8 +10,11 @@ import ejb.session.stateless.AircraftTypeSessionBeanRemote;
 import ejb.session.stateless.AirportSessionBeanRemote;
 import ejb.session.stateless.EmployeeSessionBeanRemote;
 import ejb.session.stateless.FlightRouteSessionBeanRemote;
+import ejb.session.stateless.FlightSchedulePlanSessionBeanRemote;
+import ejb.session.stateless.FlightScheduleSessionBeanRemote;
 import ejb.session.stateless.FlightSessionBeanRemote;
 import ejb.session.stateless.PartnerSessionBeanRemote;
+import ejb.session.stateless.SeatinventorySessionBeanRemote;
 import entity.Employee;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -32,19 +35,23 @@ public class MainApp {
     private EmployeeSessionBeanRemote employeeSessionBeanRemote;
     private AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote;
     private FlightRouteSessionBeanRemote flightRouteSessionBeanRemote;
-    private FlightSessionBeanRemote flightSessionBean;
+    private FlightSessionBeanRemote flightSessionBeanRemote;
+    private FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote;
+    private FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote;
+    private SeatinventorySessionBeanRemote seatinventorySessionBeanRemote;
 
     private Employee currentEmployee;
     
     private FlightPlanningModule flightPlanningModule;
     private FlightOperationModule flightOperationModule;
     private SalesManagementModule salesManagementModule;
+   
             
     public MainApp()
     {
     }
 
-    public MainApp(PartnerSessionBeanRemote partnerSessionBeanRemote, AirportSessionBeanRemote airportSessionBeanRemote, AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote, EmployeeSessionBeanRemote employeeSessionBeanRemote, AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote, FlightRouteSessionBeanRemote flightRouteSessionBeanRemote, FlightSessionBeanRemote flightSessionBean)
+    public MainApp(PartnerSessionBeanRemote partnerSessionBeanRemote, AirportSessionBeanRemote airportSessionBeanRemote, AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote, EmployeeSessionBeanRemote employeeSessionBeanRemote, AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote, FlightRouteSessionBeanRemote flightRouteSessionBeanRemote, FlightSessionBeanRemote flightSessionBean, FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote, FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote, SeatinventorySessionBeanRemote seatinventorySessionBeanRemote)
     {
         this();
         
@@ -54,7 +61,10 @@ public class MainApp {
         this.employeeSessionBeanRemote = employeeSessionBeanRemote;
         this.aircraftConfigSessionBeanRemote = aircraftConfigSessionBeanRemote;
         this.flightRouteSessionBeanRemote = flightRouteSessionBeanRemote;
-        this.flightSessionBean = flightSessionBean;
+        this.flightSessionBeanRemote = flightSessionBean;
+        this.flightSchedulePlanSessionBeanRemote = flightSchedulePlanSessionBeanRemote;
+        this.flightScheduleSessionBeanRemote = flightScheduleSessionBeanRemote;
+        this.seatinventorySessionBeanRemote = seatinventorySessionBeanRemote;
     }
     
     public void runApp()
@@ -83,7 +93,7 @@ public class MainApp {
                         System.out.println("Login successful! \n");
                         
                         flightPlanningModule = new FlightPlanningModule(aircraftTypeSessionBeanRemote, aircraftConfigSessionBeanRemote, airportSessionBeanRemote, flightRouteSessionBeanRemote,currentEmployee);
-                        flightOperationModule = new FlightOperationModule(currentEmployee, flightSessionBean, flightRouteSessionBeanRemote, aircraftConfigSessionBeanRemote);
+                        flightOperationModule = new FlightOperationModule(currentEmployee, flightSessionBeanRemote, flightRouteSessionBeanRemote, aircraftConfigSessionBeanRemote, flightSchedulePlanSessionBeanRemote, flightScheduleSessionBeanRemote, seatinventorySessionBeanRemote);
                         salesManagementModule = new SalesManagementModule(currentEmployee);
                         
                         mainMenu();

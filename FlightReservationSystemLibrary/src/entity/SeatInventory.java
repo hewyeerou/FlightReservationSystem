@@ -31,11 +31,9 @@ public class SeatInventory implements Serializable {
     private Integer numOfReservedSeats;
     @Column(nullable = false)
     private Integer numOfBalanceSeats;
-    
-    // haven't thought of how to store actual seat configuration for each cabin class
-    
-    @OneToOne(mappedBy = "seatInventory")
-    private FlightSchedule flightSchedule;
+
+//    @OneToOne(mappedBy = "seatInventory")
+//    private FlightSchedule flightSchedule;
 
     public SeatInventory() {
     }
@@ -79,13 +77,13 @@ public class SeatInventory implements Serializable {
         return "entity.SeatInventory[ id=" + seatInventoryId + " ]";
     }
 
-    public FlightSchedule getFlightSchedule() {
-        return flightSchedule;
-    }
-
-    public void setFlightSchedule(FlightSchedule flightSchedule) {
-        this.flightSchedule = flightSchedule;
-    }
+//    public FlightSchedule getFlightSchedule() {
+//        return flightSchedule;
+//    }
+//
+//    public void setFlightSchedule(FlightSchedule flightSchedule) {
+//        this.flightSchedule = flightSchedule;
+//    }
 
     public Integer getNumOfAvailableSeats() {
         return numOfAvailableSeats;

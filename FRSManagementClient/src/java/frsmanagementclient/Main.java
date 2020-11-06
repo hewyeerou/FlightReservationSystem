@@ -10,8 +10,11 @@ import ejb.session.stateless.AircraftTypeSessionBeanRemote;
 import ejb.session.stateless.AirportSessionBeanRemote;
 import ejb.session.stateless.EmployeeSessionBeanRemote;
 import ejb.session.stateless.FlightRouteSessionBeanRemote;
+import ejb.session.stateless.FlightSchedulePlanSessionBeanRemote;
+import ejb.session.stateless.FlightScheduleSessionBeanRemote;
 import ejb.session.stateless.FlightSessionBeanRemote;
 import ejb.session.stateless.PartnerSessionBeanRemote;
+import ejb.session.stateless.SeatinventorySessionBeanRemote;
 import javax.ejb.EJB;
 
 /**
@@ -19,7 +22,7 @@ import javax.ejb.EJB;
  * @author seowtengng
  */
 public class Main {
-
+    
     @EJB
     private static EmployeeSessionBeanRemote employeeSessionBeanRemote;
     @EJB
@@ -31,15 +34,22 @@ public class Main {
     @EJB
     private static AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote;
     @EJB
-    private static FlightRouteSessionBeanRemote flightRouteSessionBean;
+    private static FlightRouteSessionBeanRemote flightRouteSessionBeanRemote;
     @EJB
-    private static FlightSessionBeanRemote flightSessionBean;
+    private static FlightSessionBeanRemote flightSessionBeanRemote;
+    @EJB
+    private static FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote;
+    @EJB
+    private static FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote;
+    @EJB
+    private static SeatinventorySessionBeanRemote seatinventorySessionBeanRemote;
+
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MainApp mainApp = new MainApp(partnerSessionBeanRemote, airportSessionBeanRemote, aircraftTypeSessionBeanRemote, employeeSessionBeanRemote, aircraftConfigSessionBeanRemote, flightRouteSessionBean, flightSessionBean);
+        MainApp mainApp = new MainApp(partnerSessionBeanRemote, airportSessionBeanRemote, aircraftTypeSessionBeanRemote, employeeSessionBeanRemote, aircraftConfigSessionBeanRemote, flightRouteSessionBeanRemote, flightSessionBeanRemote, flightSchedulePlanSessionBeanRemote, flightScheduleSessionBeanRemote, seatinventorySessionBeanRemote);
         mainApp.runApp();
     }
     

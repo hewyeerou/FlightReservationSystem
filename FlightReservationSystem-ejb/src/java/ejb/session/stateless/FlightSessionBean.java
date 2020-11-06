@@ -188,6 +188,7 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
             flight.getAircraftConfig();
             flight.getAircraftConfig().getCabinClasses().size();
             flight.getFlightRoute();
+            flight.getFlightSchedulePlans().size();
             
             return flight;
         }
@@ -240,30 +241,31 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
     public void removeFlight(Long flightId) throws FlightNotFoundException
     {
         Flight flightRemove = getFlightById(flightId);
+        Flight returnFlightRemove = flightRemove.getReturnFlight();
         
         flightRemove.getFlightRoute().getFlights().remove(flightRemove);
+        returnFlightRemove.getFlightRoute().getFlights().remove(returnFlightRemove);
         
         flightRemove.setReturnFlight(null);
+        returnFlightRemove.setReturnFlight(null);
         
+        em.remove(returnFlightRemove);
         em.remove(flightRemove);
     }
     
-    @Override
-    public void removeReturnFlight(Long flightId, Long flightIdAssociatedWithReturnFlight) throws FlightNotFoundException
-    {
-        Flight flightRemove = getFlightById(flightId);
-        
-        flightRemove.getFlightRoute().getFlights().remove(flightRemove);
-        
-        flightRemove.setReturnFlight(null);
-        
-        //if it is return flight, set the flight associated to this return flight to itself
-        //disassociate 
-        Flight flightAssociatedToReturnFlight = em.find(Flight.class, flightIdAssociatedWithReturnFlight);
-        flightAssociatedToReturnFlight.setReturnFlight(flightAssociatedToReturnFlight);
-
-        em.remove(flightRemove);
-    }
+//    @Override
+//    public void removeReturnFlight(Long returnFlightId) throws FlightNotFoundException
+//    {
+//        Flight returnFlightRemove = getFlightById(returnFlightId);
+//        
+//        returnFlightRemove.getFlightRoute().getFlights().remove(returnFlightRemove);
+//        
+//
+//        
+//        returnFlightRemove.setReturnFlight(null);
+//        
+//        em.remove(returnFlightRemove);
+//    }
     
     @Override
     public void setFlightDisabled(Long flightId)
@@ -273,6 +275,7 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
         if(flightToUpdate != null)
         {
             flightToUpdate.setEnabled(false);
+            flightToUpdate.getReturnFlight().setEnabled(false);
         } 
     }
        

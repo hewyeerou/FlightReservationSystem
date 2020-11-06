@@ -612,16 +612,23 @@ public class FlightPlanningModule
             destinationAirportInt = scanner.nextInt();
             scanner.nextLine();
             
-            if(destinationAirportInt >= 1 && destinationAirportInt <= option)
+            if(destinationAirportInt != originAirportInt)
             {
-                destinationAirportId = airports.get(destinationAirportInt-1).getAirportId();
-                System.out.println("You have selected " + airports.get(destinationAirportInt-1).getIataCode());
-                break;
+                if(destinationAirportInt >= 1 && destinationAirportInt <= option)
+                {
+                    destinationAirportId = airports.get(destinationAirportInt-1).getAirportId();
+                    System.out.println("You have selected " + airports.get(destinationAirportInt-1).getIataCode());
+                    break;
+                }
+                else
+                {
+                    System.out.println("Invalid option, please try again!");
+                }
             }
             else
             {
-                System.out.println("Invalid option, please try again!");
-            }
+                System.out.println("You are not allowed to select the origin airport!");
+            } 
         }
         
         try
@@ -771,27 +778,15 @@ public class FlightPlanningModule
                 if(flightRoute.getFlightRouteType().equals("OUTBOUND"))
                 {
                     outboundFlightRoutes.add(flightRoute);
-                    
-                    if(flightRoute.getReturnFlightRoute().getFlightRouteId() != flightRoute.getFlightRouteId())
-                    {
-                        outboundFlightRoutes.add(flightRoute.getReturnFlightRoute());
-                    }
+                   
                 }
-                else if(flightRoute.getFlightRouteType().equals("RETURN"))
-                {
-                    if(!outboundFlightRoutes.contains(flightRoute.getReturnFlightRoute()))
-                    {
-                        outboundFlightRoutes.add(flightRoute);
-                    }
-                }
- 
             }
 
             while(true)
             {
                 Integer option = 0;
 
-                System.out.println("List of Flight Routes: ");
+                System.out.println("List of Main Flight Routes: ");
                 for(FlightRoute outboundFlightRoute: outboundFlightRoutes)
                 {
                     option++;
@@ -808,28 +803,28 @@ public class FlightPlanningModule
                     flightRouteId = outboundFlightRoutes.get(flightRouteInt-1).getFlightRouteId();
                     FlightRoute flightRoute = flightRouteSessionBeanRemote.getFlightRouteById(flightRouteId, true, true);
                     
-                    
                     if(flightRoute.getFlights().isEmpty())
                     {
                         if(flightRoute.getFlightRouteType().equals("OUTBOUND"))
                         {
-                            flightRouteSessionBeanRemote.removeFlightRoute(flightRouteId);
+                            flightRouteSessionBeanRemote.removeFlightRoute(flightRouteId);  
+                            
                             System.out.println("Existing flight route removed successfully!\n");
                         }
-                        else if(flightRoute.getFlightRouteType().equals("RETURN"))
-                        {
-                            for(FlightRoute flightRouteWithReturnFlightToRemove: outboundFlightRoutes)
-                            {
-                                //if return flight route and there is outbound flight route associated to the return flight route   
-                                if(flightRouteWithReturnFlightToRemove.getFlightRouteType().equals("OUTBOUND") && flightRouteWithReturnFlightToRemove.getReturnFlightRoute().getFlightRouteId().equals(flightRouteId))
-                                {
-                                    flightRouteIdAssociatedWithReturnFlightRoute = flightRouteWithReturnFlightToRemove.getFlightRouteId();
-                                }
-                            }
-                            
-                            flightRouteSessionBeanRemote.removeReturnFlightRoute(flightRouteId, flightRouteIdAssociatedWithReturnFlightRoute);
-                            System.out.println("Existing flight route removed successfully!\n");
-                        }  
+//                        else if(flightRoute.getFlightRouteType().equals("RETURN"))
+//                        {
+//                            for(FlightRoute flightRouteWithReturnFlightToRemove: outboundFlightRoutes)
+//                            {
+//                                //if return flight route and there is outbound flight route associated to the return flight route   
+//                                if(flightRouteWithReturnFlightToRemove.getFlightRouteType().equals("OUTBOUND") && flightRouteWithReturnFlightToRemove.getReturnFlightRoute().getFlightRouteId().equals(flightRouteId))
+//                                {
+//                                    flightRouteIdAssociatedWithReturnFlightRoute = flightRouteWithReturnFlightToRemove.getFlightRouteId();
+//                                }
+//                            }
+//                            
+//                            flightRouteSessionBeanRemote.removeReturnFlightRoute(flightRouteId, flightRouteIdAssociatedWithReturnFlightRoute);
+//                            System.out.println("Existing flight route removed successfully!\n");
+//                        }  
                     }
                     else if(!flightRoute.getFlights().isEmpty())
                     {

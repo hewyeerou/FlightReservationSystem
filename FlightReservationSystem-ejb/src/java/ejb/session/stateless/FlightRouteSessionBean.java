@@ -30,26 +30,24 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
     @PersistenceContext(unitName = "FlightReservationSystem-ejbPU")
     private EntityManager em;
     
-    
     @Override
     public Long createNewFlightRoute(FlightRoute flightRoute, Long originAirportId, Long destinationAirportId) throws FlightRouteExistException, UnknownPersistenceException
     {
         try
         {
             //check duplicate record
-//            List<FlightRoute> flightRoutes = getAllFlightRoute();
-//            
-//            List<Long> originAirports = new ArrayList<>();
-//            List<Long> destinationAirports = new ArrayList<>();
-//            
-//            for(FlightRoute fr: flightRoutes)
-//            {
-//                originAirports.add(fr.getOrigin().getAirportId());
-//                destinationAirports.add(fr.getDestination().getAirportId());
-//            }
+
+            List<FlightRoute> flightRoutes = getAllFlightRoute();
+            List<String> flightRoutesPair = new ArrayList<>();
             
-//            if(!originAirports.contains(flightRoute.getOrigin().getAirportId()) || !destinationAirports.contains(flightRoute.getDestination().getAirportId()))
-//            {
+            for(FlightRoute route: flightRoutes)
+            {
+                flightRoutesPair.add(route.getOrigin() + "-" + route.getDestination());
+            }
+            String routePair = flightRoute.getOrigin() + "-" + flightRoute.getDestination();
+            
+            if(!flightRoutesPair.contains(routePair))
+            {
                 Airport originAirport = em.find(Airport.class, originAirportId);
                 Airport destinationAirport = em.find(Airport.class, destinationAirportId);
 
@@ -74,11 +72,11 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
                 em.flush();
                 
                 return flightRoute.getFlightRouteId();
-//            }
-//            else
-//            {
-//                throw new FlightRouteExistException("Flight route already exist!");
-//            }  
+            }
+            else
+            {
+                throw new FlightRouteExistException("Flight route already exist!");
+            }  
         }
         catch(PersistenceException ex)
         {
@@ -105,10 +103,6 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
     {
         try
         {
-//            List<FlightRoute> flightRoutes = getAllFlightRoute();
-            
-//            if(!flightRoutes.contains(returnFlightRoute))
-//            {
                 FlightRoute flightRoute = em.find(FlightRoute.class, flightRouteId);
 
                 Airport originAirport = flightRoute.getDestination();
@@ -136,11 +130,6 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
                 em.flush();
 
                 return returnFlightRoute.getFlightRouteId();  
-//            }
-//            else
-//            {
-//                throw new FlightRouteExistException("Flight route already exist!");
-//            }  
         }
         catch(PersistenceException ex)
         {
@@ -202,33 +191,38 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
     public void removeFlightRoute(Long flightRouteId) throws FlightRouteNotFoundException
     {
         FlightRoute flightRouteRemove = getFlightRouteById(flightRouteId, true, true);
-        
         flightRouteRemove.getOrigin().getDepartureRoutes().remove(flightRouteRemove);
         flightRouteRemove.getDestination().getArrivalRoutes().remove(flightRouteRemove);
         
+        FlightRoute returnFlightRouteRemove = getFlightRouteById(flightRouteRemove.getReturnFlightRoute().getFlightRouteId(), true, true);
+        returnFlightRouteRemove.getOrigin().getDepartureRoutes().remove(returnFlightRouteRemove);
+        returnFlightRouteRemove.getDestination().getArrivalRoutes().remove(returnFlightRouteRemove);
+       
         flightRouteRemove.setReturnFlightRoute(null);
+        returnFlightRouteRemove.setReturnFlightRoute(null);
         
         em.remove(flightRouteRemove);
+        em.remove(returnFlightRouteRemove);
     }
     
-    @Override
-    public void removeReturnFlightRoute(Long flightRouteId, Long flightRouteIdAssociatedWithReturnFlightRoute) throws FlightRouteNotFoundException
-    {
-        FlightRoute flightRouteRemove = getFlightRouteById(flightRouteId, true, true);
-        
-        flightRouteRemove.getOrigin().getDepartureRoutes().remove(flightRouteRemove);
-        flightRouteRemove.getDestination().getArrivalRoutes().remove(flightRouteRemove);
-        
-        flightRouteRemove.setReturnFlightRoute(null);
-        
-         //if it is return flight route, set the flight route associated to this return flight to itself
-         //disassociate 
-        FlightRoute flightRouteAssociatedToReturnFlightRoute = em.find(FlightRoute.class, flightRouteIdAssociatedWithReturnFlightRoute);
-        flightRouteAssociatedToReturnFlightRoute.setReturnFlightRoute(flightRouteAssociatedToReturnFlightRoute);
-               
-
-        em.remove(flightRouteRemove);
-    }
+//    @Override
+//    public void removeReturnFlightRoute(Long flightRouteId, Long flightRouteIdAssociatedWithReturnFlightRoute) throws FlightRouteNotFoundException
+//    {
+//        FlightRoute flightRouteRemove = getFlightRouteById(flightRouteId, true, true);
+//        
+//        flightRouteRemove.getOrigin().getDepartureRoutes().remove(flightRouteRemove);
+//        flightRouteRemove.getDestination().getArrivalRoutes().remove(flightRouteRemove);
+//        
+//        flightRouteRemove.setReturnFlightRoute(null);
+//        
+//         //if it is return flight route, set the flight route associated to this return flight to itself
+//         //disassociate 
+//        FlightRoute flightRouteAssociatedToReturnFlightRoute = em.find(FlightRoute.class, flightRouteIdAssociatedWithReturnFlightRoute);
+//        flightRouteAssociatedToReturnFlightRoute.setReturnFlightRoute(flightRouteAssociatedToReturnFlightRoute);
+//               
+//
+//        em.remove(flightRouteRemove);
+//    }
 
     
     @Override

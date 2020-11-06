@@ -37,7 +37,7 @@ public interface FlightSessionBeanRemote
 
     public void removeFlight(Long flightId) throws FlightNotFoundException;
     
-    public void removeReturnFlight(Long flightId, Long flightIdAssociatedWithReturnFlight) throws FlightNotFoundException;
+//    public void removeReturnFlight(Long flightId) throws FlightNotFoundException;
     
     public void setFlightDisabled(Long flightId);
 }

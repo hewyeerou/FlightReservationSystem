@@ -31,13 +31,16 @@ public class FlightSchedule implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long flightScheduleId;
-    @Temporal(javax.persistence.TemporalType.DATE)
+    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     @Column(nullable = false)
-    private Date departure;
+    private Date departureDateTime;
     @Column(nullable = false)
     private Integer flightHours;
     @Column(nullable = false)
     private Integer flightMinutes;
+    
+    @OneToOne
+    private FlightSchedule returnFlightSchedule;
     
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
@@ -57,11 +60,19 @@ public class FlightSchedule implements Serializable {
     public FlightSchedule(Date departure, Integer flightHours, Integer flightMinutes) {
         this();
         
-        this.departure = departure;
+        this.departureDateTime = departure;
         this.flightHours = flightHours;
         this.flightMinutes = flightMinutes;
     }
 
+    public FlightSchedule getReturnFlightSchedule() {
+        return returnFlightSchedule;
+    }
+
+    public void setReturnFlightSchedule(FlightSchedule returnFlightSchedule) {
+        this.returnFlightSchedule = returnFlightSchedule;
+    }
+    
     public Long getFlightScheduleId() {
         return flightScheduleId;
     }
@@ -95,12 +106,12 @@ public class FlightSchedule implements Serializable {
         return "entity.FlightSchedule[ id=" + flightScheduleId + " ]";
     }
 
-    public Date getDeparture() {
-        return departure;
+    public Date getDepartureDateTime() {
+        return departureDateTime;
     }
 
-    public void setDeparture(Date departure) {
-        this.departure = departure;
+    public void setDepartureDateTime(Date departureDateTime) {
+        this.departureDateTime = departureDateTime;
     }
 
     public Integer getFlightHours() {
