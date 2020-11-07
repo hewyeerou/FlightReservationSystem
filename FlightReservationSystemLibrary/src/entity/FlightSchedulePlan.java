@@ -37,6 +37,9 @@ public class FlightSchedulePlan implements Serializable {
     private Date endDate;
     private Integer intervalDays;
     
+    @Column(nullable = false)
+    private String flightSchedulePlanType;
+    
     @OneToOne
     private FlightSchedulePlan returnFlightSchedulePlan;
     
@@ -70,6 +73,16 @@ public class FlightSchedulePlan implements Serializable {
     public void setFlightSchedulePlanId(Long flightSchedulePlanId) {
         this.flightSchedulePlanId = flightSchedulePlanId;
     }
+
+    public String getFlightSchedulePlanType() {
+        return flightSchedulePlanType;
+    }
+
+    public void setFlightSchedulePlanType(String flightSchedulePlanType) {
+        this.flightSchedulePlanType = flightSchedulePlanType;
+    }
+    
+    
 
     @Override
     public int hashCode() {

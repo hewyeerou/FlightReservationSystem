@@ -39,6 +39,9 @@ public class FlightSchedule implements Serializable {
     @Column(nullable = false)
     private Integer flightMinutes;
     
+    @Column(nullable = false)
+    private String flightScheduleType;
+    
     @OneToOne
     private FlightSchedule returnFlightSchedule;
     
@@ -79,6 +82,14 @@ public class FlightSchedule implements Serializable {
 
     public void setFlightScheduleId(Long flightScheduleId) {
         this.flightScheduleId = flightScheduleId;
+    }
+
+    public String getFlightScheduleType() {
+        return flightScheduleType;
+    }
+
+    public void setFlightScheduleType(String flightScheduleType) {
+        this.flightScheduleType = flightScheduleType;
     }
 
     @Override

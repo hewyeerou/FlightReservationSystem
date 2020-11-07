@@ -731,12 +731,79 @@ public class FlightOperationModule
                             flightSchedulePlan.setFlightScheduleType("SINGLE");
                             flightSchedulePlan.setIntervalDays(0);
                             flightSchedulePlan.setEndDate(null);
+                            flightSchedulePlan.setFlightSchedulePlanType("OUTBOUND");
 
                             flightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewFlightSchedulePlan(flightSchedulePlan, flightNum);
                             System.out.println("Flight Schedule Plan created successfully!: " + flightSchedulePlanId);
                             
                             System.out.println("\n*** FRS Management :: Flight Operation :: Flight Schedule Plan :: Create Single Schedule ***\n");
                             flightScheduleId = doCreateEveryFlightSchedules(flightSchedulePlanId, flight, "SINGLE");  
+                            
+                            List<FlightSchedule> flightSchedules = new ArrayList<>();
+                            FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
+                            Long returnFlightSchedulePlanId;
+                            
+                            if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
+                            {
+                                System.out.println("Do you want to create a complementary return flight schedule plan?");
+                                while (true) 
+                                {
+                                    Integer choice = 0;
+
+                                    System.out.println("1. Yes");
+                                    System.out.println("2. No");
+                                    System.out.print("> ");
+                                    choice = scanner.nextInt();
+                                    scanner.nextLine();
+
+                                    if (choice >= 1 && choice <= 2) 
+                                    {
+                                        if (choice == 1) 
+                                        {
+                                            try
+                                            {
+                                                System.out.print("Enter Layover Duration(hrs)> ");
+                                                Double layoverDuration = scanner.nextDouble();
+
+                                                flightSchedulePlanForReturnFlight.setFlightScheduleType("SINGLE");
+                                                flightSchedulePlanForReturnFlight.setEndDate(null);
+                                                flightSchedulePlanForReturnFlight.setIntervalDays(0);
+                                                flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
+
+                                                returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
+
+                                                FlightSchedule flightSchedule = doCreateEveryReturnFlightSchedules(flightScheduleId, flight, layoverDuration, "MULTIPLE");
+                                                //create seat inventory 
+                                                SeatInventory returnSeatInventory = new SeatInventory();
+                                                //get max seat capacity from aircraft config
+                                                Integer totalMaxSeatCapacityReturn = flight.getReturnFlight().getAircraftConfig().getMaxSeatCapacity();
+                                                returnSeatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityReturn);
+                                                returnSeatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityReturn);
+                                                returnSeatInventory.setNumOfReservedSeats(0);
+
+                                                Long returnSeatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(returnSeatInventory);
+
+                                                Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightSchedule, flightScheduleId, returnFlightSchedulePlanId, returnSeatInventoryId);
+                                                System.out.println("Single flight schedule created successfully!\n");
+
+                                                break;
+                                            }
+                                            catch (FlightSchedulePlanNotFoundException ex) 
+                                            {
+                                               System.out.println("An error has occurred while retrieving flight schedule plan: " + ex.getMessage() + "\n");
+                                            } 
+                                            catch (FlightScheduleNotFoundException ex) 
+                                            {
+                                                System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
+                                            }
+                                        }
+                                        else if(choice == 2)
+                                        {
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
                             
                             break;
                         }
@@ -745,23 +812,98 @@ public class FlightOperationModule
                             flightSchedulePlan.setFlightScheduleType("MULTIPLE");       
                             flightSchedulePlan.setIntervalDays(0);
                             flightSchedulePlan.setEndDate(null);
+                            flightSchedulePlan.setFlightSchedulePlanType("OUTBOUND");
                             
+                            //create main flight schedule plan
                             flightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewFlightSchedulePlan(flightSchedulePlan, flightNum);
                             System.out.println("Flight Schedule Plan created successfully!: " + flightSchedulePlanId);
                             
-                            String choice = "";
+                            String command = "";
                             
-                            System.out.println("\n*** FRS Management :: Flight Operation :: Flight Schedule Plan :: Create Multiple Schedule ***\n");
-                            
+                            List<FlightSchedule> flightSchedules = new ArrayList<>();
+                            FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
+                            Long returnFlightSchedulePlanId = 0l;
+
                             do
                             {
-                                doCreateEveryFlightSchedules(flightSchedulePlanId, flight, "MULTIPLE");
+                                flightScheduleId = doCreateEveryFlightSchedules(flightSchedulePlanId, flight, "MULTIPLE");
                                 
-                                System.out.print("More? (Enter 'Q' to complete adding flight schedules)> ");
-                                choice = scanner.nextLine().trim();
-                                
-                            } while(!choice.equals("Q"));
+                                if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
+                                {
+                                    System.out.println("Do you want to create a complementary return flight schedule plan?");
+                                    while (true) 
+                                    {
+                                        Integer choice = 0;
+
+                                        System.out.println("1. Yes");
+                                        System.out.println("2. No");
+                                        System.out.print("> ");
+                                        choice = scanner.nextInt();
+                                        scanner.nextLine();
+
+                                        if (choice >= 1 && choice <= 2) 
+                                        {
+                                            if (choice == 1) 
+                                            {
+                                                System.out.print("Enter Layover Duration(hrs)> ");
+                                                Double layoverDuration = scanner.nextDouble();
+                                                scanner.nextLine();
+                                                
+                                                flightSchedulePlanForReturnFlight.setFlightScheduleType("MULTIPLE");
+                                                flightSchedulePlanForReturnFlight.setEndDate(null);
+                                                flightSchedulePlanForReturnFlight.setIntervalDays(0);
+                                                flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
+                                                    
+                                                flightSchedules.add(doCreateEveryReturnFlightSchedules(flightScheduleId, flight, layoverDuration, "MULTIPLE"));
+                                                System.out.println("Flight schedule created successfully!\n");
+                                                break;
+                                            }
+                                            else if(choice == 2)
+                                            {
+                                                break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            System.out.println("Invalid option, please try again! \n");
+                                        } 
+                                    }
+                                }
+                                System.out.print("More? (Enter 'Q' to complete adding flight schedules)>");
+                                command = scanner.nextLine().trim();
+                            } while(!command.equals("Q"));
                             
+                            
+                            if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
+                            {
+                                returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
+                            }
+                            
+                            for(FlightSchedule flightSchedule: flightSchedules)
+                            {
+                                try
+                                {
+                                    //create seat inventory 
+                                    SeatInventory returnSeatInventory = new SeatInventory();
+                                    //get max seat capacity from aircraft config
+                                    Integer totalMaxSeatCapacityReturn = flight.getReturnFlight().getAircraftConfig().getMaxSeatCapacity();
+                                    returnSeatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityReturn);
+                                    returnSeatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityReturn);
+                                    returnSeatInventory.setNumOfReservedSeats(0);
+
+                                    Long returnSeatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(returnSeatInventory);
+
+                                    Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightSchedule, flightScheduleId, returnFlightSchedulePlanId, returnSeatInventoryId);
+                                } 
+                                catch (FlightSchedulePlanNotFoundException ex) 
+                                {
+                                   System.out.println("An error has occurred while retrieving flight schedule plan: " + ex.getMessage() + "\n");
+                                } 
+                                catch (FlightScheduleNotFoundException ex) 
+                                {
+                                    System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
+                                }
+                            }
                             break;
                         } 
                         else if (option == 3) 
@@ -784,6 +926,8 @@ public class FlightOperationModule
                                     if(choice == 1)
                                     {
                                         try{
+                                            System.out.println("\n*** FRS Management :: Flight Operation :: Flight Schedule Plan :: Create Multiple Schedule ***\n");
+                                            
                                             System.out.print("Enter day interval> ");
                                             Integer dayInterval = scanner.nextInt();
                                             scanner.nextLine();
@@ -803,27 +947,32 @@ public class FlightOperationModule
 
                                             flightSchedulePlan.setIntervalDays(dayInterval);
                                             flightSchedulePlan.setEndDate(formattedEndDate);
+                                            flightSchedulePlan.setFlightSchedulePlanType("OUTBOUND");
                                             
+                                            //create flight schedule plan
                                             flightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewFlightSchedulePlan(flightSchedulePlan, flightNum);                                         
-                                            
-//                                            Long recurrentFlightScheduleId = doCreateEveryFlightSchedules(flightSchedulePlanId, flight, "RECURRENT");
-//                                            FlightSchedule recurrentFLightSchedule = flightScheduleSessionBeanRemote.getFlightScheduleById(recurrentFlightScheduleId);                                  
-                                            
+                                          
                                             Long difference_In_Time = formattedEndDate.getTime() - formattedStartDate.getTime();
                                             Long days = TimeUnit.MILLISECONDS.toDays(difference_In_Time) % 365;
                                             Integer numOfTimes = days.intValue()/dayInterval;
                                             
                                             int interval = 0;
-
+                                            
+                                            //create recurrent schedules for the plan
                                             for(int i = 0; i < numOfTimes; i++)
                                             {
-                                                createRecurrentFlightSchedule(flightSchedulePlanId, flight, startDate,  startTime, flightDuration, interval, i);
+                                                createRecurrentFlightSchedule(flightSchedulePlanId, flight, startDate,  startTime, flightDuration, interval);
                                                 interval += dayInterval;
                                             }
-                                           
-                                            if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) {
-                                                System.out.println("\nDo you want to create a complementary return flight schedule plan for recurrent flight schedule?");
-                                                while (true) {
+                                            
+                                            System.out.println("Recurrent Flight Schedules created successfully!\n");
+                                            
+                                            //create recurrent schedules plan
+                                            if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
+                                            {
+                                                System.out.println("Do you want to create a complementary return flight schedule plan for recurrent flight schedule?");
+                                                while (true) 
+                                                {
                                                     Integer response = 0;
 
                                                     System.out.println("1. Yes");
@@ -836,32 +985,144 @@ public class FlightOperationModule
                                                     {
                                                         if (response == 1) 
                                                         {
-                                                            System.out.print(" Enter Layover Duration(hrs)> ");
+                                                            System.out.print("Enter Layover Duration(hrs)> ");
                                                             Double layoverDuration = scanner.nextDouble();
                                                             
-                                                            for(int i = 0; i < numOfTimes; i++)
+                                                            //retrieve the main schedule plan 
+                                                            FlightSchedulePlan flightSchedulePlanMain = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
+                                                            
+                                                            //create a return schedule plan
+                                                            FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
+                                                            flightSchedulePlanForReturnFlight.setFlightScheduleType("RECURRENT");
+                                                            flightSchedulePlanForReturnFlight.setEndDate(flightSchedulePlanMain.getEndDate());
+                                                            flightSchedulePlanForReturnFlight.setIntervalDays(flightSchedulePlanMain.getIntervalDays());
+                                                            flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
+                                                            Long returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
+
+                                                            //loop through the main flight schedules to associate with every return flight schedules
+                                                            for(FlightSchedule flightSchedule: flightSchedulePlanMain.getFlightSchedules())
                                                             {
-                                                                createRecurrentReturnFlightSchedule(flightSchedulePlanId, flightScheduleId, layoverDuration);
+                                                                Long returnFlightScheduleId = createRecurrentReturnFlightSchedule(flightSchedule, flight, layoverDuration, returnFlightSchedulePlanId);
                                                             }
+                                                            System.out.println("Return Recurrent Flight Schedules created successfully!\n");
+                                                            break;
                                                         }
                                                     }
+                                                    break;
                                                 }   
                                             }
-                                            System.out.println("Recurrent Flight Schedules created successfully!\n");
+                                            break;
                                         } 
                                         catch (ParseException ex) 
                                         {
-                                            System.out.println("End date is in the wrong format");
+                                            System.out.println("Date is in the wrong format");
                                         } 
-                                        
-                                        break;
+                                        catch (FlightSchedulePlanNotFoundException ex) 
+                                        { 
+                                            System.out.println("An error has occurred while retrieving flight schedule plan: " + ex.getMessage() + "\n");
+                                        }
                                     }
                                     else if(choice == 2)
                                     {
-                                        break;
+                                        try{
+                                            System.out.print("Enter Start(Departure) Date (dd-mm-yyyy)> ");
+                                            String startDate = scanner.nextLine();
+                                            System.out.print("Enter Start(Departure) Time (HH:mm)> ");
+                                            String startTime = scanner.nextLine();
+                                            System.out.print("Enter Flight Duration(hrs)> ");
+                                            Double flightDuration = scanner.nextDouble();
+                                            scanner.nextLine();
+                                            System.out.print("Enter End Date(dd-mm-yyyy)> ");
+                                            String endDate = scanner.nextLine();
+
+                                            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+                                            Date formattedEndDate = formatter.parse(endDate);
+                                            Date formattedStartDate = formatter.parse(startDate);
+
+                                            flightSchedulePlan.setIntervalDays(7);
+                                            flightSchedulePlan.setEndDate(formattedEndDate);
+                                            flightSchedulePlan.setFlightSchedulePlanType("OUTBOUND");
+                                            
+                                            //create flight schedule plan
+                                            flightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewFlightSchedulePlan(flightSchedulePlan, flightNum);                                         
+                                          
+                                            Long difference_In_Time = formattedEndDate.getTime() - formattedStartDate.getTime();
+                                            Long days = TimeUnit.MILLISECONDS.toDays(difference_In_Time) % 365;
+                                            Integer numOfTimes = days.intValue()/7;
+                                            
+                                            if(numOfTimes > 0)
+                                            {
+                                                int interval = 0;
+                                            
+                                                //create recurrent schedules for the plan
+                                                for(int i = 0; i < numOfTimes; i++)
+                                                {
+                                                    createRecurrentFlightSchedule(flightSchedulePlanId, flight, startDate,  startTime, flightDuration, interval);
+                                                    interval += 7;
+                                                }
+                                                
+                                                System.out.println("Recurrent Flight Schedules created successfully!\n");
+
+                                                //create recurrent schedules plan
+                                                if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) {
+                                                    System.out.println("Do you want to create a complementary return flight schedule plan for recurrent flight schedule?");
+                                                    while (true) 
+                                                    {
+                                                        Integer response = 0;
+
+                                                        System.out.println("1. Yes");
+                                                        System.out.println("2. No");
+                                                        System.out.print("> ");
+                                                        response = scanner.nextInt();
+                                                        scanner.nextLine();
+
+                                                        if (response >= 1 && response <= 2) 
+                                                        {
+                                                            if (response == 1) 
+                                                            {
+                                                                System.out.print("Enter Layover Duration(hrs)> ");
+                                                                Double layoverDuration = scanner.nextDouble();
+
+                                                                //retrieve the main schedule plan 
+                                                                FlightSchedulePlan flightSchedulePlanMain = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
+
+                                                                //create a return schedule plan
+                                                                FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
+                                                                flightSchedulePlanForReturnFlight.setFlightScheduleType("RECURRENT");
+                                                                flightSchedulePlanForReturnFlight.setEndDate(flightSchedulePlanMain.getEndDate());
+                                                                flightSchedulePlanForReturnFlight.setIntervalDays(flightSchedulePlanMain.getIntervalDays());
+                                                                flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
+                                                                Long returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
+
+                                                                //loop through the main flight schedules to associate with every return flight schedules
+                                                                for(FlightSchedule flightSchedule: flightSchedulePlanMain.getFlightSchedules())
+                                                                {
+                                                                    Long returnFlightScheduleId = createRecurrentReturnFlightSchedule(flightSchedule, flight, layoverDuration, returnFlightSchedulePlanId);
+                                                                }
+                                                                System.out.println("Return Recurrent Flight Schedules created successfully!\n");
+                                                                break;
+                                                            }
+                                                        }
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                System.out.println("Schedule cannot be created!\n");
+                                            }  
+                                            break;
+                                        } 
+                                        catch (ParseException ex) 
+                                        {
+                                            System.out.println("Date is in the wrong format!\n");
+                                        } 
+                                        catch (FlightSchedulePlanNotFoundException ex) 
+                                        {
+                                            System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
+                                        }
                                     }
                                 }
-                                
                             }
                             break;
                         }
@@ -889,19 +1150,21 @@ public class FlightOperationModule
     {
         Scanner scanner = new Scanner(System.in);
 
-        FlightSchedule flightSchedule = new FlightSchedule();
+
         Long flightScheduleId = 0l;
 
         while (true) 
         {
             try 
             {
+                FlightSchedule flightSchedule = new FlightSchedule();
                 System.out.print("Enter Departure Date(dd-mm-yyyy)> ");
                 String departureDate = scanner.nextLine();
                 System.out.print("Enter Departure Time(HH:mm)> ");
                 String departureTime = scanner.nextLine();
                 System.out.print("Enter Flight Duration(hrs)> ");
                 Double flightDuration = scanner.nextDouble();
+                scanner.nextLine();
 
                 FlightSchedulePlan flightSchedulePlanFromDb = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
 
@@ -922,6 +1185,7 @@ public class FlightOperationModule
                 flightSchedule.setDepartureDateTime(departureDT);
                 flightSchedule.setFlightHours(flightDurationHours);
                 flightSchedule.setFlightMinutes(flightDurationMins);
+                flightSchedule.setFlightScheduleType("OUTBOUND");
 
                 //create seat inventory 
                 SeatInventory seatInventory = new SeatInventory();
@@ -934,100 +1198,7 @@ public class FlightOperationModule
                 Long seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory);
                 flightScheduleId = flightScheduleSessionBeanRemote.createNewFlightSchedule(flightSchedule, flightSchedulePlanId, seatInventoryId);
                 
-                //if this flight has return flight
-                if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) {
-                    System.out.println("Do you want to create a complementary return flight schedule plan?");
-                    while (true) {
-                        Integer choice = 0;
-
-                        System.out.println("1. Yes");
-                        System.out.println("2. No");
-                        System.out.print("> ");
-                        choice = scanner.nextInt();
-                        scanner.nextLine();
-
-                        if (choice >= 1 && choice <= 2) {
-                            if (choice == 1) {
-                                try {
-                                    System.out.print("Enter Layover Duration(hrs)> ");
-                                    Double layoverDuration = scanner.nextDouble();
-                                    Integer layoverDurationInMins = (int) (layoverDuration * 60);
-                                    Integer layoverDurationHours = layoverDurationInMins / 60;
-                                    Integer layoverDurationMins = layoverDurationInMins % 60;
-
-                                    FlightSchedule flightScheduleFromDb = flightScheduleSessionBeanRemote.getFlightScheduleById(flightScheduleId);
-                                    Date outboundFlightDepartureDT = flightScheduleFromDb.getDepartureDateTime();
-                                    Integer outboundFlightDurationHours = flightScheduleFromDb.getFlightHours();
-                                    Integer outboundFlightDurationMins = flightScheduleFromDb.getFlightMinutes();
-
-                                    calendar.setTime(outboundFlightDepartureDT);
-                                    //to add flight duration to departure date time = arrival time
-                                    calendar.add(GregorianCalendar.HOUR_OF_DAY, outboundFlightDurationHours);
-                                    calendar.add(GregorianCalendar.MINUTE, outboundFlightDurationMins);
-                                    Date outboundFlightArrivalDT = formatter.parse(formatter.format(calendar.getTime()));
-
-                                    //to add in time diff (arrival time zone)
-                                    calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedulePlanFromDb.getFlight().getFlightRoute().getDestination().getTimeZoneDiff());
-                                    Date arrivalDT = formatter.parse(formatter.format(calendar.getTime()));
-                                    calendar.setTime(arrivalDT);
-
-                                    //to add in layover duration
-                                    calendar.add(GregorianCalendar.HOUR_OF_DAY, layoverDurationHours);
-                                    calendar.add(GregorianCalendar.MINUTE, layoverDurationMins);
-                                    Date returnFlightDepartureDT = formatter.parse(formatter.format(calendar.getTime()));
-
-                                    //create seat inventory 
-                                    SeatInventory returnSeatInventory = new SeatInventory();
-                                    //get max seat capacity from aircraft config
-                                    Integer totalMaxSeatCapacityReturn = flightSchedulePlanFromDb.getFlight().getReturnFlight().getAircraftConfig().getMaxSeatCapacity();
-                                    returnSeatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityReturn);
-                                    returnSeatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityReturn);
-                                    returnSeatInventory.setNumOfReservedSeats(0);
-
-                                    Long returnSeatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(returnSeatInventory);
-
-                                    FlightSchedule flightScheduleForReturnFlight = new FlightSchedule();
-                                    flightScheduleForReturnFlight.setDepartureDateTime(returnFlightDepartureDT);
-                                    flightScheduleForReturnFlight.setFlightHours(flightScheduleFromDb.getFlightHours());
-                                    flightScheduleForReturnFlight.setFlightMinutes(flightScheduleFromDb.getFlightMinutes());
-
-                                    FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
-                                    if(flightSchedulePlanType.equals("SINGLE"))
-                                    {
-                                        flightSchedulePlanForReturnFlight.setFlightScheduleType("SINGLE");
-                                    }
-                                    else if(flightSchedulePlanType.equals("MULTIPLE"))
-                                    {
-                                        flightSchedulePlanForReturnFlight.setFlightScheduleType("MULTIPLE");
-                                    }
-                                    
-                                    flightSchedulePlanForReturnFlight.setEndDate(null);
-                                    flightSchedulePlanForReturnFlight.setIntervalDays(0);
-
-                                    Long returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
-                                    Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightScheduleForReturnFlight, flightScheduleId, returnFlightSchedulePlanId, seatInventoryId);
-                                    
-                                    System.out.println("Return Flight Schedule Plan created successfully!: " + returnFlightSchedulePlanId);
-                                    break;
-                                } 
-                                catch (ParseException ex) {
-                                    System.out.println("Arrival Time is in wrong format!\n");
-                                } 
-                                catch (FlightScheduleNotFoundException | FlightSchedulePlanNotFoundException ex) {
-                                    System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
-                                }
-                                catch (FlightNotFoundException ex) {
-                                    System.out.println("An error has occurred while retrieving flight: " + ex.getMessage() + "\n");
-                                }
-                            } else if (choice == 2) {
-                                break;
-                            }
-                        }
-                    }
-                }
-
                 break;
-
             } 
             catch (ParseException ex) 
             {
@@ -1035,34 +1206,88 @@ public class FlightOperationModule
             } 
             catch (FlightSchedulePlanNotFoundException ex) 
             {
-                System.out.println("An error has occurred: " + ex.getMessage() + "!\n");
-            }
+                System.out.println("An error has occurred while retrieving flight schedule plan: " + ex.getMessage() + "!\n");
+            } 
         }
         
         return flightScheduleId;
     }
     
+    private FlightSchedule doCreateEveryReturnFlightSchedules(Long flightScheduleId, Flight flight, Double layoverDuration, String flightSchedulePlanType)
+    {
+        FlightSchedule flightScheduleForReturnFlight = new FlightSchedule();
+        try
+        {
+            Integer layoverDurationInMins = (int) (layoverDuration * 60);
+            Integer layoverDurationHours = layoverDurationInMins / 60;
+            Integer layoverDurationMins = layoverDurationInMins % 60;
+
+            //retrieve the main flight schedule
+            FlightSchedule flightSchedule = flightScheduleSessionBeanRemote.getFlightScheduleById(flightScheduleId);
+            GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setTime(flightSchedule.getDepartureDateTime());
+            //to add flight duration to departure date time = arrival time
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedule.getFlightHours());
+            calendar.add(GregorianCalendar.MINUTE, flightSchedule.getFlightMinutes());
+            Date arrivalDatetime = calendar.getTime();
+            //to add in time diff (arrival time zone)
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+            Date arrivalDatetimeTimezone = calendar.getTime();
+            //to add in layover duration
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, layoverDurationHours);
+            calendar.add(GregorianCalendar.MINUTE, layoverDurationMins);
+            Date departureDateTimeforReturn = calendar.getTime();
+
+            flightScheduleForReturnFlight.setDepartureDateTime(departureDateTimeforReturn);
+            flightScheduleForReturnFlight.setFlightHours(flightSchedule.getFlightHours());
+            flightScheduleForReturnFlight.setFlightMinutes(flightSchedule.getFlightMinutes());
+            flightScheduleForReturnFlight.setFlightScheduleType("RETURN");
+
+            FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
+            if (flightSchedulePlanType.equals("SINGLE")) {
+                flightSchedulePlanForReturnFlight.setFlightScheduleType("SINGLE");
+            } else if (flightSchedulePlanType.equals("MULTIPLE")) {
+                flightSchedulePlanForReturnFlight.setFlightScheduleType("MULTIPLE");
+            }
+            flightSchedulePlanForReturnFlight.setEndDate(null);
+            flightSchedulePlanForReturnFlight.setIntervalDays(0);
+            flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
+        } 
+        catch (FlightScheduleNotFoundException ex) 
+        {
+            System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
+        }
+        
+        return flightScheduleForReturnFlight;
     
-    private Long createRecurrentFlightSchedule(Long flightSchedulePlanId, Flight flight, String departureDate, String departureTime, Double flightDuration, Integer interval, Integer i)
+    }
+    
+    
+    private Long createRecurrentFlightSchedule(Long flightSchedulePlanId, Flight flight, String departureDate, String departureTime, Double flightDuration, Integer interval)
     {
         Scanner scanner = new Scanner(System.in);
         Long flightScheduleId = 0l;
         try
         {
+            //retrieve the flight schedule plan for recurrent
             FlightSchedulePlan flightSchedulePlanFromDb = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
             FlightSchedule flightSchedule = new FlightSchedule();
 
+            //concat and format the departure date and time
             String departureDateTimeInString = departureDate + " " + departureTime;
             SimpleDateFormat formatterDeparture = new SimpleDateFormat("dd-MM-yyyy HH:mm");
             Date formattedDepartureDT = formatterDeparture.parse(departureDateTimeInString);
 
+            //add it to calendar so that it can be incremented
             GregorianCalendar calendar = new GregorianCalendar();
             calendar.setTime(formattedDepartureDT);
             //to add timediff to departure time 
             calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedulePlanFromDb.getFlight().getFlightRoute().getOrigin().getTimeZoneDiff());
+            //to add the recurrent interval day to the departure date every loop
             calendar.add(GregorianCalendar.DATE, interval);
             Date departureDT = formatterDeparture.parse(formatterDeparture.format(calendar.getTime()));
 
+            //convert decimal flight duration to hrs and mins
             Integer flightDurationInMins = (int) (flightDuration * 60);
             Integer flightDurationHours = flightDurationInMins / 60;
             Integer flightDurationMins = flightDurationInMins % 60;
@@ -1070,20 +1295,19 @@ public class FlightOperationModule
             flightSchedule.setDepartureDateTime(departureDT);
             flightSchedule.setFlightHours(flightDurationHours);
             flightSchedule.setFlightMinutes(flightDurationMins);
+            flightSchedule.setFlightScheduleType("OUTBOUND");
 
-            //create seat inventory 
             SeatInventory seatInventory = new SeatInventory();
-            //get max seat capacity from aircraft config
+            //get max seat capacity from aircraft config, set available, balance and reserved seats
             Integer totalMaxSeatCapacity = flightSchedulePlanFromDb.getFlight().getAircraftConfig().getMaxSeatCapacity();
             seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacity);
             seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacity);
             seatInventory.setNumOfReservedSeats(0);
             
+            //create seat inventory
             Long seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory);
+            //create one new recurrent flight schedule
             flightScheduleId = flightScheduleSessionBeanRemote.createNewFlightSchedule(flightSchedule, flightSchedulePlanId, seatInventoryId);
-                
-
-
         } 
         catch (FlightSchedulePlanNotFoundException ex) 
         {
@@ -1098,75 +1322,53 @@ public class FlightOperationModule
         
     }
     
-    private Long createRecurrentReturnFlightSchedule(Long flightSchedulePlanId, Long flightScheduleId, Double layoverDuration){
+    private Long createRecurrentReturnFlightSchedule(FlightSchedule flightSchedule, Flight flight, Double layoverDuration, Long returnFlightSchedulePlanId){
                     
         Scanner scanner = new Scanner(System.in);
-        Long returnFlightSchedulePlanId = 0l;
+        Long returnFlightScheduleId = 0l;
         try{
-            GregorianCalendar calendar = new GregorianCalendar();
+            //convert decimal flight duration to hrs and mins
             Integer layoverDurationInMins = (int) (layoverDuration * 60);
             Integer layoverDurationHours = layoverDurationInMins / 60;
             Integer layoverDurationMins = layoverDurationInMins % 60;
-
-            FlightSchedule flightScheduleFromDb = flightScheduleSessionBeanRemote.getFlightScheduleById(flightScheduleId);
-            Date outboundFlightDepartureDT = flightScheduleFromDb.getDepartureDateTime();
-            Integer outboundFlightDurationHours = flightScheduleFromDb.getFlightHours();
-            Integer outboundFlightDurationMins = flightScheduleFromDb.getFlightMinutes();
-
-            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-            calendar.setTime(outboundFlightDepartureDT);
-            //to add flight duration to departure date time = arrival time
-            calendar.add(GregorianCalendar.HOUR_OF_DAY, outboundFlightDurationHours);
-            calendar.add(GregorianCalendar.MINUTE, outboundFlightDurationMins);
-            Date outboundFlightArrivalDT = formatter.parse(formatter.format(calendar.getTime()));
-
-            //to add in time diff (arrival time zone)
-            FlightSchedulePlan flightSchedulePlanFromDb = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
-            calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedulePlanFromDb.getReturnFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getTimeZoneDiff());
-            Date arrivalDT = formatter.parse(formatter.format(calendar.getTime()));
-            calendar.setTime(arrivalDT);
-
+                                             
+          
+            GregorianCalendar calendar = new GregorianCalendar();
+            //to add in flight duration to departure datetime = arrival time
+            calendar.setTime(flightSchedule.getDepartureDateTime());
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedule.getFlightHours());
+            calendar.add(GregorianCalendar.MINUTE, flightSchedule.getFlightMinutes());
+            Date arrivalDateTimeReturn = calendar.getTime();
+            //to add in time diff (arrival timezone)
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+            Date arrivalDateTimeReturnTimezone = calendar.getTime();
             //to add in layover duration
             calendar.add(GregorianCalendar.HOUR_OF_DAY, layoverDurationHours);
             calendar.add(GregorianCalendar.MINUTE, layoverDurationMins);
-            Date returnFlightDepartureDT = formatter.parse(formatter.format(calendar.getTime()));
+            Date departureDateTimeforReturn = calendar.getTime();
 
             //create seat inventory 
             SeatInventory returnSeatInventory = new SeatInventory();
             //get max seat capacity from aircraft config
-            Integer totalMaxSeatCapacityReturn = flightSchedulePlanFromDb.getReturnFlightSchedulePlan().getFlight().getReturnFlight().getAircraftConfig().getMaxSeatCapacity();
+            Integer totalMaxSeatCapacityReturn = flight.getReturnFlight().getAircraftConfig().getMaxSeatCapacity();
             returnSeatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityReturn);
             returnSeatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityReturn);
             returnSeatInventory.setNumOfReservedSeats(0);
 
             Long returnSeatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(returnSeatInventory);
-
             FlightSchedule flightScheduleForReturnFlight = new FlightSchedule();
-            flightScheduleForReturnFlight.setDepartureDateTime(returnFlightDepartureDT);
-            flightScheduleForReturnFlight.setFlightHours(flightScheduleFromDb.getFlightHours());
-            flightScheduleForReturnFlight.setFlightMinutes(flightScheduleFromDb.getFlightMinutes());
+            flightScheduleForReturnFlight.setDepartureDateTime(departureDateTimeforReturn);
+            flightScheduleForReturnFlight.setFlightHours(flightSchedule.getFlightHours());
+            flightScheduleForReturnFlight.setFlightMinutes(flightSchedule.getFlightMinutes());
+            flightScheduleForReturnFlight.setFlightScheduleType("RETURN");
 
-            FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
+            returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightScheduleForReturnFlight, flightSchedule.getFlightScheduleId(), returnFlightSchedulePlanId, returnSeatInventoryId);
 
-            flightSchedulePlanForReturnFlight.setFlightScheduleType("RECURRENT");
-
-            flightSchedulePlanForReturnFlight.setEndDate(flightSchedulePlanFromDb.getEndDate());
-            flightSchedulePlanForReturnFlight.setIntervalDays(flightSchedulePlanFromDb.getIntervalDays());
-
-            returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
-            Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightScheduleForReturnFlight, flightScheduleId, returnFlightSchedulePlanId, returnSeatInventoryId);
-            
-        } catch (ParseException ex) {
-            System.out.println("Arrival Time is in wrong format!\n");
         } catch (FlightScheduleNotFoundException | FlightSchedulePlanNotFoundException ex) {
             System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
-        } catch (FlightNotFoundException ex) {
-            System.out.println("An error has occurred while retrieving flight: " + ex.getMessage() + "\n");
         }
 
-        return returnFlightSchedulePlanId;
-
-       
+        return returnFlightScheduleId;       
     }
     
     private void doViewAllFlightSchedulePlans()

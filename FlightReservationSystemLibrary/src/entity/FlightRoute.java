@@ -42,7 +42,7 @@ public class FlightRoute implements Serializable {
     @JoinColumn(nullable = false)
     private Airport destination;
     
-    @Column(nullable = false, unique = false)
+    @Column(nullable = false)
     private String flightRouteType;
     
     @Column(nullable = false)
