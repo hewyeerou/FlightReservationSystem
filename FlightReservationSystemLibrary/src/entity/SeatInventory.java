@@ -6,11 +6,17 @@
 package entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 /**
@@ -32,10 +38,19 @@ public class SeatInventory implements Serializable {
     @Column(nullable = false)
     private Integer numOfBalanceSeats;
 
-//    @OneToOne(mappedBy = "seatInventory")
-//    private FlightSchedule flightSchedule;
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
+    private FlightSchedule flightSchedule;
+    
+    @ManyToMany
+    private List<CabinClass> cabinClasses;
+    
+    @OneToMany(mappedBy = "seatInventory")
+    private List<CabinSeatInventory> cabinSeatInventories;
 
     public SeatInventory() {
+        cabinClasses = new ArrayList<>();
+        cabinSeatInventories = new ArrayList<>();
     }
 
     public SeatInventory(Integer numOfAvailableSeats, Integer numOfReservedSeats, Integer numOfBalanceSeats) {
@@ -52,6 +67,22 @@ public class SeatInventory implements Serializable {
         this.seatInventoryId = seatInventoryId;
     }
 
+    public List<CabinClass> getCabinClasses() {
+        return cabinClasses;
+    }
+
+    public void setCabinClasses(List<CabinClass> cabinClasses) {
+        this.cabinClasses = cabinClasses;
+    }
+
+    public List<CabinSeatInventory> getCabinSeatInventories() {
+        return cabinSeatInventories;
+    }
+
+    public void setCabinSeatInventories(List<CabinSeatInventory> cabinSeatInventories) {
+        this.cabinSeatInventories = cabinSeatInventories;
+    }
+    
     @Override
     public int hashCode() {
         int hash = 0;
@@ -77,13 +108,13 @@ public class SeatInventory implements Serializable {
         return "entity.SeatInventory[ id=" + seatInventoryId + " ]";
     }
 
-//    public FlightSchedule getFlightSchedule() {
-//        return flightSchedule;
-//    }
-//
-//    public void setFlightSchedule(FlightSchedule flightSchedule) {
-//        this.flightSchedule = flightSchedule;
-//    }
+    public FlightSchedule getFlightSchedule() {
+        return flightSchedule;
+    }
+
+    public void setFlightSchedule(FlightSchedule flightSchedule) {
+        this.flightSchedule = flightSchedule;
+    }
 
     public Integer getNumOfAvailableSeats() {
         return numOfAvailableSeats;

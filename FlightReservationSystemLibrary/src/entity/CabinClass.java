@@ -6,6 +6,7 @@
 package entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,6 +16,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -53,8 +55,13 @@ public class CabinClass implements Serializable {
     @ManyToOne(optional=false)
     @JoinColumn(nullable=false)
     private AircraftConfig aircraftConfig;
+    
+    @ManyToMany
+    private List<SeatInventory> seatInventories;
+    
 
     public CabinClass() {
+        seatInventories = new ArrayList<>();
         
     }
 
@@ -75,6 +82,15 @@ public class CabinClass implements Serializable {
         this.cabinClassId = cabinClassId;
     }
 
+    public List<SeatInventory> getSeatInventories() {
+        return seatInventories;
+    }
+
+    public void setSeatInventories(List<SeatInventory> seatInventories) {
+        this.seatInventories = seatInventories;
+    }
+
+    
     @Override
     public int hashCode() {
         int hash = 0;

@@ -30,15 +30,12 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     private FlightSchedulePlanSessionBeanLocal flightSchedulePlanSessionBeanLocal;
 
     @Override
-    public Long createNewFlightSchedule(FlightSchedule flightSchedule, Long flightSchedulePlanId, Long seatInventoryId) throws FlightSchedulePlanNotFoundException 
+    public Long createNewFlightSchedule(FlightSchedule flightSchedule, Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException 
     {
         FlightSchedulePlan flightSchedulePlan = flightSchedulePlanSessionBeanLocal.getFlightSchedulePlanById(flightSchedulePlanId);
 
         flightSchedule.setFlightSchedulePlan(flightSchedulePlan);
         flightSchedulePlan.getFlightSchedules().add(flightSchedule);
-
-        SeatInventory seatInventory = em.find(SeatInventory.class, seatInventoryId);
-        flightSchedule.setSeatInventory(seatInventory);
 
         for (FlightReservationRecord flightReservationRecord : flightSchedule.getFlightReservationRecords()) {
             flightReservationRecord.getFlightSchedules().add(flightSchedule);
@@ -57,7 +54,7 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     }
     
     @Override
-    public Long createNewReturnFlightSchedule(FlightSchedule returnFlightSchedule, Long flightScheduleId, Long returnFlightSchedulePlanId, Long seatInventoryId) throws FlightSchedulePlanNotFoundException, FlightScheduleNotFoundException
+    public Long createNewReturnFlightSchedule(FlightSchedule returnFlightSchedule, Long flightScheduleId, Long returnFlightSchedulePlanId) throws FlightSchedulePlanNotFoundException, FlightScheduleNotFoundException
     {
         FlightSchedulePlan returnFlightSchedulePlan = flightSchedulePlanSessionBeanLocal.getFlightSchedulePlanById(returnFlightSchedulePlanId);
         
@@ -66,8 +63,6 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         returnFlightSchedule.setFlightSchedulePlan(returnFlightSchedulePlan);
         returnFlightSchedulePlan.getFlightSchedules().add(returnFlightSchedule);
         
-        SeatInventory seatInventory = em.find(SeatInventory.class, seatInventoryId);
-        returnFlightSchedule.setSeatInventory(seatInventory);
         
         for(FlightReservationRecord flightReservationRecord: returnFlightSchedule.getFlightReservationRecords())
         {
@@ -97,7 +92,7 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         {
             flightSchedule.getFlightReservationRecords().size();
             flightSchedule.getFlightSchedulePlan();
-            flightSchedule.getSeatInventory();
+            flightSchedule.getSeatInventories().size();
             
             return flightSchedule;
         }
@@ -106,6 +101,8 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
             throw new FlightScheduleNotFoundException("Flight Schedule " + flightScheduleId + " does not exist!");
         }
     }
+    
+ 
 
     
 }

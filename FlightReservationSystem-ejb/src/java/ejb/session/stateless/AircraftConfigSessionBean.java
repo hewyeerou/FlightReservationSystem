@@ -42,7 +42,7 @@ public class AircraftConfigSessionBean implements AircraftConfigSessionBeanRemot
 
             for (CabinClass cabinClass: newAircraftConfig.getCabinClasses())
             {
-                cabinClass.setAircraftConfig(newAircraftConfig);
+                cabinClass.setAircraftConfig(newAircraftConfig); 
                 em.persist(cabinClass);
             }
             
