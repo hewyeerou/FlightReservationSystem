@@ -6,7 +6,10 @@
 package entity;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -35,7 +38,8 @@ public class SeatInventory implements Serializable {
 //    @OneToOne(mappedBy = "seatInventory")
 //    private FlightSchedule flightSchedule;
 
-    public SeatInventory() {
+    public SeatInventory()
+    {
     }
 
     public SeatInventory(Integer numOfAvailableSeats, Integer numOfReservedSeats, Integer numOfBalanceSeats) {
@@ -108,5 +112,4 @@ public class SeatInventory implements Serializable {
     public void setNumOfBalanceSeats(Integer numOfBalanceSeats) {
         this.numOfBalanceSeats = numOfBalanceSeats;
     }
-    
 }

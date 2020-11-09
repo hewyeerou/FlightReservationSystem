@@ -6,6 +6,7 @@
 package ejb.session.stateless;
 
 import entity.SeatInventory;
+import java.util.List;
 import javax.ejb.Local;
 
 /**
@@ -16,5 +17,5 @@ import javax.ejb.Local;
 public interface SeatinventorySessionBeanLocal {
 
     public Long createSeatInventory(SeatInventory seatInventory);
-    
+
 }

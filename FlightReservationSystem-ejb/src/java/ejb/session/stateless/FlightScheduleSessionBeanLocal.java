@@ -6,9 +6,12 @@
 package ejb.session.stateless;
 
 import entity.FlightSchedule;
+import java.util.Date;
+import java.util.List;
 import javax.ejb.Local;
 import util.exception.FlightScheduleNotFoundException;
 import util.exception.FlightSchedulePlanNotFoundException;
+import util.exception.InvalidDateTimeException;
 
 /**
  *
@@ -22,5 +25,11 @@ public interface FlightScheduleSessionBeanLocal {
     public FlightSchedule getFlightScheduleById(Long flightScheduleId) throws FlightScheduleNotFoundException;
 
     public Long createNewReturnFlightSchedule(FlightSchedule returnFlightSchedule, Long flightScheduleId, Long returnFlightSchedulePlanId, Long seatInventoryId) throws FlightSchedulePlanNotFoundException, FlightScheduleNotFoundException;
+
+    public List<FlightSchedule> searchDirectFlightSchedules(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, String cabinClassPreference, Integer ngers);
+
+    public List<FlightSchedule> searchSingleTransitConnectingFlightSchedule(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, String cabinClassPreference, Integer numPassengers);
+
+    public List<FlightSchedule> searchDoubleTransitConnectingFlightSchedule(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, String cabinClassPreference, Integer numPassengers);
     
 }
