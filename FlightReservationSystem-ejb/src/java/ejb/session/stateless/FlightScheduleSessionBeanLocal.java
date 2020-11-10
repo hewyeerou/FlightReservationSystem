@@ -20,16 +20,15 @@ import util.exception.InvalidDateTimeException;
 @Local
 public interface FlightScheduleSessionBeanLocal {
 
-    public Long createNewFlightSchedule(FlightSchedule flightSchedule, Long flightSchedulePlanId, Long seatInventoryId) throws FlightSchedulePlanNotFoundException;
+    public Long createNewFlightSchedule(FlightSchedule flightSchedule, Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException;
 
     public FlightSchedule getFlightScheduleById(Long flightScheduleId) throws FlightScheduleNotFoundException;
-
-    public Long createNewReturnFlightSchedule(FlightSchedule returnFlightSchedule, Long flightScheduleId, Long returnFlightSchedulePlanId, Long seatInventoryId) throws FlightSchedulePlanNotFoundException, FlightScheduleNotFoundException;
 
     public List<FlightSchedule> searchDirectFlightSchedules(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, String cabinClassPreference, Integer ngers);
 
     public List<FlightSchedule> searchSingleTransitConnectingFlightSchedule(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, String cabinClassPreference, Integer numPassengers);
 
     public List<FlightSchedule> searchDoubleTransitConnectingFlightSchedule(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, String cabinClassPreference, Integer numPassengers);
-    
+
+    public Long createNewReturnFlightSchedule(FlightSchedule returnFlightSchedule, Long flightScheduleId, Long returnFlightSchedulePlanId) throws FlightSchedulePlanNotFoundException, FlightScheduleNotFoundException;   
 }

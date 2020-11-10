@@ -5,11 +5,15 @@
  */
 package ejb.session.stateless;
 
+import entity.CabinClass;
+import entity.FlightSchedule;
 import entity.SeatInventory;
 import java.util.List;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import util.exception.FlightScheduleNotFoundException;
 
 /**
  *
@@ -18,12 +22,26 @@ import javax.persistence.PersistenceContext;
 @Stateless
 public class SeatinventorySessionBean implements SeatinventorySessionBeanRemote, SeatinventorySessionBeanLocal {
 
+    @EJB(name = "FlightScheduleSessionBeanLocal")
+    private FlightScheduleSessionBeanLocal flightScheduleSessionBeanLocal;
+
     @PersistenceContext(unitName = "FlightReservationSystem-ejbPU")
     private EntityManager em;
     
+    
     @Override
-    public Long createSeatInventory(SeatInventory seatInventory)
+    public Long createSeatInventory(SeatInventory seatInventory, Long flightScheduleId, Long cabinClassId) throws FlightScheduleNotFoundException
     {   
+        FlightSchedule flightSchedule = flightScheduleSessionBeanLocal.getFlightScheduleById(flightScheduleId);
+        CabinClass cabinClass = em.find(CabinClass.class, cabinClassId);
+        
+        seatInventory.setFlightSchedule(flightSchedule);
+        flightSchedule.getSeatInventories().add(seatInventory);
+        
+        seatInventory.getCabinClasses().add(cabinClass);
+        cabinClass.getSeatInventories().add(seatInventory);
+        
+                
         em.persist(seatInventory);
         em.flush();
         

@@ -17,6 +17,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 
@@ -49,9 +50,8 @@ public class FlightSchedule implements Serializable {
     @JoinColumn(nullable = false)
     private FlightSchedulePlan flightSchedulePlan;
     
-    @OneToOne(optional = false)
-    @JoinColumn(nullable = false)
-    private SeatInventory seatInventory;
+    @OneToMany(mappedBy = "flightSchedule")
+    private List<SeatInventory> seatInventories;
     
     @ManyToMany
     private List<FlightReservationRecord> flightReservationRecords;
@@ -141,12 +141,12 @@ public class FlightSchedule implements Serializable {
         this.flightSchedulePlan = flightSchedulePlan;
     }
 
-    public SeatInventory getSeatInventory() {
-        return seatInventory;
+    public List<SeatInventory> getSeatInventories() {
+        return seatInventories;
     }
 
-    public void setSeatInventory(SeatInventory seatInventory) {
-        this.seatInventory = seatInventory;
+    public void setSeatInventories(List<SeatInventory> seatInventories) {
+        this.seatInventories = seatInventories;
     }
 
     public List<FlightReservationRecord> getFlightReservationRecords() {

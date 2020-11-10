@@ -8,6 +8,7 @@ package ejb.session.stateless;
 import entity.SeatInventory;
 import java.util.List;
 import javax.ejb.Remote;
+import util.exception.FlightScheduleNotFoundException;
 
 /**
  *
@@ -16,6 +17,6 @@ import javax.ejb.Remote;
 @Remote
 public interface SeatinventorySessionBeanRemote {
     
-    public Long createSeatInventory(SeatInventory seatInventory);
+    public Long createSeatInventory(SeatInventory seatInventory, Long flightScheduleId, Long cabinClassId) throws FlightScheduleNotFoundException;
     
 }
