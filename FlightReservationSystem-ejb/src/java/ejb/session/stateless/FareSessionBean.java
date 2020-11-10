@@ -8,13 +8,16 @@ package ejb.session.stateless;
 import entity.CabinClass;
 import entity.Fare;
 import entity.FlightSchedulePlan;
+import java.util.List;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
+import javax.persistence.Query;
 import util.exception.AircraftTypeNameExistException;
 import util.exception.FareBasisCodeExistException;
+import util.exception.FareNotFoundException;
 import util.exception.FlightSchedulePlanNotFoundException;
 import util.exception.UnknownPersistenceException;
 
@@ -67,6 +70,29 @@ public class FareSessionBean implements FareSessionBeanRemote, FareSessionBeanLo
             }
         }
     }
+    
+    @Override
+    public List<Fare> getFaresByFlightSchedulePlanId(Long flightSchedulePlanId)
+    {
+        Query query = em.createQuery("SELECT f FROM Fare f WHERE f.flightSchedulePlan.flightSchedulePlanId = :inId");
+        query.setParameter("inId", flightSchedulePlanId);
+        
+        return query.getResultList();
+    }
+    
 
   
+    @Override
+    public void updateFare(Fare fare) throws FareNotFoundException
+    {
+        if(fare != null)
+        {
+            Fare fareToUpdate = em.find(Fare.class, fare.getFareId());
+            fareToUpdate.setFareAmount(fare.getFareAmount());
+        }
+        else
+        {
+            throw new FareNotFoundException("Fare ID not provided for fare to be updated");
+        }
+    }
 }

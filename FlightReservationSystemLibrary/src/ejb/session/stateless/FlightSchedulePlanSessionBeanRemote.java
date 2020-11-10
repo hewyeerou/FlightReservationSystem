@@ -5,6 +5,7 @@
  */
 package ejb.session.stateless;
 
+import entity.Fare;
 import entity.FlightSchedulePlan;
 import java.util.List;
 import javax.ejb.Remote;
@@ -25,4 +26,10 @@ public interface FlightSchedulePlanSessionBeanRemote {
     public FlightSchedulePlan getFlightSchedulePlanById(Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException;
     
     public List<FlightSchedulePlan> getAllFlightSchedulePlan();
+    
+    public void updateFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan) throws FlightSchedulePlanNotFoundException;
+
+    public void removeFlightSchedulePlan(Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException;
+
+    public void setFlightSchedulePlanDisabled(Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException;
 }

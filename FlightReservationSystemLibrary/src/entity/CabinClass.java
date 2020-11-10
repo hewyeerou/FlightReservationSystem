@@ -18,6 +18,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
@@ -56,13 +57,15 @@ public class CabinClass implements Serializable {
     @JoinColumn(nullable=false)
     private AircraftConfig aircraftConfig;
     
-    @ManyToMany
+    @OneToMany(mappedBy = "cabinClass")
     private List<SeatInventory> seatInventories;
     
+    @OneToMany(mappedBy = "cabinClass")
+    private List<Fare> fares;
 
     public CabinClass() {
         seatInventories = new ArrayList<>();
-        
+        fares = new ArrayList<>();
     }
 
     public CabinClass(CabinClassEnum cabinClassType, Integer numOfAisle, Integer numOfRows, Integer numOfSeatsAbreast, String seatConfigPerColumn, Integer maxSeatCapacity) {
@@ -88,6 +91,14 @@ public class CabinClass implements Serializable {
 
     public void setSeatInventories(List<SeatInventory> seatInventories) {
         this.seatInventories = seatInventories;
+    }
+
+    public List<Fare> getFares() {
+        return fares;
+    }
+
+    public void setFares(List<Fare> fares) {
+        this.fares = fares;
     }
 
     

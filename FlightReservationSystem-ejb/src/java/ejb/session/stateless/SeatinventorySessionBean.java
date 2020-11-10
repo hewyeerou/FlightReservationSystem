@@ -37,7 +37,7 @@ public class SeatinventorySessionBean implements SeatinventorySessionBeanRemote,
         seatInventory.setFlightSchedule(flightSchedule);
         flightSchedule.getSeatInventories().add(seatInventory);
         
-        seatInventory.getCabinClasses().add(cabinClass);
+        seatInventory.setCabinClass(cabinClass);
         cabinClass.getSeatInventories().add(seatInventory);
         
                 

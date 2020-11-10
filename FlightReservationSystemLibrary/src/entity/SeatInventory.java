@@ -8,6 +8,7 @@ package entity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -42,14 +43,13 @@ public class SeatInventory implements Serializable {
     @JoinColumn(nullable = false)
     private FlightSchedule flightSchedule;
     
-    @ManyToMany
-    private List<CabinClass> cabinClasses;
+    @ManyToOne
+    private CabinClass cabinClass;
     
     @OneToMany(mappedBy = "seatInventory")
     private List<CabinSeatInventory> cabinSeatInventories;
 
     public SeatInventory() {
-        cabinClasses = new ArrayList<>();
         cabinSeatInventories = new ArrayList<>();
     }
 
@@ -67,12 +67,12 @@ public class SeatInventory implements Serializable {
         this.seatInventoryId = seatInventoryId;
     }
 
-    public List<CabinClass> getCabinClasses() {
-        return cabinClasses;
+    public CabinClass getCabinClass() {
+        return cabinClass;
     }
 
-    public void setCabinClasses(List<CabinClass> cabinClasses) {
-        this.cabinClasses = cabinClasses;
+    public void setCabinClass(CabinClass cabinClass) {
+        this.cabinClass = cabinClass;
     }
 
     public List<CabinSeatInventory> getCabinSeatInventories() {

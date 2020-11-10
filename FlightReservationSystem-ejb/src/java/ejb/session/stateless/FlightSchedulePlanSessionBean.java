@@ -5,10 +5,13 @@
  */
 package ejb.session.stateless;
 
+import entity.CabinClass;
 import entity.Fare;
 import entity.Flight;
 import entity.FlightSchedule;
 import entity.FlightSchedulePlan;
+import entity.SeatInventory;
+import java.util.ArrayList;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -30,6 +33,9 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
 
     @EJB(name = "FlightSessionBeanLocal")
     private FlightSessionBeanLocal flightSessionBeanLocal;
+    
+    @EJB(name = "FareSessionBeanLocal")
+    private FareSessionBeanLocal fareSessionBeanLocal;
     
     @Override
     public Long createNewFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan, String flightNum) throws FlightNotFoundException{      
@@ -77,14 +83,16 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
         for(Fare fare: returnFlightSchedulePlan.getFares())
         {
             fare.setFlightSchedulePlan(returnFlightSchedulePlan);
-            returnFlightSchedulePlan.getFares().add(fare);
+            
+            em.persist(fare);
         }
         
         //flight schedule plan - flight schedule
         for(FlightSchedule flightSchedule: returnFlightSchedulePlan.getFlightSchedules())
         {
             flightSchedule.setFlightSchedulePlan(returnFlightSchedulePlan);
-            returnFlightSchedulePlan.getFlightSchedules().add(flightSchedule);
+            
+            em.persist(flightSchedule);
         }
         
         //flight schedule plan - return flight schedule plan
@@ -104,9 +112,10 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
         
         if(flightSchedulePlan != null)
         {
-            flightSchedulePlan.getFares();
+            flightSchedulePlan.getFares().size();
             flightSchedulePlan.getFlightSchedules().size();
             flightSchedulePlan.getFlight();
+            flightSchedulePlan.getFlight().getAircraftConfig().getCabinClasses().size();
             
             return flightSchedulePlan;
         }
@@ -119,16 +128,100 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
     @Override
     public List<FlightSchedulePlan> getAllFlightSchedulePlan()
     {
-        Query query = em.createQuery("SELECT f FROM FlightSchedulePlan f");
+        Query query = em.createQuery("SELECT f FROM FlightSchedulePlan f ORDER BY f.flight.flightNumber ASC");
         
         List<FlightSchedulePlan> flightSchedulePlans = query.getResultList();
         
         for(FlightSchedulePlan flightSchedulePlan: flightSchedulePlans)
         {
-            flightSchedulePlan.getFlightSchedules().size();
+           flightSchedulePlan.getFlightSchedules().size();
+           flightSchedulePlan.getFlight();
+           flightSchedulePlan.getFares().size();
         }
         return flightSchedulePlans;
     }
     
+ 
+    @Override
+    public void updateFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan) throws FlightSchedulePlanNotFoundException
+    {
+        if(flightSchedulePlan != null && flightSchedulePlan.getFlightSchedulePlanId() != null)
+        {
+            FlightSchedulePlan flightSchedulePlanToUpdate = getFlightSchedulePlanById(flightSchedulePlan.getFlightSchedulePlanId());
+            
+            flightSchedulePlanToUpdate.setFlightSchedules(flightSchedulePlan.getFlightSchedules());
+            flightSchedulePlanToUpdate.setFares(flightSchedulePlan.getFares());
+            flightSchedulePlanToUpdate.setEndDate(flightSchedulePlan.getEndDate());
+            flightSchedulePlanToUpdate.setStartDate(flightSchedulePlan.getStartDate());
+            flightSchedulePlanToUpdate.setIntervalDays(flightSchedulePlan.getIntervalDays());
+            
+        }
+        else
+        {
+            throw new FlightSchedulePlanNotFoundException("Flight Schedule Id is not provided to update flight schedule plan!");
+        }
+        
+    }
     
+    @Override
+    public void removeFlightSchedulePlan(Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException
+    {
+        FlightSchedulePlan flightSchedulePlanToRemove = getFlightSchedulePlanById(flightSchedulePlanId);
+        
+        List<FlightSchedule> flightSchedules = new ArrayList<>(flightSchedulePlanToRemove.getFlightSchedules());
+        for(FlightSchedule flightSchedule: flightSchedules)
+        {
+            flightSchedulePlanToRemove.getFlightSchedules().remove(flightSchedule);
+            FlightSchedule flightSchedule1 = em.merge(flightSchedule);
+            em.remove(flightSchedule1);
+            
+            List<SeatInventory> seatInventories = new ArrayList<>(flightSchedule1.getSeatInventories());
+            for(SeatInventory seatInventory: seatInventories)
+            {
+                flightSchedule1.getSeatInventories().remove(seatInventory);
+                seatInventory.setCabinClass(null);
+                em.remove(seatInventory);                
+            }
+            
+            flightSchedule.getSeatInventories().clear();
+        }
+        
+        List<Fare> fareList = fareSessionBeanLocal.getFaresByFlightSchedulePlanId(flightSchedulePlanId);
+        List<Fare> fares = new ArrayList<>(fareList);
+        for(Fare fare:fares)
+        {
+            flightSchedulePlanToRemove.getFares().remove(fare);
+            Fare fare1 = em.merge(fare);
+            em.remove(fare1);
+
+            CabinClass cabinClass = fare1.getCabinClass();
+            cabinClass.getFares().remove(cabinClass);
+        }
+        
+        
+        flightSchedulePlanToRemove.getFlight().getFlightSchedulePlans().remove(flightSchedulePlanToRemove);
+        
+        flightSchedulePlanToRemove.getFares().clear();
+        em.remove(flightSchedulePlanToRemove);
+        
+    }
+    
+    @Override
+    public void setFlightSchedulePlanDisabled(Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException
+    {
+        FlightSchedulePlan flightSchedulePlanToUpdate = getFlightSchedulePlanById(flightSchedulePlanId);
+        
+        if(flightSchedulePlanToUpdate != null)
+        {
+            flightSchedulePlanToUpdate.setEnabled(false);
+            for(FlightSchedule flightSchedule :flightSchedulePlanToUpdate.getFlightSchedules())
+            {
+                flightSchedule.setEnabled(false);
+            }  
+        }
+        else
+        {
+            throw new FlightSchedulePlanNotFoundException("Flight Schedule Plan does not exist!");
+        }
+    }
 }

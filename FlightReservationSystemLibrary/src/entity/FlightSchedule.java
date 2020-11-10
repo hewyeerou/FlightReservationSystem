@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -39,6 +40,8 @@ public class FlightSchedule implements Serializable {
     private Integer flightHours;
     @Column(nullable = false)
     private Integer flightMinutes;
+    @Column(nullable = false)
+    private Boolean enabled;
     
     @Column(nullable = false)
     private String flightScheduleType;
@@ -50,7 +53,7 @@ public class FlightSchedule implements Serializable {
     @JoinColumn(nullable = false)
     private FlightSchedulePlan flightSchedulePlan;
     
-    @OneToMany(mappedBy = "flightSchedule")
+    @OneToMany(mappedBy = "flightSchedule", orphanRemoval = true)
     private List<SeatInventory> seatInventories;
     
     @ManyToMany
@@ -60,12 +63,13 @@ public class FlightSchedule implements Serializable {
         this.flightReservationRecords = new ArrayList<>();
     }
 
-    public FlightSchedule(Date departure, Integer flightHours, Integer flightMinutes) {
+    public FlightSchedule(Date departure, Integer flightHours, Integer flightMinutes,  Boolean enabled) {
         this();
         
         this.departureDateTime = departure;
         this.flightHours = flightHours;
         this.flightMinutes = flightMinutes;
+        this.enabled = enabled;
     }
 
     public FlightSchedule getReturnFlightSchedule() {
@@ -90,6 +94,14 @@ public class FlightSchedule implements Serializable {
 
     public void setFlightScheduleType(String flightScheduleType) {
         this.flightScheduleType = flightScheduleType;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 
     @Override

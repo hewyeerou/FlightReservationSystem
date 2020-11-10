@@ -726,13 +726,13 @@ public class FlightPlanningModule
                     outboundFlightRoutes.add(flightRoute.getReturnFlightRoute());
                 }
             }
-            else if(flightRoute.getFlightRouteType().equals("RETURN"))
-            {
-                if(!outboundFlightRoutes.contains(flightRoute))
-                {
-                    outboundFlightRoutes.add(flightRoute);
-                }
-            }
+//            else if(flightRoute.getFlightRouteType().equals("RETURN"))
+//            {
+//                if(!outboundFlightRoutes.contains(flightRoute))
+//                {
+//                    outboundFlightRoutes.add(flightRoute);
+//                }
+//            }
         }
         
         for(FlightRoute outboundFlightRoute: outboundFlightRoutes)
@@ -773,20 +773,21 @@ public class FlightPlanningModule
 
             System.out.println("*** FRS Management :: Flight Planning :: Flight Route :: Delete Flight Route ***\n");
 
-            for(FlightRoute flightRoute: flightRoutes)
-            {
-                if(flightRoute.getFlightRouteType().equals("OUTBOUND"))
-                {
-                    outboundFlightRoutes.add(flightRoute);
-                   
-                }
-            }
-
             while(true)
             {
                 Integer option = 0;
 
                 System.out.println("List of Main Flight Routes: ");
+                
+                for(FlightRoute flightRoute: flightRoutes)
+                {
+                    if(flightRoute.getFlightRouteType().equals("OUTBOUND"))
+                    {
+                        outboundFlightRoutes.add(flightRoute);
+
+                    }
+                }
+                
                 for(FlightRoute outboundFlightRoute: outboundFlightRoutes)
                 {
                     option++;
