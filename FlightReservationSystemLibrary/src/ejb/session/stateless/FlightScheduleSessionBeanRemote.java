@@ -7,6 +7,7 @@ package ejb.session.stateless;
 
 import entity.FlightSchedule;
 import java.util.Date;
+import entity.SeatInventory;
 import java.util.List;
 import javax.ejb.Remote;
 import util.exception.FlightScheduleNotFoundException;
@@ -31,5 +32,15 @@ public interface FlightScheduleSessionBeanRemote {
     public List<FlightSchedule> searchDoubleTransitConnectingFlightSchedule(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, String cabinClassPreference, Integer numPassengers);
     
     public Long createNewReturnFlightSchedule(FlightSchedule returnFlightSchedule, Long flightScheduleId, Long returnFlightSchedulePlanId) throws FlightSchedulePlanNotFoundException, FlightScheduleNotFoundException;
+    
+    public List<FlightSchedule> getFlightScheduleByFlightSchedulePlanId(Long flightSchedulePlanId);
+    
+    public void updateFlightSchedule(FlightSchedule flightSchedule) throws FlightScheduleNotFoundException;
+    
+    public void removeFlightSchedule(Long flightScheduleId) throws FlightScheduleNotFoundException;
+//    public void removeFlightSchedule(Long flightScheduleId, SeatInventory seatInventory) throws FlightScheduleNotFoundException;
 
+    public Boolean filterFlightSchedule(FlightSchedule flightSchedule, String cabinClassPreference, Integer numPassengers);
+    
+    public Boolean hasSufficientBalanceSeats(SeatInventory seatInventory, Integer numPassengers);
 }

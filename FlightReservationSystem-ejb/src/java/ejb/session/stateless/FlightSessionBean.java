@@ -8,6 +8,7 @@ package ejb.session.stateless;
 import entity.AircraftConfig;
 import entity.Flight;
 import entity.FlightRoute;
+import entity.FlightSchedule;
 import entity.FlightSchedulePlan;
 import java.util.List;
 import java.util.logging.Level;
@@ -189,6 +190,10 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
             flight.getAircraftConfig().getCabinClasses().size();
             flight.getFlightRoute();
             flight.getFlightSchedulePlans().size();
+            for(FlightSchedulePlan flightScheduleplan: flight.getFlightSchedulePlans())
+            {
+                flightScheduleplan.getFlightSchedules().size();
+            }
             
             return flight;
         }

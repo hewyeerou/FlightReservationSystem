@@ -12,15 +12,19 @@ import java.util.List;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import util.exception.FlightScheduleNotFoundException;
+import util.exception.SeatInventoryNotFoundException;
 
 /**
  *
  * @author yeerouhew
  */
 @Stateless
-public class SeatinventorySessionBean implements SeatinventorySessionBeanRemote, SeatinventorySessionBeanLocal {
+public class SeatInventorySessionBean implements SeatInventorySessionBeanRemote, SeatInventorySessionBeanLocal {
 
     @EJB(name = "FlightScheduleSessionBeanLocal")
     private FlightScheduleSessionBeanLocal flightScheduleSessionBeanLocal;
@@ -38,7 +42,7 @@ public class SeatinventorySessionBean implements SeatinventorySessionBeanRemote,
         seatInventory.setFlightSchedule(flightSchedule);
         flightSchedule.getSeatInventories().add(seatInventory);
         
-        seatInventory.getCabinClasses().add(cabinClass);
+        seatInventory.setCabinClass(cabinClass);
         cabinClass.getSeatInventories().add(seatInventory);
         
                 
@@ -46,5 +50,22 @@ public class SeatinventorySessionBean implements SeatinventorySessionBeanRemote,
         em.flush();
         
         return seatInventory.getSeatInventoryId();
+    }
+    
+    @Override
+    public SeatInventory retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(Long cabinClassId, Long flightScheduleId) throws SeatInventoryNotFoundException
+    {
+        Query query = em.createQuery("SELECT si FROM SeatInventory si WHERE si.cabinClass.cabinClassId = :inCabinClassId AND si.flightSchedule.flightScheduleId = :inFlightScheduleId");
+        query.setParameter("inCabinClassId", cabinClassId);
+        query.setParameter("inFlightScheduleId", flightScheduleId);
+        
+        try
+        {
+            return (SeatInventory)query.getSingleResult();
+        }
+        catch (NoResultException | NonUniqueResultException ex)
+        {
+            throw new SeatInventoryNotFoundException();
+        }
     }
 }

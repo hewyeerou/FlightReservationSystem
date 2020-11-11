@@ -8,7 +8,6 @@ package ejb.session.stateless;
 import entity.Airport;
 import entity.CabinClass;
 import entity.FlightReservationRecord;
-import entity.FlightRoute;
 import entity.FlightSchedule;
 import entity.FlightSchedulePlan;
 import entity.SeatInventory;
@@ -113,7 +112,66 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         }
     }
     
- 
+    @Override
+    public List<FlightSchedule> getFlightScheduleByFlightSchedulePlanId(Long flightSchedulePlanId)
+    {
+        Query query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flightSchedulePlanId = :inId");
+        query.setParameter("inId", flightSchedulePlanId);
+        List<FlightSchedule> flightSchedules = query.getResultList();
+        
+        for(FlightSchedule flightSchedule: flightSchedules)
+        {
+            flightSchedule.getFlightReservationRecords().size();
+            flightSchedule.getSeatInventories().size();
+            flightSchedule.getFlightSchedulePlan();
+        }
+        
+        return flightSchedules;
+    }
+    
+    @Override
+    public void updateFlightSchedule(FlightSchedule flightSchedule) throws FlightScheduleNotFoundException
+    {
+        if(flightSchedule != null)
+        {
+            FlightSchedule flightScheduleToUpdate = getFlightScheduleById(flightSchedule.getFlightScheduleId());
+            flightScheduleToUpdate.setDepartureDateTime(flightSchedule.getDepartureDateTime());
+            flightScheduleToUpdate.setFlightHours(flightSchedule.getFlightHours());
+            flightScheduleToUpdate.setFlightMinutes(flightSchedule.getFlightMinutes());
+        }
+        else
+        {
+            throw new FlightScheduleNotFoundException("Flight Schedule Plan does not exist!");
+        }
+    }
+    
+    @Override
+    public void removeFlightSchedule(Long flightScheduleId) throws FlightScheduleNotFoundException
+    {
+        FlightSchedule flightScheduleToRemove = em.find(FlightSchedule.class, flightScheduleId);
+        
+        List<SeatInventory> seatInventories = new ArrayList<>(flightScheduleToRemove.getSeatInventories());
+        for(SeatInventory seatInventory: seatInventories)
+        {
+            flightScheduleToRemove.getSeatInventories().remove(seatInventory);
+            SeatInventory seatInventory1 = em.merge(seatInventory);
+            seatInventory1.setCabinClass(null);
+            em.remove(seatInventory1);
+            
+//            List<CabinClass> cabinClasses = new ArrayList<>(seatInventory1.getCabinClasses());
+//            for(CabinClass cabinClass: cabinClasses)
+//            {
+//                seatInventory1.getCabinClasses().remove(cabinClass);
+//                cabinClass.getSeatInventories().remove(seatInventory1);
+//                CabinClass cabinClass1 = em.merge(cabinClass);
+//            }
+        }
+
+       
+        flightScheduleToRemove.getSeatInventories().clear();
+        em.remove(flightScheduleToRemove);
+        
+    }
 
     @Override
     public List<FlightSchedule> searchDirectFlightSchedules(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, String cabinClassPreference, Integer numPassengers)
@@ -128,8 +186,32 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         query.setParameter("inDestinationAirport", destinationAirport);
         
         List<FlightSchedule> flightSchedules = query.getResultList();
+        List<FlightSchedule> finalFlightSchedules = new ArrayList<>();
+        for (FlightSchedule fs: flightSchedules)
+        {
+            fs.getSeatInventories().size();
+        }
+        
+        if (cabinClassPreference.equals("NA"))
+        {
+            return flightSchedules;
+        }
+        
+        for (FlightSchedule fs: flightSchedules)
+        {
+            if (filterFlightSchedule(fs, cabinClassPreference, numPassengers) && fs.getEnabled())
+            {
+                finalFlightSchedules.add(fs);
+            }
+        }
+        
+        for (FlightSchedule fs1: flightSchedules)
+        {
+            fs1.getSeatInventories().size();
+            fs1.getFlightSchedulePlan().getFares().size();
+        }
       
-        return flightSchedules;
+        return finalFlightSchedules;
     }
     
     @Override
@@ -155,9 +237,9 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         calendar.add(GregorianCalendar.HOUR_OF_DAY, 10);
         Date endDateTime = calendar.getTime();
         
-        query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight.flightRoute.origin.airportId IN :inAirportIds AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId = :inDestinationAirportId AND fs.departureDateTime > :inDateStart AND fs.departureDateTime <= :inDateEnd");
-        query.setParameter("inDestinationAirportId", destinationAirportId);
+        query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight.flightRoute.origin.airportId IN :inAirportIds AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId = :inDestinationAirportId AND fs.departureDateTime > :inDateStart AND fs.departureDateTime <= :inDateEnd ORDER BY fs.departureDateTime ASC");
         query.setParameter("inAirportIds", transitAirportIds);
+        query.setParameter("inDestinationAirportId", destinationAirportId);
         query.setParameter("inDateStart", dateStart);
         query.setParameter("inDateEnd", endDateTime);
         List<FlightSchedule> secondLeg = query.getResultList();
@@ -165,6 +247,8 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         for (FlightSchedule firstFlightSchedule: firstLeg)
         {
             Airport transitAirport = firstFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination();
+            Airport originAirport = em.find(Airport.class, departureAirportId);
+            Integer timeZoneDiff = transitAirport.getTimeZoneDiff() - originAirport.getTimeZoneDiff();
             
             for (FlightSchedule secondFlightSchedule: secondLeg)
             {
@@ -174,14 +258,27 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
                     calendar.setTime(firstFlightSchedule.getDepartureDateTime());
                     calendar.add(GregorianCalendar.HOUR_OF_DAY, firstFlightSchedule.getFlightHours()+2);
                     calendar.add(GregorianCalendar.MINUTE, firstFlightSchedule.getFlightMinutes());
+                    // Account for difference in time zone
+                    calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
                     
                     if (secondFlightSchedule.getDepartureDateTime().compareTo(calendar.getTime()) >= 0)
                     {
-                        connectingFlights.add(firstFlightSchedule);
-                        connectingFlights.add(secondFlightSchedule);
+                        if (filterFlightSchedule(firstFlightSchedule, cabinClassPreference, numPassengers) &&
+                            filterFlightSchedule(secondFlightSchedule, cabinClassPreference, numPassengers) &&
+                            firstFlightSchedule.getEnabled() && secondFlightSchedule.getEnabled())
+                        {
+                            connectingFlights.add(firstFlightSchedule);
+                            connectingFlights.add(secondFlightSchedule);
+                        }
                     }
                 }
             }
+        }
+        
+        for (FlightSchedule fs:connectingFlights)
+        {
+            fs.getSeatInventories().size();
+            fs.getFlightSchedulePlan().getFares().size();
         }
         return connectingFlights;
     }
@@ -210,7 +307,7 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
             transitAirportIds.add(flightScheduleOne.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getAirportId());
         }
         
-        query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight.flightRoute.origin.airportId IN :inAirportIds AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId <> :inDestinationAirportId AND fs.departureDateTime > :inDateStart AND fs.departureDateTime <= :inDateEnd");
+        query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight.flightRoute.origin.airportId IN :inAirportIds AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId <> :inDestinationAirportId AND fs.departureDateTime > :inDateStart AND fs.departureDateTime <= :inDateEnd ORDER BY fs.departureDateTime ASC");
         query.setParameter("inDestinationAirportId", destinationAirportId);
         query.setParameter("inAirportIds", transitAirportIds);
         query.setParameter("inDateStart", dateStart);
@@ -229,7 +326,7 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
             transitAirportIds.add(flightScheduleTwo.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getAirportId());
         }
         
-        query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight.flightRoute.origin.airportId IN :inAirportIds AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId = :inDestinationAirportId AND fs.departureDateTime > :inDateStart AND fs.departureDateTime <= :inDateEnd");
+        query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight.flightRoute.origin.airportId IN :inAirportIds AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId = :inDestinationAirportId AND fs.departureDateTime > :inDateStart AND fs.departureDateTime <= :inDateEnd ORDER BY fs.departureDateTime ASC");
         query.setParameter("inAirportIds", transitAirportIds);
         query.setParameter("inDestinationAirportId", destinationAirportId);
         query.setParameter("inDateStart", dateStart);
@@ -239,7 +336,9 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         
         for (FlightSchedule firstFlightSchedule: firstLeg)
         {
+            Airport originAirport = em.find(Airport.class, departureAirportId);
             Airport firstTransitAirport = firstFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination();
+            Integer timeZoneDiff = firstTransitAirport.getTimeZoneDiff() - originAirport.getTimeZoneDiff();
             Integer firstFlightHours = firstFlightSchedule.getFlightHours();
             Integer firstFlightMins = firstFlightSchedule.getFlightMinutes();
             
@@ -251,15 +350,16 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
                     calendar.setTime(firstFlightSchedule.getDepartureDateTime());
                     calendar.add(GregorianCalendar.HOUR_OF_DAY, firstFlightHours+2);
                     calendar.add(GregorianCalendar.MINUTE, firstFlightMins);
+                    // Account for time zone difference
+                    calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
                     
                     if (secondFlightSchedule.getDepartureDateTime().compareTo(calendar.getTime()) >= 0)
                     {
                         Airport secondTransitAirport = secondFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination();
+                        timeZoneDiff = secondTransitAirport.getTimeZoneDiff() - firstTransitAirport.getTimeZoneDiff();
                         
                         for (FlightSchedule thirdFlightSchedule: thirdLeg)
                         {   
-                            System.out.println(secondTransitAirport.getIataCode());
-                            System.out.println(thirdFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode());
                             if (thirdFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().equals(secondTransitAirport))
                             {
                                 calendar = new GregorianCalendar();
@@ -267,12 +367,20 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
                                 calendar.setTime(secondFlightSchedule.getDepartureDateTime());
                                 calendar.add(GregorianCalendar.HOUR_OF_DAY, secondFlightSchedule.getFlightHours()+2);
                                 calendar.add(GregorianCalendar.MINUTE, secondFlightSchedule.getFlightMinutes());
+                                // Account for time zone difference
+                                calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
                                 
                                 if (thirdFlightSchedule.getDepartureDateTime().compareTo(calendar.getTime()) >= 0)
                                 {
-                                    connectingFlights.add(firstFlightSchedule);
-                                    connectingFlights.add(secondFlightSchedule);
-                                    connectingFlights.add(thirdFlightSchedule);
+                                    if (filterFlightSchedule(firstFlightSchedule, cabinClassPreference, numPassengers) &&
+                                        filterFlightSchedule(secondFlightSchedule, cabinClassPreference, numPassengers) &&
+                                        filterFlightSchedule(thirdFlightSchedule, cabinClassPreference, numPassengers) &&
+                                        firstFlightSchedule.getEnabled() && secondFlightSchedule.getEnabled() && thirdFlightSchedule.getEnabled())
+                                    {
+                                        connectingFlights.add(firstFlightSchedule);
+                                        connectingFlights.add(secondFlightSchedule);
+                                        connectingFlights.add(thirdFlightSchedule);
+                                    }    
                                 }
                             }
                         }
@@ -280,31 +388,58 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
                 }
             }
         }
+
+        for (FlightSchedule fs:connectingFlights)
+        {
+            fs.getSeatInventories().size();
+            fs.getFlightSchedulePlan().getFares().size();
+        }
         return connectingFlights;
     }
     
-    public List<FlightSchedule> filterFlightSchedulesByCabinClasses(List<FlightSchedule> flightSchedules, String cabinClassPreference, Integer numPassengers)
+    @Override
+    public Boolean filterFlightSchedule(FlightSchedule flightSchedule, String cabinClassPreference, Integer numPassengers)
     {
-        for(FlightSchedule fs: flightSchedules)
+        CabinClassEnum preferredCabinClass = null;
+        if (cabinClassPreference.equals("F"))
         {
-            if (cabinClassPreference.equals("NA"))
+            preferredCabinClass = CabinClassEnum.FIRST_CLASS;
+        }
+        else if (cabinClassPreference.equals("J"))
+        {
+            preferredCabinClass = CabinClassEnum.BUSINESS_CLASS;
+        }
+        else if (cabinClassPreference.equals("W"))
+        {
+            preferredCabinClass = CabinClassEnum.PREMIUM_ECONOMY_CLASS;
+        }
+        else
+        {
+            preferredCabinClass = CabinClassEnum.ECONOMY_CLASS;
+        }
+        
+        Boolean preferredCabinClassAvailable = false;
+        for (SeatInventory si: flightSchedule.getSeatInventories())
+        {
+            if (si.getCabinClass().getCabinClassType().equals(preferredCabinClass))
             {
+                preferredCabinClassAvailable = hasSufficientBalanceSeats(si, numPassengers);
                 break;
             }
-            
-            List<CabinClass> cabinClasses = fs.getFlightSchedulePlan().getFlight().getAircraftConfig().getCabinClasses();
-            for (CabinClass cc: cabinClasses)
-            {
-                if (cabinClassPreference.equals("F") && cc.getCabinClassType().equals(CabinClassEnum.FIRST_CLASS))
-                {
-                    List<SeatInventory> seatInventories = fs.getSeatInventories();
-                    for (SeatInventory si: seatInventories)
-                    {
-                        // cc.getCabinClassId()
-                    }
-                }
-            }
         }
-        return flightSchedules;
+        return preferredCabinClassAvailable;
+    }
+    
+    @Override
+    public Boolean hasSufficientBalanceSeats(SeatInventory seatInventory, Integer numPassengers)
+    {
+        if (seatInventory.getNumOfBalanceSeats() < numPassengers)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
 }

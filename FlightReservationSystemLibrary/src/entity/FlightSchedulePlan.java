@@ -35,7 +35,12 @@ public class FlightSchedulePlan implements Serializable {
     private String flightScheduleType;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date endDate;
+    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    private Date startDate;
+    @Column
     private Integer intervalDays;
+    @Column(nullable = false)
+    private Boolean enabled;
     
     @Column(nullable = false)
     private String flightSchedulePlanType;
@@ -47,7 +52,7 @@ public class FlightSchedulePlan implements Serializable {
     @JoinColumn(nullable=false)
     private Flight flight;
     
-    @OneToMany
+    @OneToMany(mappedBy = "flightSchedulePlan")
     private List<Fare> fares;
     
     @OneToMany(mappedBy = "flightSchedulePlan")
@@ -58,12 +63,14 @@ public class FlightSchedulePlan implements Serializable {
         this.flightSchedules = new ArrayList<>();
     }
 
-    public FlightSchedulePlan(String flightScheduleType, Date endDate, Integer intervalDays) {
+    public FlightSchedulePlan(String flightScheduleType, Date endDate, Date startDate, Integer intervalDays, Boolean enabled) {
         this();
         
         this.flightScheduleType = flightScheduleType;
         this.endDate = endDate;
+        this.startDate = startDate;
         this.intervalDays = intervalDays;
+        this.enabled = enabled;
     }
 
     public Long getFlightSchedulePlanId() {
@@ -81,7 +88,22 @@ public class FlightSchedulePlan implements Serializable {
     public void setFlightSchedulePlanType(String flightSchedulePlanType) {
         this.flightSchedulePlanType = flightSchedulePlanType;
     }
-    
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
     
 
     @Override

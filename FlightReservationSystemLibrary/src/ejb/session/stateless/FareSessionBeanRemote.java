@@ -6,8 +6,10 @@
 package ejb.session.stateless;
 
 import entity.Fare;
+import java.util.List;
 import javax.ejb.Remote;
 import util.exception.FareBasisCodeExistException;
+import util.exception.FareNotFoundException;
 import util.exception.FlightSchedulePlanNotFoundException;
 import util.exception.UnknownPersistenceException;
 
@@ -20,4 +22,9 @@ public interface FareSessionBeanRemote {
     
     public Long createNewFare(Fare newFare, Long flightSchedulePlanId, Long cabinClassId) throws FlightSchedulePlanNotFoundException, FareBasisCodeExistException, UnknownPersistenceException;
     
+    public List<Fare> getFaresByFlightSchedulePlanId(Long flightSchedulePlanId);
+
+    public void updateFare(Fare fare) throws FareNotFoundException;
+    
+    public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException;
 }
