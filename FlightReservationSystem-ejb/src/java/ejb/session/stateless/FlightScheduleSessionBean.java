@@ -174,8 +174,9 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     }
 
     @Override
-    public List<FlightSchedule> searchDirectFlightSchedules(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, String cabinClassPreference, Integer numPassengers)
+    public List<FlightSchedule> searchDirectFlightSchedules(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, CabinClassEnum preferredCabinClass, Integer numPassengers)
     {
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
         Airport departureAirport = em.find(Airport.class, departureAirportId);
         Airport destinationAirport = em.find(Airport.class, destinationAirportId);
         
@@ -186,20 +187,21 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         query.setParameter("inDestinationAirport", destinationAirport);
         
         List<FlightSchedule> flightSchedules = query.getResultList();
+        System.out.println(flightSchedules.size());
         List<FlightSchedule> finalFlightSchedules = new ArrayList<>();
         for (FlightSchedule fs: flightSchedules)
         {
             fs.getSeatInventories().size();
         }
         
-        if (cabinClassPreference.equals("NA"))
+        if (preferredCabinClass == null)
         {
             return flightSchedules;
         }
         
         for (FlightSchedule fs: flightSchedules)
         {
-            if (filterFlightSchedule(fs, cabinClassPreference, numPassengers) && fs.getEnabled())
+            if (filterFlightSchedule(fs, preferredCabinClass, numPassengers) && fs.getEnabled())
             {
                 finalFlightSchedules.add(fs);
             }
@@ -215,76 +217,85 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     }
     
     @Override
-    public List<FlightSchedule> searchSingleTransitConnectingFlightSchedule (Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, String cabinClassPreference, Integer numPassengers)
+    public List<FlightSchedule> searchSingleTransitConnectingFlightSchedule (Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, CabinClassEnum preferredCabinClass, Integer numPassengers)
     {
         List<FlightSchedule> connectingFlights = new ArrayList<>();
         
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+        System.out.println(format.format(dateStart));
+        System.out.println(format.format(dateEnd));
         Query query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.departureDateTime >= :inDateStart AND fs.departureDateTime < :inDateEnd AND fs.flightSchedulePlan.flight.flightRoute.origin.airportId = :inDepartureAirportId AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId <> :inDestinationAirportId ORDER BY fs.departureDateTime ASC");
         query.setParameter("inDateStart", dateStart);
         query.setParameter("inDateEnd", dateEnd);
         query.setParameter("inDepartureAirportId", departureAirportId);
         query.setParameter("inDestinationAirportId", destinationAirportId);
         List<FlightSchedule> firstLeg = query.getResultList();
+        System.out.println(firstLeg.size());
         
-        List<Long> transitAirportIds = new ArrayList<>();
-        for (FlightSchedule flightSchedule: firstLeg)
+        if (!firstLeg.isEmpty())
         {
-            transitAirportIds.add(flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getAirportId());
-        }
-        
-        GregorianCalendar calendar = new GregorianCalendar();
-        calendar.setTime(dateEnd);
-        calendar.add(GregorianCalendar.HOUR_OF_DAY, 10);
-        Date endDateTime = calendar.getTime();
-        
-        query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight.flightRoute.origin.airportId IN :inAirportIds AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId = :inDestinationAirportId AND fs.departureDateTime > :inDateStart AND fs.departureDateTime <= :inDateEnd ORDER BY fs.departureDateTime ASC");
-        query.setParameter("inAirportIds", transitAirportIds);
-        query.setParameter("inDestinationAirportId", destinationAirportId);
-        query.setParameter("inDateStart", dateStart);
-        query.setParameter("inDateEnd", endDateTime);
-        List<FlightSchedule> secondLeg = query.getResultList();
-        
-        for (FlightSchedule firstFlightSchedule: firstLeg)
-        {
-            Airport transitAirport = firstFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination();
-            Airport originAirport = em.find(Airport.class, departureAirportId);
-            Integer timeZoneDiff = transitAirport.getTimeZoneDiff() - originAirport.getTimeZoneDiff();
-            
-            for (FlightSchedule secondFlightSchedule: secondLeg)
+            List<Long> transitAirportIds = new ArrayList<>();
+            for (FlightSchedule flightSchedule: firstLeg)
             {
-                if (secondFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().equals(transitAirport))
+                transitAirportIds.add(flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getAirportId());
+            }
+
+            GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setTime(dateEnd);
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, 10);
+            dateEnd = calendar.getTime();
+            System.out.println(format.format(dateStart));
+            System.out.println(format.format(dateEnd));
+
+            query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight.flightRoute.origin.airportId IN :inAirportIds AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId = :inDestinationAirportId AND fs.departureDateTime > :inDateStart AND fs.departureDateTime < :inDateEnd ORDER BY fs.departureDateTime ASC");
+            query.setParameter("inAirportIds", transitAirportIds);
+            query.setParameter("inDestinationAirportId", destinationAirportId);
+            query.setParameter("inDateStart", dateStart);
+            query.setParameter("inDateEnd", dateEnd);
+            List<FlightSchedule> secondLeg = query.getResultList();
+
+            for (FlightSchedule firstFlightSchedule: firstLeg)
+            {
+                Airport transitAirport = firstFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination();
+                Airport originAirport = em.find(Airport.class, departureAirportId);
+                Integer timeZoneDiff = transitAirport.getTimeZoneDiff() - originAirport.getTimeZoneDiff();
+
+                for (FlightSchedule secondFlightSchedule: secondLeg)
                 {
-                    calendar = new GregorianCalendar();
-                    calendar.setTime(firstFlightSchedule.getDepartureDateTime());
-                    calendar.add(GregorianCalendar.HOUR_OF_DAY, firstFlightSchedule.getFlightHours()+2);
-                    calendar.add(GregorianCalendar.MINUTE, firstFlightSchedule.getFlightMinutes());
-                    // Account for difference in time zone
-                    calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
-                    
-                    if (secondFlightSchedule.getDepartureDateTime().compareTo(calendar.getTime()) >= 0)
+                    if (secondFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().equals(transitAirport))
                     {
-                        if (filterFlightSchedule(firstFlightSchedule, cabinClassPreference, numPassengers) &&
-                            filterFlightSchedule(secondFlightSchedule, cabinClassPreference, numPassengers) &&
-                            firstFlightSchedule.getEnabled() && secondFlightSchedule.getEnabled())
+                        calendar = new GregorianCalendar();
+                        calendar.setTime(firstFlightSchedule.getDepartureDateTime());
+                        calendar.add(GregorianCalendar.HOUR_OF_DAY, firstFlightSchedule.getFlightHours()+2);
+                        calendar.add(GregorianCalendar.MINUTE, firstFlightSchedule.getFlightMinutes());
+                        // Account for difference in time zone
+                        calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
+
+                        if (secondFlightSchedule.getDepartureDateTime().compareTo(calendar.getTime()) >= 0)
                         {
-                            connectingFlights.add(firstFlightSchedule);
-                            connectingFlights.add(secondFlightSchedule);
+                            if (filterFlightSchedule(firstFlightSchedule, preferredCabinClass, numPassengers) &&
+                                filterFlightSchedule(secondFlightSchedule, preferredCabinClass, numPassengers) &&
+                                firstFlightSchedule.getEnabled() && secondFlightSchedule.getEnabled())
+                            {
+                                connectingFlights.add(firstFlightSchedule);
+                                connectingFlights.add(secondFlightSchedule);
+                            }
                         }
                     }
                 }
             }
-        }
-        
-        for (FlightSchedule fs:connectingFlights)
-        {
-            fs.getSeatInventories().size();
-            fs.getFlightSchedulePlan().getFares().size();
+
+            for (FlightSchedule fs:connectingFlights)
+            {
+                fs.getSeatInventories().size();
+                fs.getFlightSchedulePlan().getFares().size();
+            }
         }
         return connectingFlights;
     }
     
     @Override
-    public List<FlightSchedule> searchDoubleTransitConnectingFlightSchedule (Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, String cabinClassPreference, Integer numPassengers)
+    public List<FlightSchedule> searchDoubleTransitConnectingFlightSchedule (Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, CabinClassEnum preferredCabinClass, Integer numPassengers)
     {
         List<FlightSchedule> connectingFlights = new ArrayList<>();
         SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
@@ -294,97 +305,100 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         query.setParameter("inDepartureAirportId", departureAirportId);
         query.setParameter("inDestinationAirportId", destinationAirportId);
         List<FlightSchedule> firstLeg = query.getResultList();
-        System.out.println(firstLeg.size());
         
-        GregorianCalendar calendar = new GregorianCalendar();
-        calendar.setTime(dateEnd);
-        calendar.add(GregorianCalendar.HOUR_OF_DAY, 10);
-        dateEnd = calendar.getTime();
-        
-        List<Long> transitAirportIds = new ArrayList<>();
-        for (FlightSchedule flightScheduleOne: firstLeg)
+        if (!firstLeg.isEmpty())
         {
-            transitAirportIds.add(flightScheduleOne.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getAirportId());
-        }
-        
-        query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight.flightRoute.origin.airportId IN :inAirportIds AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId <> :inDestinationAirportId AND fs.departureDateTime > :inDateStart AND fs.departureDateTime <= :inDateEnd ORDER BY fs.departureDateTime ASC");
-        query.setParameter("inDestinationAirportId", destinationAirportId);
-        query.setParameter("inAirportIds", transitAirportIds);
-        query.setParameter("inDateStart", dateStart);
-        query.setParameter("inDateEnd", dateEnd);
-        List<FlightSchedule> secondLeg = query.getResultList();
-        System.out.println(secondLeg.size());
-        
-        calendar = new GregorianCalendar();
-        calendar.setTime(dateEnd);
-        calendar.add(GregorianCalendar.HOUR_OF_DAY, 10);
-        dateEnd = calendar.getTime();
-        
-        transitAirportIds = new ArrayList<>();
-        for (FlightSchedule flightScheduleTwo: secondLeg)
-        {
-            transitAirportIds.add(flightScheduleTwo.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getAirportId());
-        }
-        
-        query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight.flightRoute.origin.airportId IN :inAirportIds AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId = :inDestinationAirportId AND fs.departureDateTime > :inDateStart AND fs.departureDateTime <= :inDateEnd ORDER BY fs.departureDateTime ASC");
-        query.setParameter("inAirportIds", transitAirportIds);
-        query.setParameter("inDestinationAirportId", destinationAirportId);
-        query.setParameter("inDateStart", dateStart);
-        query.setParameter("inDateEnd", dateEnd);
-        List<FlightSchedule> thirdLeg = query.getResultList();
-        System.out.println(thirdLeg.size());
-        
-        for (FlightSchedule firstFlightSchedule: firstLeg)
-        {
-            Airport originAirport = em.find(Airport.class, departureAirportId);
-            Airport firstTransitAirport = firstFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination();
-            Integer timeZoneDiff = firstTransitAirport.getTimeZoneDiff() - originAirport.getTimeZoneDiff();
-            Integer firstFlightHours = firstFlightSchedule.getFlightHours();
-            Integer firstFlightMins = firstFlightSchedule.getFlightMinutes();
-            
-            for (FlightSchedule secondFlightSchedule: secondLeg)
+            GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setTime(dateEnd);
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, 10);
+            dateEnd = calendar.getTime();
+
+            List<Long> transitAirportIds = new ArrayList<>();
+            for (FlightSchedule flightScheduleOne: firstLeg)
             {
-                if (firstTransitAirport.equals(secondFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin()))
+                transitAirportIds.add(flightScheduleOne.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getAirportId());
+            }
+
+            query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight.flightRoute.origin.airportId IN :inAirportIds AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId <> :inDestinationAirportId AND fs.departureDateTime > :inDateStart AND fs.departureDateTime <= :inDateEnd ORDER BY fs.departureDateTime ASC");
+            query.setParameter("inDestinationAirportId", destinationAirportId);
+            query.setParameter("inAirportIds", transitAirportIds);
+            query.setParameter("inDateStart", dateStart);
+            query.setParameter("inDateEnd", dateEnd);
+            List<FlightSchedule> secondLeg = query.getResultList();
+            
+            if (!secondLeg.isEmpty())
+            {
+                calendar = new GregorianCalendar();
+                calendar.setTime(dateEnd);
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, 10);
+                dateEnd = calendar.getTime();
+
+                transitAirportIds = new ArrayList<>();
+                for (FlightSchedule flightScheduleTwo: secondLeg)
                 {
-                    calendar = new GregorianCalendar();
-                    calendar.setTime(firstFlightSchedule.getDepartureDateTime());
-                    calendar.add(GregorianCalendar.HOUR_OF_DAY, firstFlightHours+2);
-                    calendar.add(GregorianCalendar.MINUTE, firstFlightMins);
-                    // Account for time zone difference
-                    calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
-                    
-                    if (secondFlightSchedule.getDepartureDateTime().compareTo(calendar.getTime()) >= 0)
+                    transitAirportIds.add(flightScheduleTwo.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getAirportId());
+                }
+
+                query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flight.flightRoute.origin.airportId IN :inAirportIds AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId = :inDestinationAirportId AND fs.departureDateTime > :inDateStart AND fs.departureDateTime <= :inDateEnd ORDER BY fs.departureDateTime ASC");
+                query.setParameter("inAirportIds", transitAirportIds);
+                query.setParameter("inDestinationAirportId", destinationAirportId);
+                query.setParameter("inDateStart", dateStart);
+                query.setParameter("inDateEnd", dateEnd);
+                List<FlightSchedule> thirdLeg = query.getResultList();
+
+                for (FlightSchedule firstFlightSchedule: firstLeg)
+                {
+                    Airport originAirport = em.find(Airport.class, departureAirportId);
+                    Airport firstTransitAirport = firstFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination();
+                    Integer timeZoneDiff = firstTransitAirport.getTimeZoneDiff() - originAirport.getTimeZoneDiff();
+                    Integer firstFlightHours = firstFlightSchedule.getFlightHours();
+                    Integer firstFlightMins = firstFlightSchedule.getFlightMinutes();
+
+                    for (FlightSchedule secondFlightSchedule: secondLeg)
                     {
-                        Airport secondTransitAirport = secondFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination();
-                        timeZoneDiff = secondTransitAirport.getTimeZoneDiff() - firstTransitAirport.getTimeZoneDiff();
-                        
-                        for (FlightSchedule thirdFlightSchedule: thirdLeg)
-                        {   
-                            if (thirdFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().equals(secondTransitAirport))
+                        if (firstTransitAirport.equals(secondFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin()))
+                        {
+                            calendar = new GregorianCalendar();
+                            calendar.setTime(firstFlightSchedule.getDepartureDateTime());
+                            calendar.add(GregorianCalendar.HOUR_OF_DAY, firstFlightHours+2);
+                            calendar.add(GregorianCalendar.MINUTE, firstFlightMins);
+                            // Account for time zone difference
+                            calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
+
+                            if (secondFlightSchedule.getDepartureDateTime().compareTo(calendar.getTime()) >= 0)
                             {
-                                calendar = new GregorianCalendar();
-                                calendar.setTime(firstFlightSchedule.getDepartureDateTime());
-                                calendar.setTime(secondFlightSchedule.getDepartureDateTime());
-                                calendar.add(GregorianCalendar.HOUR_OF_DAY, secondFlightSchedule.getFlightHours()+2);
-                                calendar.add(GregorianCalendar.MINUTE, secondFlightSchedule.getFlightMinutes());
-                                // Account for time zone difference
-                                calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
-                                
-                                if (thirdFlightSchedule.getDepartureDateTime().compareTo(calendar.getTime()) >= 0)
-                                {
-                                    if (filterFlightSchedule(firstFlightSchedule, cabinClassPreference, numPassengers) &&
-                                        filterFlightSchedule(secondFlightSchedule, cabinClassPreference, numPassengers) &&
-                                        filterFlightSchedule(thirdFlightSchedule, cabinClassPreference, numPassengers) &&
-                                        firstFlightSchedule.getEnabled() && secondFlightSchedule.getEnabled() && thirdFlightSchedule.getEnabled())
+                                Airport secondTransitAirport = secondFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination();
+                                timeZoneDiff = secondTransitAirport.getTimeZoneDiff() - firstTransitAirport.getTimeZoneDiff();
+
+                                for (FlightSchedule thirdFlightSchedule: thirdLeg)
+                                {   
+                                    if (thirdFlightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().equals(secondTransitAirport))
                                     {
-                                        connectingFlights.add(firstFlightSchedule);
-                                        connectingFlights.add(secondFlightSchedule);
-                                        connectingFlights.add(thirdFlightSchedule);
-                                    }    
+                                        calendar = new GregorianCalendar();
+                                        calendar.setTime(firstFlightSchedule.getDepartureDateTime());
+                                        calendar.setTime(secondFlightSchedule.getDepartureDateTime());
+                                        calendar.add(GregorianCalendar.HOUR_OF_DAY, secondFlightSchedule.getFlightHours()+2);
+                                        calendar.add(GregorianCalendar.MINUTE, secondFlightSchedule.getFlightMinutes());
+                                        // Account for time zone difference
+                                        calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
+
+                                        if (thirdFlightSchedule.getDepartureDateTime().compareTo(calendar.getTime()) >= 0)
+                                        {
+                                            if (filterFlightSchedule(firstFlightSchedule, preferredCabinClass, numPassengers) &&
+                                                filterFlightSchedule(secondFlightSchedule, preferredCabinClass, numPassengers) &&
+                                                filterFlightSchedule(thirdFlightSchedule, preferredCabinClass, numPassengers) &&
+                                                firstFlightSchedule.getEnabled() && secondFlightSchedule.getEnabled() && thirdFlightSchedule.getEnabled())
+                                            {
+                                                connectingFlights.add(firstFlightSchedule);
+                                                connectingFlights.add(secondFlightSchedule);
+                                                connectingFlights.add(thirdFlightSchedule);
+                                            }    
+                                        }
+                                    }
                                 }
-                            }
+                            } 
                         }
-                    } 
+                    }
                 }
             }
         }
@@ -398,24 +412,11 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     }
     
     @Override
-    public Boolean filterFlightSchedule(FlightSchedule flightSchedule, String cabinClassPreference, Integer numPassengers)
+    public Boolean filterFlightSchedule(FlightSchedule flightSchedule, CabinClassEnum preferredCabinClass, Integer numPassengers)
     {
-        CabinClassEnum preferredCabinClass = null;
-        if (cabinClassPreference.equals("F"))
+        if (preferredCabinClass == null)
         {
-            preferredCabinClass = CabinClassEnum.FIRST_CLASS;
-        }
-        else if (cabinClassPreference.equals("J"))
-        {
-            preferredCabinClass = CabinClassEnum.BUSINESS_CLASS;
-        }
-        else if (cabinClassPreference.equals("W"))
-        {
-            preferredCabinClass = CabinClassEnum.PREMIUM_ECONOMY_CLASS;
-        }
-        else
-        {
-            preferredCabinClass = CabinClassEnum.ECONOMY_CLASS;
+            return true;
         }
         
         Boolean preferredCabinClassAvailable = false;

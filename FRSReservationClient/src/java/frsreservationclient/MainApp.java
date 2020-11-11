@@ -361,8 +361,10 @@ public class MainApp {
         Date formattedDepartureDate;
         Date formattedReturnDate;
         Integer numPassengers = 0;
-        Integer flightTypePreference = 0;
-        String cabinClassPreference = "";
+        Integer outboundFlightType = 0;
+        Integer returnFlightType = 0;
+        CabinClassEnum outboundCabinClass = null;
+        CabinClassEnum returnCabinClass = null;
         
         System.out.println("*** FRS Reservation :: Search Flights ***\n");
 
@@ -487,11 +489,27 @@ public class MainApp {
         
         while (true)
         {
-            System.out.print("Enter your preference for (1: Direct Flight, 2: Connecting Flight, 3: No Preference)> ");
-            flightTypePreference = scanner.nextInt();
+            System.out.print("Enter your preference (1: Direct Flight, 2: Connecting Flight, 3: No Preference) for outbound flight> ");
+            outboundFlightType = scanner.nextInt();
             scanner.nextLine();
             
-            if (flightTypePreference < 1 || flightTypePreference > 3)
+            if (outboundFlightType < 1 || outboundFlightType > 3)
+            {
+                System.out.println("Invalid option, please try again!\n");
+            }
+            else
+            {
+                if (tripType == 1)
+                {
+                    break;
+                }
+            }
+            
+            System.out.print("Enter your preference (1: Direct Flight, 2: Connecting Flight, 3: No Preference) for return flight> ");
+            returnFlightType = scanner.nextInt();
+            scanner.nextLine();
+            
+            if (returnFlightType < 1 || returnFlightType > 3)
             {
                 System.out.println("Invalid option, please try again!\n");
             }
@@ -503,7 +521,39 @@ public class MainApp {
         
         while (true)
         {
-            System.out.print("Enter you preference for (F: First Class, J: Business Class, W: Premiumn Economy Class, Y: Economy Class, NA: No Preference)> ");
+            System.out.print("Enter you preference for (F: First Class, J: Business Class, W: Premiumn Economy Class, Y: Economy Class, NA: No Preference) for outbound flight> ");
+            String cabinClassPreference = scanner.nextLine().trim();
+            
+            if (!cabinClassPreference.equals("F") && !cabinClassPreference.equals("J") && !cabinClassPreference.equals("W") && !cabinClassPreference.equals("Y") && !cabinClassPreference.equals("NA"))
+            {
+                System.out.println("Invalid option, please try again!\n");
+            }
+            else
+            {
+                if (cabinClassPreference.equals("F"))
+                {
+                    outboundCabinClass = CabinClassEnum.FIRST_CLASS;
+                }
+                else if (cabinClassPreference.equals("J"))
+                {
+                    outboundCabinClass = CabinClassEnum.BUSINESS_CLASS;
+                }
+                else if (cabinClassPreference.equals("W"))
+                {
+                    outboundCabinClass = CabinClassEnum.PREMIUM_ECONOMY_CLASS;
+                }
+                else if (cabinClassPreference.equals("Y"))
+                {
+                    outboundCabinClass = CabinClassEnum.ECONOMY_CLASS;
+                }
+                
+                if (tripType == 1)
+                {
+                    break;
+                }
+            }
+            
+            System.out.print("Enter you preference for (F: First Class, J: Business Class, W: Premiumn Economy Class, Y: Economy Class, NA: No Preference) for return flight> ");
             cabinClassPreference = scanner.nextLine().trim();
             
             if (!cabinClassPreference.equals("F") && !cabinClassPreference.equals("J") && !cabinClassPreference.equals("W") && !cabinClassPreference.equals("Y") && !cabinClassPreference.equals("NA"))
@@ -512,81 +562,235 @@ public class MainApp {
             }
             else
             {
+                if (cabinClassPreference.equals("F"))
+                {
+                    returnCabinClass = CabinClassEnum.FIRST_CLASS;
+                }
+                else if (cabinClassPreference.equals("J"))
+                {
+                    returnCabinClass = CabinClassEnum.BUSINESS_CLASS;
+                }
+                else if (cabinClassPreference.equals("W"))
+                {
+                    returnCabinClass = CabinClassEnum.PREMIUM_ECONOMY_CLASS;
+                }
+                else if (cabinClassPreference.equals("Y"))
+                {
+                    returnCabinClass = CabinClassEnum.ECONOMY_CLASS;
+                }
                 break;
             }
         }
         
-        if (flightTypePreference == 1)
+        System.out.println("\nOutbound Flight: \n");
+        if (outboundFlightType == 1)
         {
-            doSearchDirectFlights(departureAirportId, destinationAirportId, formattedDepartureDate, cabinClassPreference, numPassengers);
-            if (tripType == 2)
-            {
-                System.out.println("Return Flight:\n");
-                doSearchDirectFlights(destinationAirportId, departureAirportId, formattedReturnDate, cabinClassPreference, numPassengers);
-            }
+            doSearchDirectFlights(departureAirportId, destinationAirportId, formattedDepartureDate, outboundCabinClass, numPassengers);
         }
-        else if (flightTypePreference == 2)
+        else if (outboundFlightType == 2)
         {
-            doSearchConnectingFlights(departureAirportId, destinationAirportId, formattedDepartureDate, cabinClassPreference, numPassengers);
-            if (tripType == 2)
+            doSearchConnectingFlights(departureAirportId, destinationAirportId, formattedDepartureDate, outboundCabinClass, numPassengers);
+        }
+        else if (outboundFlightType == 3)
+        {
+            doSearchAllFlights(departureAirportId, destinationAirportId, formattedDepartureDate, outboundCabinClass, numPassengers);
+            
+        }
+        
+        if (tripType == 2)
+        {
+            System.out.println("\nReturn Flight:\n");
+            if (returnFlightType == 1)
             {
-                System.out.println("Return Flight:\n");
-                doSearchConnectingFlights(destinationAirportId, departureAirportId, formattedReturnDate, cabinClassPreference, numPassengers);
+                doSearchDirectFlights(destinationAirportId, departureAirportId, formattedReturnDate, returnCabinClass, numPassengers);
+            }
+            else if (returnFlightType == 2)
+            {
+                doSearchConnectingFlights(destinationAirportId, departureAirportId, formattedReturnDate, returnCabinClass, numPassengers);
+            }
+            else if (returnFlightType == 3)
+            {
+                doSearchAllFlights(destinationAirportId, departureAirportId, formattedReturnDate, returnCabinClass, numPassengers);
             }
         }
     }
     
-    public void doSearchDirectFlights(Long departureAirportId, Long destinationAirportId, Date formattedDepartureDate, String cabinClassPreference, Integer numPassengers)
+    public void doSearchAllFlights(Long departureAirportId, Long destinationAirportId, Date formattedDepartureDate, CabinClassEnum preferredCabinClass, Integer numPassengers)
     {
-        System.out.println("Direct Flights Available: ");
         SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
         GregorianCalendar departureDateCalendar = new GregorianCalendar();
         departureDateCalendar.setTime(formattedDepartureDate);
         departureDateCalendar.add(GregorianCalendar.HOUR_OF_DAY, +24);
         Date formattedDepartureDateEnd = departureDateCalendar.getTime();
-        List<FlightSchedule> flightSchedules = flightScheduleSessionBeanRemote.searchDirectFlightSchedules(departureAirportId, destinationAirportId, formattedDepartureDate, formattedDepartureDateEnd, cabinClassPreference, numPassengers);
-        if (!flightSchedules.isEmpty())
+        List<FlightSchedule> flightSchedules = flightScheduleSessionBeanRemote.searchDirectFlightSchedules(departureAirportId, destinationAirportId, formattedDepartureDate, formattedDepartureDateEnd, preferredCabinClass, numPassengers);
+        List<FlightSchedule> singleTransit = flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, formattedDepartureDate, formattedDepartureDateEnd, preferredCabinClass, numPassengers);
+        List<FlightSchedule> doubleTransit = flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, formattedDepartureDate, formattedDepartureDateEnd, preferredCabinClass, numPassengers);
+        
+        if (!flightSchedules.isEmpty() || !singleTransit.isEmpty() || !doubleTransit.isEmpty())
         {
             System.out.println("Flight Schedules Available on " + dateFormatter.format(formattedDepartureDate) + ":\n");
-            for (FlightSchedule fs1: flightSchedules)
+            if (!flightSchedules.isEmpty())
             {
-                doPrintDirectFlightSchedule(fs1, cabinClassPreference , numPassengers);
+                System.out.println("Direct Flights Available: ");
+                for (FlightSchedule fs1: flightSchedules)
+                {
+                    doPrintDirectFlightSchedule(fs1, preferredCabinClass , numPassengers);
+                }
+            }
+            
+            if (!singleTransit.isEmpty() || !doubleTransit.isEmpty())
+            {
+                System.out.println("Connecting Flights Available: ");
+                if (!singleTransit.isEmpty())
+                {
+                    doPrintSingleTransitFlightSchedule(singleTransit, preferredCabinClass, numPassengers);
+                }
+                if (!doubleTransit.isEmpty())
+                {
+                    doPrintDoubleTransitFlightSchedules(doubleTransit, preferredCabinClass, numPassengers);
+                }
             }
         }
         else
         {
             System.out.println("There are no flight schedules available on " + dateFormatter.format(formattedDepartureDate) + "!\n");
-        }       
-
+        }
+        
         GregorianCalendar beforeDepartureDateCalendar = new GregorianCalendar();
         beforeDepartureDateCalendar.setTime(formattedDepartureDate);
         beforeDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, -3);
         Date formattedBeforeDepartureDate = beforeDepartureDateCalendar.getTime();
-        List<FlightSchedule> beforeDepartureFlightSchedules = flightScheduleSessionBeanRemote.searchDirectFlightSchedules(departureAirportId, destinationAirportId, formattedBeforeDepartureDate, formattedDepartureDate, cabinClassPreference, numPassengers);
-        if (!beforeDepartureFlightSchedules.isEmpty())
+        flightSchedules = flightScheduleSessionBeanRemote.searchDirectFlightSchedules(departureAirportId, destinationAirportId, formattedBeforeDepartureDate, formattedDepartureDate, preferredCabinClass, numPassengers);
+        
+        //Connecting Flight Schedules 3 days before chosen date
+        beforeDepartureDateCalendar.setTime(formattedDepartureDate);
+        beforeDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, -3);
+        Date dateStart = beforeDepartureDateCalendar.getTime();
+        beforeDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
+        Date dateEnd = beforeDepartureDateCalendar.getTime();
+        singleTransit = flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
+        doubleTransit = flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
+        
+        // Connecting Flight Schedules 2 days before chosen date
+        dateStart = beforeDepartureDateCalendar.getTime();
+        beforeDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
+        dateEnd = beforeDepartureDateCalendar.getTime();
+        for (FlightSchedule fs1: flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
         {
-            System.out.println("Flight Schedules Available 1-3 days before " + dateFormatter.format(formattedDepartureDate) + ":\n");
-            for (FlightSchedule fs2: beforeDepartureFlightSchedules)
+            singleTransit.add(fs1);
+        }
+        for (FlightSchedule fs2: flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
+        {
+            doubleTransit.add(fs2);
+        }
+        
+        // Connecting Flight Schedules 1 day before chosen date
+        dateStart = beforeDepartureDateCalendar.getTime();
+        beforeDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
+        dateEnd = beforeDepartureDateCalendar.getTime();
+        for (FlightSchedule fs1: flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
+        {
+            singleTransit.add(fs1);
+        }
+        for (FlightSchedule fs2: flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
+        {
+            doubleTransit.add(fs2);
+        }
+        
+        if (!flightSchedules.isEmpty() || !singleTransit.isEmpty() || !doubleTransit.isEmpty())
+        {
+            System.out.println("Flight Schedules Available on " + dateFormatter.format(formattedDepartureDate) + ":\n");
+            if (!flightSchedules.isEmpty())
             {
-                doPrintDirectFlightSchedule(fs2, cabinClassPreference, numPassengers);
+                System.out.println("Direct Flights Available: ");
+                for (FlightSchedule fs1: flightSchedules)
+                {
+                    doPrintDirectFlightSchedule(fs1, preferredCabinClass , numPassengers);
+                }
+            }
+            
+            if (!singleTransit.isEmpty() || !doubleTransit.isEmpty())
+            {
+                System.out.println("Connecting Flights Available: ");
+                if (!singleTransit.isEmpty())
+                {
+                    doPrintSingleTransitFlightSchedule(singleTransit, preferredCabinClass, numPassengers);
+                }
+                if (!doubleTransit.isEmpty())
+                {
+                    doPrintDoubleTransitFlightSchedules(doubleTransit, preferredCabinClass, numPassengers);
+                }
             }
         }
         else
         {
             System.out.println("There are no flight schedules available 1-3 days before " + dateFormatter.format(formattedDepartureDate) + "!\n");
-        } 
-
+        }
+        
         GregorianCalendar afterDepartureDateCalendar = new GregorianCalendar();
         afterDepartureDateCalendar.setTime(formattedDepartureDateEnd);
         afterDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +3);
         Date formattedAfterDepartureDate = afterDepartureDateCalendar.getTime();
-        List<FlightSchedule> afterDepartureFlightSchedules = flightScheduleSessionBeanRemote.searchDirectFlightSchedules(departureAirportId, destinationAirportId, formattedDepartureDateEnd, formattedAfterDepartureDate, cabinClassPreference, numPassengers);
-        if (!beforeDepartureFlightSchedules.isEmpty())
+        flightSchedules = flightScheduleSessionBeanRemote.searchDirectFlightSchedules(departureAirportId, destinationAirportId, formattedDepartureDateEnd, formattedAfterDepartureDate, preferredCabinClass, numPassengers);
+        
+        // Connecting Flight schedules 1 day after chosen date
+        afterDepartureDateCalendar.setTime(formattedDepartureDate);
+        afterDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
+        dateStart = afterDepartureDateCalendar.getTime();
+        afterDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
+        dateEnd = beforeDepartureDateCalendar.getTime();
+        singleTransit = flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
+        doubleTransit = flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
+        
+        // Connecting Flight schedules 2 days after chosen date
+        dateStart = afterDepartureDateCalendar.getTime();
+        afterDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
+        dateEnd = beforeDepartureDateCalendar.getTime();
+        for (FlightSchedule fs1: flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
         {
-            System.out.println("Flight Schedules Available 1-3 days after " + dateFormatter.format(formattedDepartureDate) + ":\n");
-            for (FlightSchedule fs3: afterDepartureFlightSchedules)
+            singleTransit.add(fs1);
+        }
+        for (FlightSchedule fs2: flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
+        {
+            doubleTransit.add(fs2);
+        }
+        
+        // Connecting Flight schedules 3 days after chosen date
+        dateStart = afterDepartureDateCalendar.getTime();
+        afterDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
+        dateEnd = beforeDepartureDateCalendar.getTime();
+        for (FlightSchedule fs1: flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
+        {
+            singleTransit.add(fs1);
+        }
+        for (FlightSchedule fs2: flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
+        {
+            doubleTransit.add(fs2);
+        }
+        
+        if (!flightSchedules.isEmpty() || !singleTransit.isEmpty() || !doubleTransit.isEmpty())
+        {
+            System.out.println("Flight Schedules Available on " + dateFormatter.format(formattedDepartureDate) + ":\n");
+            if (!flightSchedules.isEmpty())
             {
-                doPrintDirectFlightSchedule(fs3, cabinClassPreference, numPassengers);
+                System.out.println("Direct Flights Available: ");
+                for (FlightSchedule fs1: flightSchedules)
+                {
+                    doPrintDirectFlightSchedule(fs1, preferredCabinClass , numPassengers);
+                }
+            }
+            
+            if (!singleTransit.isEmpty() || !doubleTransit.isEmpty())
+            {
+                System.out.println("Connecting Flights Available: ");
+                if (!singleTransit.isEmpty())
+                {
+                    doPrintSingleTransitFlightSchedule(singleTransit, preferredCabinClass, numPassengers);
+                }
+                if (!doubleTransit.isEmpty())
+                {
+                    doPrintDoubleTransitFlightSchedules(doubleTransit, preferredCabinClass, numPassengers);
+                }
             }
         }
         else
@@ -595,23 +799,84 @@ public class MainApp {
         }
     }
     
-    public void doSearchConnectingFlights(Long departureAirportId, Long destinationAirportId, Date formattedDepartureDate, String cabinClassPreference, Integer numPassengers)
+    public void doSearchDirectFlights(Long departureAirportId, Long destinationAirportId, Date formattedDepartureDate, CabinClassEnum preferredCabinClass, Integer numPassengers)
     {
-        System.out.println("\nConnecting Flights Available: ");
+        System.out.println("Direct Flights Available: ");
         SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
         GregorianCalendar departureDateCalendar = new GregorianCalendar();
         departureDateCalendar.setTime(formattedDepartureDate);
         departureDateCalendar.add(GregorianCalendar.HOUR_OF_DAY, +24);
         Date formattedDepartureDateEnd = departureDateCalendar.getTime();
-        List<FlightSchedule> singleTransit = flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, formattedDepartureDate, formattedDepartureDateEnd, cabinClassPreference, numPassengers);
-        List<FlightSchedule> doubleTransit = flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, formattedDepartureDate, formattedDepartureDateEnd, cabinClassPreference, numPassengers);
+        
+        List<FlightSchedule> flightSchedules = flightScheduleSessionBeanRemote.searchDirectFlightSchedules(departureAirportId, destinationAirportId, formattedDepartureDate, formattedDepartureDateEnd, preferredCabinClass, numPassengers);
+        if (!flightSchedules.isEmpty())
+        {
+            System.out.println("Flight Schedules Available on " + dateFormatter.format(formattedDepartureDate) + ":\n");
+            for (FlightSchedule fs1: flightSchedules)
+            {
+                doPrintDirectFlightSchedule(fs1, preferredCabinClass , numPassengers);
+            }
+        }
+        else
+        {
+            System.out.println("There are no direct flight schedules available on " + dateFormatter.format(formattedDepartureDate) + "!\n");
+        }       
+
+        GregorianCalendar beforeDepartureDateCalendar = new GregorianCalendar();
+        beforeDepartureDateCalendar.setTime(formattedDepartureDate);
+        beforeDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, -3);
+        Date formattedBeforeDepartureDate = beforeDepartureDateCalendar.getTime();
+        List<FlightSchedule> beforeDepartureFlightSchedules = flightScheduleSessionBeanRemote.searchDirectFlightSchedules(departureAirportId, destinationAirportId, formattedBeforeDepartureDate, formattedDepartureDate, preferredCabinClass, numPassengers);
+        if (!beforeDepartureFlightSchedules.isEmpty())
+        {
+            System.out.println("Flight Schedules Available 1-3 days before " + dateFormatter.format(formattedDepartureDate) + ":\n");
+            for (FlightSchedule fs2: beforeDepartureFlightSchedules)
+            {
+                doPrintDirectFlightSchedule(fs2, preferredCabinClass, numPassengers);
+            }
+        }
+        else
+        {
+            System.out.println("There are no direct flight schedules available 1-3 days before " + dateFormatter.format(formattedDepartureDate) + "!\n");
+        } 
+
+        GregorianCalendar afterDepartureDateCalendar = new GregorianCalendar();
+        afterDepartureDateCalendar.setTime(formattedDepartureDateEnd);
+        afterDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +3);
+        Date formattedAfterDepartureDate = afterDepartureDateCalendar.getTime();
+        List<FlightSchedule> afterDepartureFlightSchedules = flightScheduleSessionBeanRemote.searchDirectFlightSchedules(departureAirportId, destinationAirportId, formattedDepartureDateEnd, formattedAfterDepartureDate, preferredCabinClass, numPassengers);
+        if (!beforeDepartureFlightSchedules.isEmpty())
+        {
+            System.out.println("Flight Schedules Available 1-3 days after " + dateFormatter.format(formattedDepartureDate) + ":\n");
+            for (FlightSchedule fs3: afterDepartureFlightSchedules)
+            {
+                doPrintDirectFlightSchedule(fs3, preferredCabinClass, numPassengers);
+            }
+        }
+        else
+        {
+            System.out.println("There are no direct flight schedules available 1-3 days after " + dateFormatter.format(formattedDepartureDate) + "!\n");
+        }
+    }
+    
+    public void doSearchConnectingFlights(Long departureAirportId, Long destinationAirportId, Date formattedDepartureDate, CabinClassEnum preferredCabinClass, Integer numPassengers)
+    {
+        System.out.println("\nConnecting Flights Available: ");
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
+        SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+        GregorianCalendar departureDateCalendar = new GregorianCalendar();
+        departureDateCalendar.setTime(formattedDepartureDate);
+        departureDateCalendar.add(GregorianCalendar.HOUR_OF_DAY, +24);
+        Date formattedDepartureDateEnd = departureDateCalendar.getTime();
+        List<FlightSchedule> singleTransit = flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, formattedDepartureDate, formattedDepartureDateEnd, preferredCabinClass, numPassengers);
+        List<FlightSchedule> doubleTransit = flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, formattedDepartureDate, formattedDepartureDateEnd, preferredCabinClass, numPassengers);
         if (!singleTransit.isEmpty() || !doubleTransit.isEmpty())
         {
             System.out.println("Flight Schedules Available on " + dateFormatter.format(formattedDepartureDate) + ":\n");
-            doPrintSingleTransitFlightSchedule(singleTransit, cabinClassPreference, numPassengers);
+            doPrintSingleTransitFlightSchedule(singleTransit, preferredCabinClass, numPassengers);
             if (!doubleTransit.isEmpty())
             {
-                doPrintDoubleTransitFlightSchedules(doubleTransit, cabinClassPreference, numPassengers);
+                doPrintDoubleTransitFlightSchedules(doubleTransit, preferredCabinClass, numPassengers);
             }
         }
         else
@@ -626,18 +891,18 @@ public class MainApp {
         Date dateStart = beforeDepartureDateCalendar.getTime();
         beforeDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
         Date dateEnd = beforeDepartureDateCalendar.getTime();
-        singleTransit = flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, cabinClassPreference, numPassengers);
-        doubleTransit = flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, cabinClassPreference, numPassengers);
+        singleTransit = flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
+        doubleTransit = flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
         
         // Flight Schedules 2 days before chosen date
         dateStart = beforeDepartureDateCalendar.getTime();
         beforeDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
         dateEnd = beforeDepartureDateCalendar.getTime();
-        for (FlightSchedule fs1: flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, cabinClassPreference, numPassengers))
+        for (FlightSchedule fs1: flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
         {
             singleTransit.add(fs1);
         }
-        for (FlightSchedule fs2: flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, cabinClassPreference, numPassengers))
+        for (FlightSchedule fs2: flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
         {
             doubleTransit.add(fs2);
         }
@@ -646,11 +911,11 @@ public class MainApp {
         dateStart = beforeDepartureDateCalendar.getTime();
         beforeDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
         dateEnd = beforeDepartureDateCalendar.getTime();
-        for (FlightSchedule fs1: flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, cabinClassPreference, numPassengers))
+        for (FlightSchedule fs1: flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
         {
             singleTransit.add(fs1);
         }
-        for (FlightSchedule fs2: flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, cabinClassPreference, numPassengers))
+        for (FlightSchedule fs2: flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
         {
             doubleTransit.add(fs2);
         }
@@ -659,10 +924,10 @@ public class MainApp {
         if (!singleTransit.isEmpty() || !doubleTransit.isEmpty())
         {
             System.out.println("Flight Schedules Available 1-3 days before " + dateFormatter.format(formattedDepartureDate) + ":\n");
-            doPrintSingleTransitFlightSchedule(singleTransit, cabinClassPreference, numPassengers);
+            doPrintSingleTransitFlightSchedule(singleTransit, preferredCabinClass, numPassengers);
             if (!doubleTransit.isEmpty())
             {
-                doPrintDoubleTransitFlightSchedules(doubleTransit, cabinClassPreference, numPassengers);
+                doPrintDoubleTransitFlightSchedules(doubleTransit, preferredCabinClass, numPassengers);
             }
         }
         else
@@ -677,18 +942,18 @@ public class MainApp {
         dateStart = afterDepartureDateCalendar.getTime();
         afterDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
         dateEnd = beforeDepartureDateCalendar.getTime();
-        singleTransit = flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, cabinClassPreference, numPassengers);
-        doubleTransit = flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, cabinClassPreference, numPassengers);
+        singleTransit = flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
+        doubleTransit = flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
         
         // Flight schedules 2 days after chosen date
         dateStart = afterDepartureDateCalendar.getTime();
         afterDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
         dateEnd = beforeDepartureDateCalendar.getTime();
-        for (FlightSchedule fs1: flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, cabinClassPreference, numPassengers))
+        for (FlightSchedule fs1: flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
         {
             singleTransit.add(fs1);
         }
-        for (FlightSchedule fs2: flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, cabinClassPreference, numPassengers))
+        for (FlightSchedule fs2: flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
         {
             doubleTransit.add(fs2);
         }
@@ -697,11 +962,11 @@ public class MainApp {
         dateStart = afterDepartureDateCalendar.getTime();
         afterDepartureDateCalendar.add(GregorianCalendar.DAY_OF_MONTH, +1);
         dateEnd = beforeDepartureDateCalendar.getTime();
-        for (FlightSchedule fs1: flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, cabinClassPreference, numPassengers))
+        for (FlightSchedule fs1: flightScheduleSessionBeanRemote.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
         {
             singleTransit.add(fs1);
         }
-        for (FlightSchedule fs2: flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, cabinClassPreference, numPassengers))
+        for (FlightSchedule fs2: flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers))
         {
             doubleTransit.add(fs2);
         }
@@ -710,52 +975,21 @@ public class MainApp {
         if (!singleTransit.isEmpty() || !doubleTransit.isEmpty())
         {
             System.out.println("Flight Schedules Available 1-3 days after " + dateFormatter.format(formattedDepartureDate) + ":\n");
-            doPrintSingleTransitFlightSchedule(singleTransit, cabinClassPreference, numPassengers);
+            doPrintSingleTransitFlightSchedule(singleTransit, preferredCabinClass, numPassengers);
             if (!doubleTransit.isEmpty())
             {
-                doPrintDoubleTransitFlightSchedules(doubleTransit, cabinClassPreference, numPassengers);
+                doPrintDoubleTransitFlightSchedules(doubleTransit, preferredCabinClass, numPassengers);
             }
         }
         else
         {
-            System.out.println("There are no flight schedules available 1-3 days after " + dateFormatter.format(formattedDepartureDate) + "!\n");
+            System.out.println("There are no connecting flight schedules available 1-3 days after " + dateFormatter.format(formattedDepartureDate) + "!\n");
         } 
     }
     
-    /*
-    public void doSearchDoubleConnectingFlights(Long departureAirportId, Long destinationAirportId, Date formattedDepartureDate, String cabinClassPreference, Integer numPassengers)
+    public void doPrintDirectFlightSchedule(FlightSchedule flightSchedule, CabinClassEnum preferredCabinClass, Integer numPassengers)
     {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-        GregorianCalendar departureDateCalendar = new GregorianCalendar();
-        departureDateCalendar.setTime(formattedDepartureDate);
-        departureDateCalendar.add(GregorianCalendar.HOUR_OF_DAY, +24);
-        Date formattedDepartureDateEnd = departureDateCalendar.getTime();
-        
-        List<FlightSchedule> doubleTransitFlightSchedules = flightScheduleSessionBeanRemote.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, formattedDepartureDate, formattedDepartureDateEnd, cabinClassPreference, numPassengers);
-        
-    }
-    */
-    
-    public void doPrintDirectFlightSchedule(FlightSchedule flightSchedule, String cabinClassPreference, Integer numPassengers)
-    {
-        SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-        CabinClassEnum preferredCabinClass = null;
-        if (cabinClassPreference.equals("F"))
-        {
-            preferredCabinClass = CabinClassEnum.FIRST_CLASS;
-        }
-        else if (cabinClassPreference.equals("J"))
-        {
-            preferredCabinClass = CabinClassEnum.BUSINESS_CLASS;
-        }
-        else if (cabinClassPreference.equals("W"))
-        {
-            preferredCabinClass = CabinClassEnum.PREMIUM_ECONOMY_CLASS;
-        }
-        else if (cabinClassPreference.equals("Y"))
-        {
-            preferredCabinClass = CabinClassEnum.ECONOMY_CLASS;
-        }
+        SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");      
         
         System.out.printf("%10s%18s%30s%20s\n", "Flight No.", "Itinerary", "Departure Date and Time", "Flight Duration");
         System.out.printf("%10s%18s%30s%20s\n", flightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber(), flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode(), dateTimeFormatter.format(flightSchedule.getDepartureDateTime()), flightSchedule.getFlightHours().toString() + "h " + flightSchedule.getFlightMinutes().toString() + "min");
@@ -816,43 +1050,91 @@ public class MainApp {
                     {
                         continue;
                     }
-                }
+                } 
             }
         }
+        System.out.println("");
     }
     
-    public void doPrintSingleTransitFlightSchedule(List<FlightSchedule> flightSchedules, String cabinClassPreference, Integer numPassengers)
+    public void doPrintSingleTransitFlightSchedule(List<FlightSchedule> flightSchedules, CabinClassEnum preferredCabinClass, Integer numPassengers)
     {
         // SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-        // CabinClassEnum preferredCabinClass = null;
-        /*
-        if (cabinClassPreference.equals("F"))
-        {
-            preferredCabinClass = CabinClassEnum.FIRST_CLASS;
-        }
-        else if (cabinClassPreference.equals("J"))
-        {
-            preferredCabinClass = CabinClassEnum.BUSINESS_CLASS;
-        }
-        else if (cabinClassPreference.equals("W"))
-        {
-            preferredCabinClass = CabinClassEnum.PREMIUM_ECONOMY_CLASS;
-        }
-        else if (cabinClassPreference.equals("Y"))
-        {
-            preferredCabinClass = CabinClassEnum.ECONOMY_CLASS;
-        }
-        */
+       
         while (!flightSchedules.isEmpty())
         {
+            SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+            BigDecimal pricePerPassenger = new BigDecimal(0);
             FlightSchedule fs1 = flightSchedules.remove(0);
+            List<CabinClass> cabinClassesOne = cabinClassSessionBeanRemote.retrieveCabinClassesByAircraftConfigId(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
             FlightSchedule fs2 = flightSchedules.remove(0);
-            doPrintDirectFlightSchedule(fs1, cabinClassPreference, numPassengers);
-            System.out.println("");
-            doPrintDirectFlightSchedule(fs2, cabinClassPreference, numPassengers);
-            System.out.println("");
-            System.out.println("");
-            System.out.println("");
+            List<CabinClass> cabinClassesTwo = cabinClassSessionBeanRemote.retrieveCabinClassesByAircraftConfigId(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
+            
+            if (preferredCabinClass != null)
+            {
+                System.out.printf("%10s%18s%30s%20s\n", "Flight No.", "Itinerary", "Departure Date and Time", "Flight Duration");
+                System.out.printf("%10s%18s%30s%20s\n", fs1.getFlightSchedulePlan().getFlight().getFlightNumber(), fs1.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + fs1.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode(), dateTimeFormatter.format(fs1.getDepartureDateTime()), fs1.getFlightHours().toString() + "h " + fs1.getFlightMinutes().toString() + "min");
+                System.out.printf("%10s%18s%30s%20s\n", fs2.getFlightSchedulePlan().getFlight().getFlightNumber(), fs2.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + fs2.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode(), dateTimeFormatter.format(fs2.getDepartureDateTime()), fs2.getFlightHours().toString() + "h " + fs2.getFlightMinutes().toString() + "min");
+                for (CabinClass cc: cabinClassesOne)
+                {
+                    if (cc.getCabinClassType().equals(preferredCabinClass))
+                    {
+                        try
+                        {
+                            List<Fare> fares = fareSessionBeanRemote.getFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
+                            {
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
+                            }
+                            
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
+                        catch (FareNotFoundException ex)
+                        {
+                            continue;
+                        }
+                    } 
+                }
+                
+                for (CabinClass cc: cabinClassesTwo)
+                {
+                    if (cc.getCabinClassType().equals(preferredCabinClass))
+                    {
+                        try
+                        {
+                            List<Fare> fares = fareSessionBeanRemote.getFareByFlightSchedulePlanIdAndCabinClassId(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
+                            {
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
+                            }
+                            
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
+                        catch (FareNotFoundException ex)
+                        {
+                            continue;
+                        }
+                    } 
+                }
+                System.out.println("");
+                // Print out price per passenger and price for all passengers for the connecting flight
+                System.out.printf("\t%20s%25s%30s\n", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
+                System.out.printf("\t%20s%25s%30s\n", preferredCabinClass.toString(), pricePerPassenger.toString() , (pricePerPassenger.multiply(new BigDecimal(numPassengers))).toString());
+                System.out.println("");
+            }
+            else
+            {
+                doPrintDirectFlightSchedule(fs1, preferredCabinClass, numPassengers);
+                doPrintDirectFlightSchedule(fs2, preferredCabinClass, numPassengers);
+                System.out.println("\n");
+            }
             
             /*
             System.out.printf("%10s%18s%30s%20s\n", "Flight No.", "Itinerary", "Departure Date and Time", "Flight Duration");
@@ -949,25 +1231,116 @@ public class MainApp {
                 }
             }
             */
-        } 
+        }
     }
     
-    public void doPrintDoubleTransitFlightSchedules(List<FlightSchedule> flightSchedules, String cabinClassPreference, Integer numPassengers)
+    public void doPrintDoubleTransitFlightSchedules(List<FlightSchedule> flightSchedules, CabinClassEnum preferredCabinClass, Integer numPassengers)
     {
         while (!flightSchedules.isEmpty())
         {
+            SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+            BigDecimal pricePerPassenger = new BigDecimal(0);
             FlightSchedule fs1 = flightSchedules.remove(0);
+            List<CabinClass> cabinClassesOne = cabinClassSessionBeanRemote.retrieveCabinClassesByAircraftConfigId(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
             FlightSchedule fs2 = flightSchedules.remove(0);
+            List<CabinClass> cabinClassesTwo = cabinClassSessionBeanRemote.retrieveCabinClassesByAircraftConfigId(fs2.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
             FlightSchedule fs3 = flightSchedules.remove(0);
-            doPrintDirectFlightSchedule(fs1, cabinClassPreference, numPassengers);
-            System.out.println("");
-            doPrintDirectFlightSchedule(fs2, cabinClassPreference, numPassengers);
-            System.out.println("");
-            doPrintDirectFlightSchedule(fs3, cabinClassPreference, numPassengers);
-            System.out.println("");
-            System.out.println("");
-            System.out.println("");
-        
+            List<CabinClass> cabinClassesThree = cabinClassSessionBeanRemote.retrieveCabinClassesByAircraftConfigId(fs3.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
+            
+            if (preferredCabinClass != null)
+            {
+                System.out.printf("%10s%18s%30s%20s\n", "Flight No.", "Itinerary", "Departure Date and Time", "Flight Duration");
+                System.out.printf("%10s%18s%30s%20s\n", fs1.getFlightSchedulePlan().getFlight().getFlightNumber(), fs1.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + fs1.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode(), dateTimeFormatter.format(fs1.getDepartureDateTime()), fs1.getFlightHours().toString() + "h " + fs1.getFlightMinutes().toString() + "min");
+                System.out.printf("%10s%18s%30s%20s\n", fs2.getFlightSchedulePlan().getFlight().getFlightNumber(), fs2.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + fs2.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode(), dateTimeFormatter.format(fs2.getDepartureDateTime()), fs2.getFlightHours().toString() + "h " + fs2.getFlightMinutes().toString() + "min");
+                System.out.printf("%10s%18s%30s%20s\n", fs3.getFlightSchedulePlan().getFlight().getFlightNumber(), fs3.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + fs3.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode(), dateTimeFormatter.format(fs3.getDepartureDateTime()), fs3.getFlightHours().toString() + "h " + fs3.getFlightMinutes().toString() + "min");
+                for (CabinClass cc: cabinClassesOne)
+                {
+                    if (cc.getCabinClassType().equals(preferredCabinClass))
+                    {
+                        try
+                        {
+                            List<Fare> fares = fareSessionBeanRemote.getFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
+                            {
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
+                            }
+                            
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
+                        catch (FareNotFoundException ex)
+                        {
+                            continue;
+                        }
+                    } 
+                }
+                
+                for (CabinClass cc: cabinClassesTwo)
+                {
+                    if (cc.getCabinClassType().equals(preferredCabinClass))
+                    {
+                        try
+                        {
+                            List<Fare> fares = fareSessionBeanRemote.getFareByFlightSchedulePlanIdAndCabinClassId(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
+                            {
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
+                            }
+                            
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
+                        catch (FareNotFoundException ex)
+                        {
+                            continue;
+                        }
+                    } 
+                }
+                
+                for (CabinClass cc: cabinClassesThree)
+                {
+                    if (cc.getCabinClassType().equals(preferredCabinClass))
+                    {
+                        try
+                        {
+                            List<Fare> fares = fareSessionBeanRemote.getFareByFlightSchedulePlanIdAndCabinClassId(fs3.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
+                            {
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
+                            }
+                            
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
+                        catch (FareNotFoundException ex)
+                        {
+                            continue;
+                        }
+                    } 
+                }
+                System.out.println("");
+                // Print out price per passenger and price for all passengers for the connecting flight
+                System.out.printf("\t%20s%25s%30s\n", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
+                System.out.printf("\t%20s%25s%30s\n", preferredCabinClass.toString(), pricePerPassenger.toString() , (pricePerPassenger.multiply(new BigDecimal(numPassengers))).toString());
+                System.out.println("");
+            }
+            else
+            {
+                doPrintDirectFlightSchedule(fs1, preferredCabinClass, numPassengers);
+                doPrintDirectFlightSchedule(fs2, preferredCabinClass, numPassengers);
+                doPrintDirectFlightSchedule(fs3, preferredCabinClass, numPassengers);
+                System.out.println("\n");
+            }
+          
         /*
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
         Boolean isFirstConnectingFlight = true;
