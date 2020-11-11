@@ -19,6 +19,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.validation.constraints.NotNull;
 
 /**
  *
@@ -33,10 +34,13 @@ public class SeatInventory implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long seatInventoryId;
     @Column(nullable = false)
+    @NotNull
     private Integer numOfAvailableSeats;
     @Column(nullable = false)
+    @NotNull
     private Integer numOfReservedSeats;
     @Column(nullable = false)
+    @NotNull
     private Integer numOfBalanceSeats;
 
     @ManyToOne(optional = false)

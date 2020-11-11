@@ -128,9 +128,21 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
     @Override
     public List<FlightSchedulePlan> getAllFlightSchedulePlan()
     {
-        Query query = em.createQuery("SELECT f FROM FlightSchedulePlan f ORDER BY f.flight.flightNumber ASC");
+        Query query = em.createQuery("SELECT fs FROM FlightSchedule fs ORDER BY fs.flightSchedulePlan.flight.flightNumber ASC, fs.departureDateTime DESC");
+
+//        (SELECT fs.flightScheduleId FROM FlightSchedule fs) DESC, 
         
-        List<FlightSchedulePlan> flightSchedulePlans = query.getResultList();
+        List<FlightSchedule> flightSchedules = query.getResultList();
+        List<FlightSchedulePlan> flightSchedulePlans = new ArrayList<>();
+        List<Long> flightScheduleIds = new ArrayList<>();
+        
+        for(FlightSchedule flightSchedule: flightSchedules)
+        {
+            if(flightScheduleIds.contains(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId()))
+            {
+                flightScheduleIds.add(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId());
+            }
+        }
         
         for(FlightSchedulePlan flightSchedulePlan: flightSchedulePlans)
         {

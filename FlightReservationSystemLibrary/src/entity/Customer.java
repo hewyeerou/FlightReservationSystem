@@ -3,6 +3,9 @@ package entity;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 /**
  *
@@ -13,14 +16,25 @@ public class Customer extends Person implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Column(nullable = false, length = 32)
+    @NotNull
+    @Size(max = 32)
     private String firstName;
     @Column(nullable = false, length = 32)
+    @NotNull
+    @Size(max = 32)
     private String lastName;
     @Column(nullable = false, length = 64)
+    @NotNull
+    @Size(max = 64)
     private String email;
     @Column(nullable = false, length = 8)
+    @NotNull
+    @Size(max = 8)
+    @Pattern(regexp = "^[89]\\d{7}$")
     private String mobileNumber;
     @Column(nullable = false, length = 64)
+    @NotNull
+    @Size(max = 64)
     private String address;
 
     public Customer() 

@@ -11,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  *
@@ -26,8 +28,12 @@ public abstract class Person implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Long id;
     @Column(nullable = false, unique = true, length = 32)
+    @NotNull
+    @Size(max = 32)
     private String username;
     @Column(nullable = false, length = 32)
+    @NotNull
+    @Size(max = 32)
     private String password;
     
     @OneToMany(mappedBy = "person")

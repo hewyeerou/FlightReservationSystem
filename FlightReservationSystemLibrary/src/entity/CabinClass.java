@@ -21,6 +21,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import util.enumeration.CabinClassEnum;
 
@@ -37,6 +38,7 @@ public class CabinClass implements Serializable {
     private Long cabinClassId;
     @Enumerated(EnumType.STRING)
     @Column(nullable=false)
+    @NotNull
     private CabinClassEnum cabinClassType;
     @Column(nullable=false)
     @Min(0)
@@ -51,6 +53,7 @@ public class CabinClass implements Serializable {
     @Column(nullable=false, length=8)
     private String seatConfigPerColumn;
     @Column(nullable=false)
+    @Min(1)
     private Integer maxSeatCapacity;
     
     @ManyToOne(optional=false)

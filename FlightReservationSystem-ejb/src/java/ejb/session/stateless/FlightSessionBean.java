@@ -10,6 +10,8 @@ import entity.Flight;
 import entity.FlightRoute;
 import entity.FlightSchedule;
 import entity.FlightSchedulePlan;
+import entity.SeatInventory;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -190,9 +192,20 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
             flight.getAircraftConfig().getCabinClasses().size();
             flight.getFlightRoute();
             flight.getFlightSchedulePlans().size();
+            
             for(FlightSchedulePlan flightScheduleplan: flight.getFlightSchedulePlans())
             {
                 flightScheduleplan.getFlightSchedules().size();
+                
+                for(FlightSchedule flightSchedule: flightScheduleplan.getFlightSchedules())
+                {
+                    flightSchedule.getSeatInventories().size();
+                    
+                    for(SeatInventory seatInventory: flightSchedule.getSeatInventories())
+                    {
+                        seatInventory.getCabinClass();
+                    }
+                }
             }
             
             return flight;
@@ -226,15 +239,29 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
     }
     
     @Override
-    public void updateFlight(Flight flight) throws FlightNotFoundException 
+    public void updateFlight(Flight flight) throws FlightNotFoundException, FlightNumExistException
     {
         if(flight != null && flight.getFlightId()!= null)
         {
             Flight flightToUpdate = getFlightById(flight.getFlightId());
-
-            flightToUpdate.setFlightRoute(flight.getFlightRoute());
-            flightToUpdate.setAircraftConfig(flight.getAircraftConfig());
+            List<Flight> flights = getAllFlights();
+            List<String> flightNumList = new ArrayList<>();
             
+            for(Flight flight1:flights)
+            {
+                flightNumList.add(flight1.getFlightNumber());
+            }
+                    
+            if(!flightNumList.contains(flight.getFlightNumber()))
+            {
+                flightToUpdate.setFlightNumber(flight.getFlightNumber());
+                flightToUpdate.setFlightRoute(flight.getFlightRoute());
+                flightToUpdate.setAircraftConfig(flight.getAircraftConfig());
+            }
+            else
+            {
+                throw new FlightNumExistException("Flight number exist!");
+            }  
         }
         else
         {

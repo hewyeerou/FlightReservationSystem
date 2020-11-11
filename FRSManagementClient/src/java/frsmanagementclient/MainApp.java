@@ -97,7 +97,7 @@ public class MainApp {
                         
                         flightPlanningModule = new FlightPlanningModule(aircraftTypeSessionBeanRemote, aircraftConfigSessionBeanRemote, airportSessionBeanRemote, flightRouteSessionBeanRemote,currentEmployee);
                         flightOperationModule = new FlightOperationModule(currentEmployee, flightSessionBeanRemote, flightRouteSessionBeanRemote, aircraftConfigSessionBeanRemote, flightSchedulePlanSessionBeanRemote, flightScheduleSessionBeanRemote, seatinventorySessionBeanRemote, fareSessionBeanRemote);
-                        salesManagementModule = new SalesManagementModule(currentEmployee);
+                        salesManagementModule = new SalesManagementModule(currentEmployee, flightSessionBeanRemote);
                         
                         mainMenu();
                     } 

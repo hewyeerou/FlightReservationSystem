@@ -29,7 +29,7 @@ public interface FlightSessionBeanRemote
     
     public Flight getFlightByFlightNum(String flightNum) throws FlightNotFoundException;
     
-    public void updateFlight(Flight flight) throws FlightNotFoundException;
+    public void updateFlight(Flight flight) throws FlightNotFoundException, FlightNumExistException;
     
     public Flight getFlightById(Long flightId) throws FlightNotFoundException;
     
