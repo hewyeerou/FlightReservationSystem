@@ -1135,102 +1135,6 @@ public class MainApp {
                 doPrintDirectFlightSchedule(fs2, preferredCabinClass, numPassengers);
                 System.out.println("\n");
             }
-            
-            /*
-            System.out.printf("%10s%18s%30s%20s\n", "Flight No.", "Itinerary", "Departure Date and Time", "Flight Duration");
-            System.out.printf("%10s%18s%30s%20s\n", fs1.getFlightSchedulePlan().getFlight().getFlightNumber(), fs1.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + fs1.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode(), dateTimeFormatter.format(fs1.getDepartureDateTime()), fs1.getFlightHours().toString() + "h " + fs1.getFlightMinutes().toString() + "min");
-            System.out.printf("%10s%18s%30s%20s\n", fs2.getFlightSchedulePlan().getFlight().getFlightNumber(), fs2.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + fs2.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode(), dateTimeFormatter.format(fs2.getDepartureDateTime()), fs2.getFlightHours().toString() + "h " + fs2.getFlightMinutes().toString() + "min");
-            
-            System.out.println("Price of cabin class(es) in " + fs1.getFlightSchedulePlan().getFlight().getFlightNumber() + ":");
-            List<CabinClass> cabinClassesOne = cabinClassSessionBeanRemote.retrieveCabinClassesByAircraftConfigId(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
-            List<CabinClass> cabinClassesTwo = cabinClassSessionBeanRemote.retrieveCabinClassesByAircraftConfigId(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
-            System.out.printf("\t%20s%25s%30s\n", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
-            if (preferredCabinClass == null)
-            {
-                for (CabinClass cc1: cabinClassesOne)
-                {
-                    try
-                    {
-                        SeatInventory seatInventory = seatInventorySessionBeanRemote.retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(cc1.getCabinClassId(), fs1.getFlightScheduleId());
-                        if (seatInventory.getNumOfBalanceSeats() < numPassengers)
-                        {
-                            continue;
-                        }
-
-                        List<Fare> fares = fareSessionBeanRemote.getFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cc1.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
-                        {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
-                            {
-                                lowestFare = fare.getFareAmount();
-                            }
-                        }
-
-                        System.out.printf("\t%20s%25s%30s\n", cc1.getCabinClassType().toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
-                    }
-                    catch (FareNotFoundException | SeatInventoryNotFoundException ex)
-                    {
-                        continue;
-                    }
-                }
-                
-                for (CabinClass cc2: cabinClassesTwo)
-                {
-                    try
-                    {
-                        SeatInventory seatInventory = seatInventorySessionBeanRemote.retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(cc2.getCabinClassId(), fs2.getFlightScheduleId());
-                        if (seatInventory.getNumOfBalanceSeats() < numPassengers)
-                        {
-                            continue;
-                        }
-
-                        List<Fare> fares = fareSessionBeanRemote.getFareByFlightSchedulePlanIdAndCabinClassId(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cc2.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
-                        {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
-                            {
-                                lowestFare = fare.getFareAmount();
-                            }
-                        }
-
-                        System.out.printf("\t%20s%25s%30s\n", cc2.getCabinClassType().toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
-                    }
-                    catch (FareNotFoundException | SeatInventoryNotFoundException ex)
-                    {
-                        continue;
-                    }
-                }
-            }
-            else
-            {
-                for (CabinClass cc: cabinClassesOne)
-                {
-                    if (cc.getCabinClassType().equals(preferredCabinClass))
-                    {
-                        try
-                        {
-                            List<Fare> fares = fareSessionBeanRemote.getFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                            BigDecimal lowestFare = fares.get(0).getFareAmount();
-                            for (Fare fare: fares)
-                            {
-                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
-                                {
-                                    lowestFare = fare.getFareAmount();
-                                }
-                            }
-
-                            System.out.printf("\t%20s%25s%30s\n", cc.getCabinClassType().toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
-                        }
-                        catch (FareNotFoundException ex)
-                        {
-                            continue;
-                        }
-                    }
-                }
-            }
-            */
         }
     }
     
@@ -1340,30 +1244,6 @@ public class MainApp {
                 doPrintDirectFlightSchedule(fs3, preferredCabinClass, numPassengers);
                 System.out.println("\n");
             }
-          
-        /*
-        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-        Boolean isFirstConnectingFlight = true;
-        Boolean isSecondConnectingFlight = true;
-        for (FlightSchedule fs: flightSchedules)
-        {
-            if (isFirstConnectingFlight)
-            {
-                System.out.println(formatter.format(fs.getDepartureDateTime()) + fs.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + fs.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode());
-                isFirstConnectingFlight = false;
-            }
-            else if (isSecondConnectingFlight)
-            {
-                System.out.println(formatter.format(fs.getDepartureDateTime()) + fs.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + fs.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode());
-                isSecondConnectingFlight = false;
-            }
-            else
-            {
-                System.out.println(formatter.format(fs.getDepartureDateTime()) + fs.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + fs.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode());
-                isFirstConnectingFlight = true;
-                isSecondConnectingFlight = true;
-            }
-            */  
         }
     }
     
