@@ -8,6 +8,8 @@ package ejb.session.stateless;
 import entity.CabinClass;
 import java.util.List;
 import javax.ejb.Remote;
+import util.enumeration.CabinClassEnum;
+import util.exception.CabinClassNotFoundException;
 
 /**
  *
@@ -18,4 +20,7 @@ public interface CabinClassSessionBeanRemote {
     
     public List<CabinClass> retrieveCabinClassesByAircraftConfigId(Long aircraftConfigId);
     
+    public CabinClass retrieveCabinClassByAircraftConfigIdAndType(Long aircraftConfigId, CabinClassEnum type) throws CabinClassNotFoundException;
+    
+    public CabinClass retrieveCabinClassById(Long cabinClassId);
 }

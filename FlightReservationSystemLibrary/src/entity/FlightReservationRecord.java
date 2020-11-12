@@ -49,13 +49,12 @@ public class FlightReservationRecord implements Serializable {
         this.flightSchedules = new ArrayList<>();
     }
 
-    public FlightReservationRecord(Integer numOfPassengers, BigDecimal totalAmount, Person person) 
+    public FlightReservationRecord(Integer numOfPassengers, BigDecimal totalAmount) 
     {
         this();
         
         this.numOfPassengers = numOfPassengers;
         this.totalAmount = totalAmount;
-        this.person = person;
     } 
 
     @Override
@@ -130,7 +129,4 @@ public class FlightReservationRecord implements Serializable {
     public void setFlightSchedules(List<FlightSchedule> flightSchedules) {
         this.flightSchedules = flightSchedules;
     }
-    
-    
-    
 }

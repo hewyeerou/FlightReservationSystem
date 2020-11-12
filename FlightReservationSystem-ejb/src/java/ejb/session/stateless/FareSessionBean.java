@@ -8,6 +8,7 @@ package ejb.session.stateless;
 import entity.CabinClass;
 import entity.Fare;
 import entity.FlightSchedulePlan;
+import java.math.BigDecimal;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -83,13 +84,23 @@ public class FareSessionBean implements FareSessionBeanRemote, FareSessionBeanLo
     }
     
     @Override
-    public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException
+    public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId)
     {
         Query query = em.createQuery("SELECT f FROM Fare f WHERE f.flightSchedulePlan.flightSchedulePlanId = :inFlightSchedulePlanId AND f.cabinClass.cabinClassId = :inCabinClassId");
         query.setParameter("inFlightSchedulePlanId", flightSchedulePlanId);
         query.setParameter("inCabinClassId", cabinClassId);
         
         return query.getResultList();
+    }
+    
+    @Override
+    public BigDecimal getLowestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId)
+    {
+        Query query = em.createQuery("SELECT MIN(f.fareAmount) FROM Fare f WHERE f.flightSchedulePlan.flightSchedulePlanId = :inFlightSchedulePlanId AND f.cabinClass.cabinClassId = :inCabinClassId");
+        query.setParameter("inFlightSchedulePlanId", flightSchedulePlanId);
+        query.setParameter("inCabinClassId", cabinClassId);
+        
+        return (BigDecimal)query.getSingleResult();
     }
   
     @Override

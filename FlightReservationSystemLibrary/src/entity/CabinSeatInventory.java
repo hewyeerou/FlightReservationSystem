@@ -26,9 +26,9 @@ public class CabinSeatInventory implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long cabinSeatInventoryId;
 
-    @Column
+    @Column(nullable = false)
     private String seatTaken;
-    
+            
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private SeatInventory seatInventory;
@@ -39,9 +39,7 @@ public class CabinSeatInventory implements Serializable {
 
     public CabinSeatInventory(String seatTaken) {
         this.seatTaken = seatTaken;
-    }
-    
-    
+    }    
     
     public Long getCabinSeatInventoryId() {
         return cabinSeatInventoryId;
@@ -66,8 +64,6 @@ public class CabinSeatInventory implements Serializable {
     public void setSeatInventory(SeatInventory seatInventory) {
         this.seatInventory = seatInventory;
     }
-    
-    
 
     @Override
     public int hashCode() {
@@ -93,5 +89,4 @@ public class CabinSeatInventory implements Serializable {
     public String toString() {
         return "entity.CabinSeatInventory[ id=" + cabinSeatInventoryId + " ]";
     }
-    
 }

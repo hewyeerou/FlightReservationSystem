@@ -9,8 +9,12 @@ import entity.CabinClass;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import util.enumeration.CabinClassEnum;
+import util.exception.CabinClassNotFoundException;
 
 /**
  *
@@ -28,5 +32,30 @@ public class CabinClassSessionBean implements CabinClassSessionBeanRemote, Cabin
         query.setParameter("inAircraftConfigId", aircraftConfigId);
         
         return query.getResultList();
+    }
+    
+    @Override
+    public CabinClass retrieveCabinClassByAircraftConfigIdAndType(Long aircraftConfigId, CabinClassEnum type) throws CabinClassNotFoundException
+    {
+        Query query = em.createQuery("SELECT cc FROM CabinClass cc WHERE cc.aircraftConfig.aircraftConfigId = :inAircraftConfigId AND cc.cabinClassType = :type");
+        query.setParameter("inAircraftConfigId", aircraftConfigId);
+        query.setParameter("type", type);
+        
+        try
+        {
+            return (CabinClass)query.getSingleResult();
+        }
+        catch(NoResultException | NonUniqueResultException ex)
+        {
+            throw new CabinClassNotFoundException();
+        }
+    }
+    
+    @Override
+    public CabinClass retrieveCabinClassById(Long cabinClassId)
+    {
+        CabinClass cabinClass = em.find(CabinClass.class, cabinClassId);
+        
+        return cabinClass;
     }
 }

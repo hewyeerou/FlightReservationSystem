@@ -6,6 +6,7 @@
 package ejb.session.stateless;
 
 import entity.Fare;
+import java.math.BigDecimal;
 import java.util.List;
 import javax.ejb.Local;
 import util.exception.FareBasisCodeExistException;
@@ -26,6 +27,8 @@ public interface FareSessionBeanLocal {
 
     public void updateFare(Fare fare) throws FareNotFoundException;
 
-    public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException;
+    public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId);
+
+    public BigDecimal getLowestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId);
     
 }
