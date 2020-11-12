@@ -25,4 +25,6 @@ public interface FareSessionBeanRemote {
     public List<Fare> getFaresByFlightSchedulePlanId(Long flightSchedulePlanId);
 
     public void updateFare(Fare fare) throws FareNotFoundException;
+    
+    public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException;
 }

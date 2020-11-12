@@ -15,7 +15,6 @@ import ejb.session.stateless.FlightSchedulePlanSessionBeanRemote;
 import ejb.session.stateless.FlightScheduleSessionBeanRemote;
 import ejb.session.stateless.FlightSessionBeanRemote;
 import ejb.session.stateless.PartnerSessionBeanRemote;
-import ejb.session.stateless.SeatinventorySessionBeanRemote;
 import entity.Employee;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -23,6 +22,7 @@ import java.util.logging.Logger;
 import util.enumeration.UserRoleEnum;
 import util.exception.InvalidAccessRightsException;
 import util.exception.InvalidLoginCredentialException;
+import ejb.session.stateless.SeatInventorySessionBeanRemote;
 
 /**
  *
@@ -39,7 +39,7 @@ public class MainApp {
     private FlightSessionBeanRemote flightSessionBeanRemote;
     private FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote;
     private FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote;
-    private SeatinventorySessionBeanRemote seatinventorySessionBeanRemote;
+    private SeatInventorySessionBeanRemote seatinventorySessionBeanRemote;
     private FareSessionBeanRemote fareSessionBeanRemote;
 
     private Employee currentEmployee;
@@ -53,7 +53,7 @@ public class MainApp {
     {
     }
 
-    public MainApp(PartnerSessionBeanRemote partnerSessionBeanRemote, AirportSessionBeanRemote airportSessionBeanRemote, AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote, EmployeeSessionBeanRemote employeeSessionBeanRemote, AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote, FlightRouteSessionBeanRemote flightRouteSessionBeanRemote, FlightSessionBeanRemote flightSessionBean, FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote, FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote, SeatinventorySessionBeanRemote seatinventorySessionBeanRemote, FareSessionBeanRemote fareSessionBeanRemote)
+    public MainApp(PartnerSessionBeanRemote partnerSessionBeanRemote, AirportSessionBeanRemote airportSessionBeanRemote, AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote, EmployeeSessionBeanRemote employeeSessionBeanRemote, AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote, FlightRouteSessionBeanRemote flightRouteSessionBeanRemote, FlightSessionBeanRemote flightSessionBean, FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote, FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote, SeatInventorySessionBeanRemote seatinventorySessionBeanRemote, FareSessionBeanRemote fareSessionBeanRemote)
     {
         this();
         

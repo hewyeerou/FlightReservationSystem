@@ -12,6 +12,8 @@ import java.util.List;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
@@ -80,7 +82,15 @@ public class FareSessionBean implements FareSessionBeanRemote, FareSessionBeanLo
         return query.getResultList();
     }
     
-
+    @Override
+    public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException
+    {
+        Query query = em.createQuery("SELECT f FROM Fare f WHERE f.flightSchedulePlan.flightSchedulePlanId = :inFlightSchedulePlanId AND f.cabinClass.cabinClassId = :inCabinClassId");
+        query.setParameter("inFlightSchedulePlanId", flightSchedulePlanId);
+        query.setParameter("inCabinClassId", cabinClassId);
+        
+        return query.getResultList();
+    }
   
     @Override
     public void updateFare(Fare fare) throws FareNotFoundException

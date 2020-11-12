@@ -13,6 +13,7 @@ import entity.FlightSchedulePlan;
 import entity.SeatInventory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -128,29 +129,19 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
     @Override
     public List<FlightSchedulePlan> getAllFlightSchedulePlan()
     {
-        Query query = em.createQuery("SELECT fs FROM FlightSchedule fs ORDER BY fs.flightSchedulePlan.flight.flightNumber ASC, fs.departureDateTime DESC");
+        Query query = em.createQuery("SELECT f FROM FlightSchedulePlan f JOIN f.flightSchedules fs ORDER BY f.flight.flightNumber ASC, fs.departureDateTime DESC");
+        List<FlightSchedulePlan> flightSchedulePlans = query.getResultList();
+        
+        
+        List<FlightSchedulePlan> flightSchedulePlanList = flightSchedulePlans.stream().distinct().collect(Collectors.toList());
 
-//        (SELECT fs.flightScheduleId FROM FlightSchedule fs) DESC, 
-        
-        List<FlightSchedule> flightSchedules = query.getResultList();
-        List<FlightSchedulePlan> flightSchedulePlans = new ArrayList<>();
-        List<Long> flightScheduleIds = new ArrayList<>();
-        
-        for(FlightSchedule flightSchedule: flightSchedules)
-        {
-            if(flightScheduleIds.contains(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId()))
-            {
-                flightScheduleIds.add(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId());
-            }
-        }
-        
-        for(FlightSchedulePlan flightSchedulePlan: flightSchedulePlans)
+        for(FlightSchedulePlan flightSchedulePlan: flightSchedulePlanList)
         {
            flightSchedulePlan.getFlightSchedules().size();
            flightSchedulePlan.getFlight();
            flightSchedulePlan.getFares().size();
         }
-        return flightSchedulePlans;
+        return flightSchedulePlanList;
     }
     
  

@@ -15,7 +15,6 @@ import ejb.session.stateless.FlightSchedulePlanSessionBeanRemote;
 import ejb.session.stateless.FlightScheduleSessionBeanRemote;
 import ejb.session.stateless.FlightSessionBeanRemote;
 import ejb.session.stateless.PartnerSessionBeanRemote;
-import ejb.session.stateless.SeatinventorySessionBeanRemote;
 import entity.AircraftConfig;
 import entity.CabinClass;
 import entity.Employee;
@@ -47,6 +46,7 @@ import util.exception.FlightSchedulePlanNotFoundException;
 import util.exception.InvalidAccessRightsException;
 import util.exception.UnknownPersistenceException;
 import util.exception.createOutboundReturnFlightCheckException;
+import ejb.session.stateless.SeatInventorySessionBeanRemote;
 
 /**
  *
@@ -64,7 +64,7 @@ public class FlightOperationModule
     private AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote;
     private FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote;
     private FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote;
-    private SeatinventorySessionBeanRemote seatinventorySessionBeanRemote;
+    private SeatInventorySessionBeanRemote seatinventorySessionBeanRemote;
     private FareSessionBeanRemote fareSessionBeanRemote;
 
 
@@ -77,7 +77,7 @@ public class FlightOperationModule
     {
     }
     
-    public FlightOperationModule(Employee currentEmployee, FlightSessionBeanRemote flightSessionBean, FlightRouteSessionBeanRemote flightRouteSessionBeanRemote, AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote, FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote, FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote, SeatinventorySessionBeanRemote seatinventorySessionBeanRemote, FareSessionBeanRemote fareSessionBeanRemote)
+    public FlightOperationModule(Employee currentEmployee, FlightSessionBeanRemote flightSessionBean, FlightRouteSessionBeanRemote flightRouteSessionBeanRemote, AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote, FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote, FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote, SeatInventorySessionBeanRemote seatinventorySessionBeanRemote, FareSessionBeanRemote fareSessionBeanRemote)
     {
         this();
         this.currentEmployee  = currentEmployee;
@@ -439,6 +439,8 @@ public class FlightOperationModule
         List<Flight> flights = flightSessionBeanRemote.getAllFlights();
         List<Flight> outboundFlights = new ArrayList<>();
        
+        System.out.printf("%20s%20s%30s%30s\n", "#" ,"Flight Number", "Flight Route", "Aircraft Configuration");
+        
         Integer option = 0;
         
         for(Flight flight: flights)
@@ -459,11 +461,11 @@ public class FlightOperationModule
             if(outboundFlight.getFlightType().equals("OUTBOUND"))
             {
                 option++;
-                System.out.printf("%10s%30s\n", option, outboundFlight.getFlightNumber() + ", " + outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode() + ", " + outboundFlight.getAircraftConfig().getAircraftType().getAircraftTypeName() + " " + outboundFlight.getAircraftConfig().getName());
+                System.out.printf("%20s%20s%30s%30s\n", option, outboundFlight.getFlightNumber(), outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode(), outboundFlight.getAircraftConfig().getAircraftType().getAircraftTypeName() + " " + outboundFlight.getAircraftConfig().getName());
             }
             else if((outboundFlight.getFlightType().equals("RETURN")))
             {
-                System.out.printf("%10s%30s%30s\n","","",outboundFlight.getFlightNumber() + ", " + outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode()+ ", " + outboundFlight.getAircraftConfig().getAircraftType().getAircraftTypeName() + " " + outboundFlight.getAircraftConfig().getName());
+                System.out.printf("%20s%20s%30s%30s\n","",outboundFlight.getFlightNumber(), outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode(), outboundFlight.getAircraftConfig().getAircraftType().getAircraftTypeName() + " " + outboundFlight.getAircraftConfig().getName());
             }
             
         }
@@ -1967,8 +1969,8 @@ public class FlightOperationModule
         
         List<FlightSchedulePlan> flightSchedulePlans = flightSchedulePlanSessionBeanRemote.getAllFlightSchedulePlan();
         List<FlightSchedulePlan> outboundFlightSchedulePlans = new ArrayList<>();
-        
-        System.out.printf("%20s%30s%20s%20s\n", "#" ,"Flight Schedule Plan Id", "Type", "Flight Number");
+       
+        System.out.printf("%20s%30s%30s%30s\n", "#" , "FSP Id", "FSP Type", "Flight Number");
         
         for(FlightSchedulePlan flightSchedulePlan: flightSchedulePlans)
         {
@@ -1985,8 +1987,15 @@ public class FlightOperationModule
         
         for(FlightSchedulePlan flightSchedulePlan: outboundFlightSchedulePlans)
         {
-            option++;
-            System.out.printf("%20s%30s%20s%20s\n", option ,flightSchedulePlan.getFlightSchedulePlanId(), flightSchedulePlan.getFlightScheduleType(), flightSchedulePlan.getFlight().getFlightNumber());
+            if(flightSchedulePlan.getFlightSchedulePlanType().equals("OUTBOUND"))
+            {
+                option++;
+                System.out.printf("%20s%30s%30s%30s\n", option , flightSchedulePlan.getFlightSchedulePlanId(), flightSchedulePlan.getFlightScheduleType(), flightSchedulePlan.getFlight().getFlightNumber());
+            }
+            else if(flightSchedulePlan.getFlightSchedulePlanType().equals("RETURN"))
+            {
+                System.out.printf("%20s%30s%30s%30s\n", "" , flightSchedulePlan.getFlightSchedulePlanId(), flightSchedulePlan.getFlightScheduleType(), flightSchedulePlan.getFlight().getFlightNumber());
+            }
         }
         
         System.out.println("------------------------------------------");

@@ -708,9 +708,11 @@ public class FlightPlanningModule
         Scanner scanner = new Scanner (System.in);
         System.out.println("*** FRS Management :: Flight Planning :: Flight Route :: View All Flight Routes ***\n");
         
-        
+        Integer option = 0;
         List<FlightRoute> flightRoutes = flightRouteSessionBeanRemote.getAllFlightRoute();
         List<FlightRoute> outboundFlightRoutes = new ArrayList<>();
+        
+        System.out.printf("%20s%30s\n", "#" ,"Flight Route");
         
         for(FlightRoute flightRoute: flightRoutes)
         {
@@ -727,15 +729,15 @@ public class FlightPlanningModule
         
         for(FlightRoute outboundFlightRoute: outboundFlightRoutes)
         {
- 
             if(outboundFlightRoute.getFlightRouteType().equals("OUTBOUND"))
             {
-                System.out.printf("%20s%30s%10s\n", outboundFlightRoute.getOrigin().getIataCode() + " - " + outboundFlightRoute.getDestination().getIataCode(), "");
+                option++;
+                System.out.printf("%20s%30s\n", option, outboundFlightRoute.getOrigin().getIataCode() + " - " + outboundFlightRoute.getDestination().getIataCode());
  
             }
             else if(outboundFlightRoute.getFlightRouteType().equals("RETURN"))
             {
-                 System.out.printf("%20s%30s%10s\n","",outboundFlightRoute.getOrigin().getIataCode() + " - " + outboundFlightRoute.getDestination().getIataCode());
+                 System.out.printf("%20s%30s\n","",outboundFlightRoute.getOrigin().getIataCode() + " - " + outboundFlightRoute.getDestination().getIataCode());
             }
         }
         
