@@ -134,7 +134,7 @@ public class SalesManagementModule {
                 for(FlightSchedule flightSchedule: flightSchedulesList)
                 {
                     option++;
-                    System.out.println(option + "ID" + flightSchedule.getFlightScheduleId() + " - " + formatterDateTime.format(flightSchedule.getDepartureDateTime()));
+                    System.out.println(option + ": Flight Schedule ID " + flightSchedule.getFlightScheduleId() + " - " + formatterDateTime.format(flightSchedule.getDepartureDateTime()));
                 }
 
                 System.out.println("");
