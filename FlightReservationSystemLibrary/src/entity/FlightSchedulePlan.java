@@ -19,6 +19,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
+import javax.validation.constraints.Future;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 /**
  *
@@ -32,17 +35,25 @@ public class FlightSchedulePlan implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long flightSchedulePlanId;
     @Column(nullable=false, length=32)
+    @NotNull
     private String flightScheduleType;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Column
+    @Future
     private Date endDate;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Column
+    @Future
     private Date startDate;
     @Column
+    @Min(0)
     private Integer intervalDays;
     @Column(nullable = false)
+    @NotNull
     private Boolean enabled;
     
     @Column(nullable = false)
+    @NotNull
     private String flightSchedulePlanType;
     
     @OneToOne

@@ -14,6 +14,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  *
@@ -27,8 +31,12 @@ public class Fare implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long fareId;
     @Column(nullable = false, length = 8, unique = true)
+    @NotNull
+    @Size(max = 8)
     private String fareBasisCode;
     @Column(nullable = false, precision = 7, scale = 2)
+    @NotNull
+    @Digits(integer = 9, fraction = 2)
     private BigDecimal fareAmount;
     
     @ManyToOne(optional = false)

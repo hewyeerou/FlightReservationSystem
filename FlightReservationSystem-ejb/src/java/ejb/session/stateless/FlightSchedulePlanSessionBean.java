@@ -13,6 +13,7 @@ import entity.FlightSchedulePlan;
 import entity.SeatInventory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -128,17 +129,19 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
     @Override
     public List<FlightSchedulePlan> getAllFlightSchedulePlan()
     {
-        Query query = em.createQuery("SELECT f FROM FlightSchedulePlan f ORDER BY f.flight.flightNumber ASC");
-        
+        Query query = em.createQuery("SELECT f FROM FlightSchedulePlan f JOIN f.flightSchedules fs ORDER BY f.flight.flightNumber ASC, fs.departureDateTime DESC");
         List<FlightSchedulePlan> flightSchedulePlans = query.getResultList();
         
-        for(FlightSchedulePlan flightSchedulePlan: flightSchedulePlans)
+        
+        List<FlightSchedulePlan> flightSchedulePlanList = flightSchedulePlans.stream().distinct().collect(Collectors.toList());
+
+        for(FlightSchedulePlan flightSchedulePlan: flightSchedulePlanList)
         {
            flightSchedulePlan.getFlightSchedules().size();
            flightSchedulePlan.getFlight();
            flightSchedulePlan.getFares().size();
         }
-        return flightSchedulePlans;
+        return flightSchedulePlanList;
     }
     
  

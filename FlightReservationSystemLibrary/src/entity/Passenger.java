@@ -16,6 +16,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  *
@@ -29,10 +31,16 @@ public class Passenger implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long passengerId;
     @Column(nullable = false, length = 32)
+    @NotNull
+    @Size(max = 32)
     private String firstName;
     @Column(nullable = false, length = 32)
+    @NotNull
+    @Size(max = 32)
     private String lastName;
     @Column(nullable = false, length = 9)
+    @NotNull
+    @Size(max = 9)
     private String passportNum;
     
     @ManyToOne(optional = false)

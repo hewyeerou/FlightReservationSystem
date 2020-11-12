@@ -18,6 +18,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.validation.constraints.NotNull;
 
 /**
  *
@@ -43,9 +44,11 @@ public class FlightRoute implements Serializable {
     private Airport destination;
     
     @Column(nullable = false)
+    @NotNull
     private String flightRouteType;
     
     @Column(nullable = false)
+    @NotNull
     private Boolean enabled;
     
     @OneToMany(mappedBy = "flightRoute")
