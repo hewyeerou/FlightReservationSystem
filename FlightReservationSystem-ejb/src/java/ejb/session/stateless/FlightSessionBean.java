@@ -6,10 +6,14 @@
 package ejb.session.stateless;
 
 import entity.AircraftConfig;
+import entity.CabinSeatInventory;
+import entity.Fare;
 import entity.Flight;
+import entity.FlightReservationRecord;
 import entity.FlightRoute;
 import entity.FlightSchedule;
 import entity.FlightSchedulePlan;
+import entity.Passenger;
 import entity.SeatInventory;
 import java.util.ArrayList;
 import java.util.List;
@@ -199,6 +203,7 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
                 
                 for(FlightSchedule flightSchedule: flightScheduleplan.getFlightSchedules())
                 {
+                    flightSchedule.getFlightReservationRecords().size();
                     flightSchedule.getSeatInventories().size();
                     
                     for(SeatInventory seatInventory: flightSchedule.getSeatInventories())
@@ -207,6 +212,8 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
                     }
                 }
             }
+            
+           
             
             return flight;
         }
@@ -226,6 +233,7 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
             flight.getAircraftConfig();
             flight.getFlightRoute();
             flight.getFlightSchedulePlans().size();
+            
             
             return flight;
         }

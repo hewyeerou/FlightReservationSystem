@@ -17,5 +17,7 @@ import javax.ejb.Local;
 public interface FlightReservationRecordSessionBeanLocal {
 
     public Long createNewFlightReservationRecord(FlightReservationRecord flightReservationRecord, Long personId, List<Long> flightSchedules);
+
+    public FlightReservationRecord getFlightReservationRecordByFlightScheduleId(Long flightReservationRecordId);
     
 }

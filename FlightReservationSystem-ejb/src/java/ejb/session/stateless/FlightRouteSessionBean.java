@@ -156,7 +156,6 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
     public List<FlightRoute> getAllFlightRoute()
     {
         Query query = em.createQuery("SELECT f FROM FlightRoute f ORDER BY f.origin ASC");
-        
         return query.getResultList();
     }
     

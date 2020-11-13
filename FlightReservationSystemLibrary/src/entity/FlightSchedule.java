@@ -41,10 +41,8 @@ public class FlightSchedule implements Serializable {
     @Future
     private Date departureDateTime;
     @Column(nullable = false)
-    @NotNull
     private Integer flightHours;
     @Column(nullable = false)
-    @NotNull
     private Integer flightMinutes;
     @Column(nullable = false)
     @NotNull

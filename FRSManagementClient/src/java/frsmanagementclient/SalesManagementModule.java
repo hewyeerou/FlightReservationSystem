@@ -8,14 +8,18 @@ package frsmanagementclient;
 import ejb.session.stateless.AircraftTypeSessionBeanRemote;
 import ejb.session.stateless.AirportSessionBeanRemote;
 import ejb.session.stateless.EmployeeSessionBeanRemote;
+import ejb.session.stateless.FlightReservationRecordSessionBeanRemote;
 import ejb.session.stateless.FlightSessionBeanRemote;
 import ejb.session.stateless.PartnerSessionBeanRemote;
 import entity.CabinClass;
+import entity.CabinSeatInventory;
 import entity.Employee;
+import entity.Fare;
 import entity.Flight;
 import entity.FlightReservationRecord;
 import entity.FlightSchedule;
 import entity.FlightSchedulePlan;
+import entity.Passenger;
 import entity.SeatInventory;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -36,16 +40,18 @@ public class SalesManagementModule {
 
     private Employee currentEmployee;
     private FlightSessionBeanRemote flightSessionBeanRemote;
+    private FlightReservationRecordSessionBeanRemote flightReservationRecordSessionBeanRemote;
     
 
     public SalesManagementModule() {
     }
     
-    public SalesManagementModule(Employee currentEmployee, FlightSessionBeanRemote flightSessionBeanRemote) 
+    public SalesManagementModule(Employee currentEmployee, FlightSessionBeanRemote flightSessionBeanRemote, FlightReservationRecordSessionBeanRemote flightReservationRecordSessionBeanRemote) 
     {
         this();
         this.currentEmployee = currentEmployee;
         this.flightSessionBeanRemote = flightSessionBeanRemote;
+        this.flightReservationRecordSessionBeanRemote = flightReservationRecordSessionBeanRemote;
     }
     
     public void menuSalesManagement() throws InvalidAccessRightsException
@@ -216,10 +222,12 @@ public class SalesManagementModule {
                     }
                 }
                 
+                SimpleDateFormat formatterDate = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+                
                 for(FlightSchedule flightSchedule: flightSchedulesList)
                 {
                     option++;
-                    System.out.println(option + "ID" );
+                    System.out.println(option + " ID " + flightSchedule.getFlightScheduleId() + " :: " + formatterDate.format(flightSchedule.getDepartureDateTime()) + ":: " + flightSchedule.getFlightHours() + " hours " + flightSchedule.getFlightMinutes() + " mins");
                 }
 
                 System.out.println("");
@@ -230,7 +238,7 @@ public class SalesManagementModule {
                 if(flightScheduleInt >= 1 && flightScheduleInt <= option)
                 {
                     FlightSchedule flightSchedule = flightSchedulesList.get(flightScheduleInt-1);
-                    doViewFlightScheduleReservation(flightSchedule, flight);
+                    doViewFlightScheduleReservation(flightSchedule);
                     break;
                 }
                 else
@@ -246,30 +254,36 @@ public class SalesManagementModule {
         }
     }
     
-    private void doViewFlightScheduleReservation(FlightSchedule flightSchedule, Flight flight)
+    private void doViewFlightScheduleReservation(FlightSchedule flightSchedule)
     {
         System.out.println("*** FRS Management :: Sales Management :: View Flight Reservation Record ***\n");
         System.out.println("*** Flight Schedule: " + flightSchedule.getFlightScheduleId() + " ***\n");
         System.out.println("");
         
-        List<CabinClass> cabinClasses = new ArrayList<>();
+        List<FlightReservationRecord> flightReservationRecordList = new ArrayList<>();
         
-        for(SeatInventory seatInventory: flightSchedule.getSeatInventories())
+        for(FlightReservationRecord flightReservationRecord: flightSchedule.getFlightReservationRecords())
         {
-            cabinClasses.add(seatInventory.getCabinClass());
+           FlightReservationRecord flightReservationRecord1 = flightReservationRecordSessionBeanRemote.getFlightReservationRecordByFlightScheduleId(flightReservationRecord.getRecordId());
+           flightReservationRecordList.add(flightReservationRecord1);
         }
         
-        for(CabinClass cabinClass: cabinClasses)
+        System.out.printf("%20s%20s%20s\n", "Seat Number" , "Passenger Name", "Fare Basis Code");
+        
+        for(FlightReservationRecord flightReservationRecord: flightReservationRecordList)
         {
-            System.out.printf("%25s%25s%25s%25s\n", "Seat Number", "Passenger Name", "Fare Basis Code");
-            
-            for(FlightReservationRecord flightReservationRecord: flightSchedule.getFlightReservationRecords())
+            for(Passenger passenger: flightReservationRecord.getPassengers())
             {
-                //for(loop through fare)??
-                System.out.printf("%25s%25s%25s%25s\n", "SEAT NUMBER", flightReservationRecord.getPassengers(), "FARE BASIS CODE");
+                for(CabinSeatInventory cabinSeatInventory: passenger.getCabinSeats())
+                {
+                    SeatInventory seatInventory = cabinSeatInventory.getSeatInventory();
+                    
+                    for(Fare fare: seatInventory.getCabinClass().getFares())
+                    {
+                        System.out.printf("%20s%20s%20s\n", cabinSeatInventory.getSeatTaken(), passenger.getFirstName() + " " + passenger.getLastName(), fare.getFareBasisCode());
+                    }
+                }
             }
-        }
-        
-        
+        }   
     }
 }

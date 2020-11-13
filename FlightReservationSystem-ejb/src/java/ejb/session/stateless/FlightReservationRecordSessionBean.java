@@ -12,10 +12,12 @@ import entity.FlightSchedule;
 import entity.Partner;
 import entity.Passenger;
 import entity.Person;
+import entity.SeatInventory;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 /**
  *
@@ -54,5 +56,31 @@ public class FlightReservationRecordSessionBean implements FlightReservationReco
         em.persist(flightReservationRecord);
         em.flush();
         return flightReservationRecord.getRecordId();
+    }
+    
+    @Override
+    public FlightReservationRecord getFlightReservationRecordByFlightScheduleId(Long flightReservationRecordId)
+    {
+        Query query = em.createQuery("SELECT frr FROM FlightReservationRecord frr WHERE frr.recordId = :inId");
+        query.setParameter("inId", flightReservationRecordId);
+        
+        FlightReservationRecord flightReservationRecord = (FlightReservationRecord)query.getSingleResult();
+        flightReservationRecord.getFlightSchedules().size();
+        flightReservationRecord.getPassengers().size();
+        
+        for(Passenger passenger: flightReservationRecord.getPassengers())
+        {
+            passenger.getCabinSeats().size();
+
+            for(CabinSeatInventory cabinSeatInventory: passenger.getCabinSeats())
+            {
+                SeatInventory seatInventory = cabinSeatInventory.getSeatInventory();
+                seatInventory.getCabinClass().getFares().size();
+            }
+        }
+        
+        
+        return flightReservationRecord;
+        
     }
 }

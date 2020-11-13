@@ -18,4 +18,5 @@ public interface FlightReservationRecordSessionBeanRemote {
     
     public Long createNewFlightReservationRecord(FlightReservationRecord flightReservationRecord, Long personId, List<Long> flightSchedules);
     
+    public FlightReservationRecord getFlightReservationRecordByFlightScheduleId(Long flightReservationRecordId);
 }
