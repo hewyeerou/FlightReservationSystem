@@ -1102,31 +1102,24 @@ public class FlightOperationModule
                                 {
                                     try
                                     {
-                                        if(flightSchedules.get(j) != null)
-                                        {
-                                            System.out.println("testing " + i);
-                                            Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightSchedules.get(j), flightScheduleIdList.get(i), returnFlightSchedulePlanId);
+                                        
+                                        Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightSchedules.get(j), flightScheduleIdList.get(i), returnFlightSchedulePlanId);
 
-                                            //create seat inventory 
-                                            SeatInventory seatInventory = new SeatInventory();
-                                            Long seatInventoryId = 0l;
-                                            //get max seat capacity from the flight's cabin classes
-                                            for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
-                                            {
-                                                Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
-                                                seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
-                                                seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
-                                                seatInventory.setNumOfReservedSeats(0);
+                                        //create seat inventory 
+                                        SeatInventory seatInventory = new SeatInventory();
+                                        Long seatInventoryId = 0l;
+                                        //get max seat capacity from the flight's cabin classes
+                                        for (CabinClass cabinClass : flight.getAircraftConfig().getCabinClasses()) {
+                                            Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
+                                            seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
+                                            seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
+                                            seatInventory.setNumOfReservedSeats(0);
 
-                                                seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, returnFlightScheduleId, cabinClass.getCabinClassId());
-                                            } 
-                                            break;
+                                            seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, returnFlightScheduleId, cabinClass.getCabinClassId());
                                         }
-                                        else
-                                        {
-                                            System.out.println("testing2 " + i);
-                                            continue;
-                                        }
+                                        break;
+
+                                        
                                         
                                     } 
                                     catch (FlightSchedulePlanNotFoundException ex) 
