@@ -30,7 +30,7 @@ public class Fare implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long fareId;
-    @Column(nullable = false, length = 8, unique = true)
+    @Column(nullable = false, length = 8)
     @NotNull
     @Size(max = 8)
     private String fareBasisCode;

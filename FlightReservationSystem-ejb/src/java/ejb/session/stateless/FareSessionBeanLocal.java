@@ -21,7 +21,7 @@ import util.exception.UnknownPersistenceException;
 @Local
 public interface FareSessionBeanLocal {
 
-    public Long createNewFare(Fare newFare, Long flightSchedulePlanId, Long cabinClassId) throws FlightSchedulePlanNotFoundException, FareBasisCodeExistException, UnknownPersistenceException;
+    public Long createNewFare(Fare newFare, Long flightSchedulePlanId, Long cabinClassId) throws FlightSchedulePlanNotFoundException;
 
     public List<Fare> getFaresByFlightSchedulePlanId(Long flightSchedulePlanId);
 

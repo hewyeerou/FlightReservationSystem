@@ -21,7 +21,7 @@ import util.exception.UnknownPersistenceException;
 @Remote
 public interface FareSessionBeanRemote {
     
-    public Long createNewFare(Fare newFare, Long flightSchedulePlanId, Long cabinClassId) throws FlightSchedulePlanNotFoundException, FareBasisCodeExistException, UnknownPersistenceException;
+    public Long createNewFare(Fare newFare, Long flightSchedulePlanId, Long cabinClassId) throws FlightSchedulePlanNotFoundException;
     
     public List<Fare> getFaresByFlightSchedulePlanId(Long flightSchedulePlanId);
 
