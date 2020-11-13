@@ -68,6 +68,7 @@ public class FlightSchedule implements Serializable {
 
     public FlightSchedule() {
         this.flightReservationRecords = new ArrayList<>();
+        this.seatInventories = new ArrayList<>();
     }
 
     public FlightSchedule(Date departure, Integer flightHours, Integer flightMinutes,  Boolean enabled) {

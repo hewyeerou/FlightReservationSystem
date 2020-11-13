@@ -11,6 +11,7 @@ import entity.Passenger;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import util.exception.PassengerNotFoundException;
 
 /**
  *
@@ -23,18 +24,42 @@ public class PassengerSessionBean implements PassengerSessionBeanRemote, Passeng
     private EntityManager em;
     
     @Override
-    public Long createNewPassenger(Passenger passenger, Long flightReservationRecordId, Long cabinSeatId)
+    public Long createNewPassenger(Passenger passenger, Long flightReservationRecordId)
     {
         FlightReservationRecord flightReservationRecord = em.find(FlightReservationRecord.class, flightReservationRecordId);
         passenger.setFlightReservationRecord(flightReservationRecord);
         flightReservationRecord.getPassengers().add(passenger);
         
-        CabinSeatInventory cabinSeat = em.find(CabinSeatInventory.class, cabinSeatId);
-        passenger.getCabinSeats().add(cabinSeat);
-        
         em.persist(passenger);
         em.flush();
         
         return passenger.getPassengerId();
+    }
+    
+    @Override
+    public Passenger retrievePassengerByPassengerId (Long passengerId) throws PassengerNotFoundException
+    {
+        Passenger passenger = em.find(Passenger.class, passengerId);
+        
+        if (passenger != null)
+        {
+            passenger.getCabinSeats().size();
+            return passenger;
+        }
+        else
+        {
+            throw new PassengerNotFoundException("Passenger with ID " + passengerId + " does not exist!\n");
+        }
+    }
+    
+    @Override
+    public Passenger retrievePassengerByPassengerIdUnmanaged (Long passengerId) throws PassengerNotFoundException
+    {
+        Passenger p = retrievePassengerByPassengerId(passengerId);
+        
+        em.detach(p);
+        em.detach(p.getFlightReservationRecord());
+      
+        return p;
     }
 }

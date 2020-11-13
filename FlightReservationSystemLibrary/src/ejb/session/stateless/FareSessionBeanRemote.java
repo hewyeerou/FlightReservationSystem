@@ -29,5 +29,7 @@ public interface FareSessionBeanRemote {
     
     public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId);
     
-    public BigDecimal getLowestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId);
+    public BigDecimal getLowestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException;
+    
+    public BigDecimal getHighestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException;
 }

@@ -18,7 +18,6 @@ import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
-import util.exception.AircraftTypeNameExistException;
 import util.exception.FareBasisCodeExistException;
 import util.exception.FareNotFoundException;
 import util.exception.FlightSchedulePlanNotFoundException;
@@ -94,15 +93,64 @@ public class FareSessionBean implements FareSessionBeanRemote, FareSessionBeanLo
     }
     
     @Override
-    public BigDecimal getLowestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId)
+    public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(Long flightSchedulePlanId, Long cabinClassId)
+    {
+        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(flightSchedulePlanId, cabinClassId);
+        
+        for (Fare fare: fares)
+        {
+            em.detach(fare);
+            
+            em.detach(fare.getCabinClass());
+            
+            em.detach(fare.getFlightSchedulePlan());
+        }
+        
+        return fares;
+    }
+    
+    @Override
+    public BigDecimal getLowestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException
     {
         Query query = em.createQuery("SELECT MIN(f.fareAmount) FROM Fare f WHERE f.flightSchedulePlan.flightSchedulePlanId = :inFlightSchedulePlanId AND f.cabinClass.cabinClassId = :inCabinClassId");
         query.setParameter("inFlightSchedulePlanId", flightSchedulePlanId);
         query.setParameter("inCabinClassId", cabinClassId);
         
-        return (BigDecimal)query.getSingleResult();
+        try
+        {
+            return (BigDecimal)query.getSingleResult();
+        }
+        catch (NoResultException | NonUniqueResultException ex)
+        {
+            throw new FareNotFoundException("Lowest fare for current flight schedule plan and cabin class is not available!");
+        }
+    }
+    
+    @Override
+    public BigDecimal getHighestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException
+    {
+        Query query = em.createQuery("SELECT MAX(f.fareAmount) FROM Fare f WHERE f.flightSchedulePlan.flightSchedulePlanId = :inFlightSchedulePlanId AND f.cabinClass.cabinClassId = :inCabinClassId");
+        query.setParameter("inFlightSchedulePlanId", flightSchedulePlanId);
+        query.setParameter("inCabinClassId", cabinClassId);
+        
+        try
+        {
+            return (BigDecimal)query.getSingleResult();
+        }
+        catch (NoResultException | NonUniqueResultException ex)
+        {
+            throw new FareNotFoundException("Highest fare for current flight schedule plan and cabin class is not available!");
+        }
     }
   
+    @Override
+    public BigDecimal getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException
+    {
+        BigDecimal price = getHighestFareByFlightSchedulePlanIdAndCabinClassId(flightSchedulePlanId, cabinClassId);
+        
+        return price;
+    }
+    
     @Override
     public void updateFare(Fare fare) throws FareNotFoundException
     {

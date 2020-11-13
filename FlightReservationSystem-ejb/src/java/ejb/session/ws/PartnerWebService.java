@@ -23,7 +23,7 @@ import util.exception.PartnerNotFoundException;
 @Stateless
 public class PartnerWebService {
 
-    @EJB(name = "PartnerSessionBeanLocal")
+    @EJB
     private PartnerSessionBeanLocal partnerSessionBeanLocal;
     
     @WebMethod(operationName = "retrievePartnerByUsername")

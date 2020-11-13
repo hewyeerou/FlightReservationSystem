@@ -22,6 +22,12 @@ public interface CabinClassSessionBeanLocal {
 
     public CabinClass retrieveCabinClassByAircraftConfigIdAndType(Long aircraftConfigId, CabinClassEnum type) throws CabinClassNotFoundException;
 
-    public CabinClass retrieveCabinClassById(Long cabinClassId);
+    public CabinClass retrieveCabinClassById(Long cabinClassId) throws CabinClassNotFoundException;
+
+    public List<CabinClass> retrieveCabinClassesByAircraftConfigIdUnmanaged(Long aircraftConfigId);
+
+    public CabinClass retrieveCabinClassByIdUnmanaged(Long cabinClassId) throws CabinClassNotFoundException;
+
+    public CabinClass retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged(Long aircraftConfigId, CabinClassEnum type) throws CabinClassNotFoundException;
     
 }

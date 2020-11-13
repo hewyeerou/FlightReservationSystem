@@ -6,9 +6,9 @@
 package ejb.session.stateless;
 
 import entity.CabinClass;
+import entity.CabinSeatInventory;
 import entity.FlightSchedule;
 import entity.SeatInventory;
-import java.util.List;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -68,4 +68,24 @@ public class SeatInventorySessionBean implements SeatInventorySessionBeanRemote,
             throw new SeatInventoryNotFoundException();
         }
     }
+    
+    @Override
+    public SeatInventory retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged(Long cabinClassId, Long flightScheduleId) throws SeatInventoryNotFoundException
+    {
+        SeatInventory seatInventory = retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(cabinClassId, flightScheduleId);
+        
+        em.detach(seatInventory);
+        
+        em.detach(seatInventory.getFlightSchedule());
+        
+        em.detach(seatInventory.getCabinClass());
+    
+        for (CabinSeatInventory cabinSeatInventory: seatInventory.getCabinSeatInventories())
+        {
+            em.detach(cabinSeatInventory);
+        }
+        
+        return seatInventory;
+    }
 }
+

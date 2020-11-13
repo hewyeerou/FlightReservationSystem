@@ -24,5 +24,7 @@ public interface AirportSessionBeanLocal {
     public List<Airport> getAllAirports();
 
     public Airport getAirportByAirportId(Long airportId) throws AirportNotFoundException;
+
+    public List<Airport> getAllAirportsUnmanaged();
     
 }

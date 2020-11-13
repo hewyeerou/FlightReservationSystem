@@ -22,5 +22,5 @@ public interface CabinClassSessionBeanRemote {
     
     public CabinClass retrieveCabinClassByAircraftConfigIdAndType(Long aircraftConfigId, CabinClassEnum type) throws CabinClassNotFoundException;
     
-    public CabinClass retrieveCabinClassById(Long cabinClassId);
+    public CabinClass retrieveCabinClassById(Long cabinClassId) throws CabinClassNotFoundException;
 }

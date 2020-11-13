@@ -48,7 +48,7 @@ public class DataInitSessionBean {
     @EJB
     private EmployeeSessionBeanLocal employeeSessionBeanLocal;
     
-    @PersistenceContext(unitName = "FlightReservationSystem-ejbPU")
+    @PersistenceContext
     private EntityManager em;
 
     public DataInitSessionBean() 

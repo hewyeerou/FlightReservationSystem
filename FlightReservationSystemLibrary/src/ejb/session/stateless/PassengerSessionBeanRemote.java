@@ -7,6 +7,7 @@ package ejb.session.stateless;
 
 import entity.Passenger;
 import javax.ejb.Remote;
+import util.exception.PassengerNotFoundException;
 
 /**
  *
@@ -15,6 +16,8 @@ import javax.ejb.Remote;
 @Remote
 public interface PassengerSessionBeanRemote {
     
-    public Long createNewPassenger(Passenger passenger, Long flightReservationRecordId, Long cabinSeatId);
+    public Long createNewPassenger(Passenger passenger, Long flightReservationRecordId);
+    
+    public Passenger retrievePassengerByPassengerId(Long passengerId) throws PassengerNotFoundException;
     
 }

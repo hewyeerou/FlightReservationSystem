@@ -7,6 +7,7 @@ package ejb.session.stateless;
 
 import entity.Passenger;
 import javax.ejb.Local;
+import util.exception.PassengerNotFoundException;
 
 /**
  *
@@ -15,6 +16,10 @@ import javax.ejb.Local;
 @Local
 public interface PassengerSessionBeanLocal {
 
-    public Long createNewPassenger(Passenger passenger, Long flightReservationRecordId, Long cabinSeatId);
+    public Long createNewPassenger(Passenger passenger, Long flightReservationRecordId);
+
+    public Passenger retrievePassengerByPassengerId(Long passengerId) throws PassengerNotFoundException;
+
+    public Passenger retrievePassengerByPassengerIdUnmanaged(Long passengerId) throws PassengerNotFoundException;
     
 }

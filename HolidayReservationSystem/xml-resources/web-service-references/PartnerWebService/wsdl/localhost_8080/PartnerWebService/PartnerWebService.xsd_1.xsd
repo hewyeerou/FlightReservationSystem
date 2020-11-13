@@ -192,6 +192,7 @@
 
 <xs:complexType name="passenger">
 <xs:sequence>
+<xs:element name="cabinSeats" type="tns:cabinSeatInventory" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
 <xs:element name="firstName" type="xs:string" minOccurs="0"/>
 <xs:element name="flightReservationRecord" type="tns:flightReservationRecord" minOccurs="0"/>
 <xs:element name="lastName" type="xs:string" minOccurs="0"/>

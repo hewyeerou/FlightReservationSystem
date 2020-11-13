@@ -6,6 +6,7 @@
 package ejb.session.stateless;
 
 import entity.Airport;
+import entity.FlightRoute;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -62,6 +63,29 @@ public class AirportSessionBean implements AirportSessionBeanRemote, AirportSess
         Query query = em.createQuery("SELECT a FROM Airport a ORDER BY a.airportId ASC");
         
         return query.getResultList();
+    }
+    
+    @Override
+    public List<Airport> getAllAirportsUnmanaged()
+    {
+        List<Airport> airports = getAllAirports();
+        
+        for (Airport airport: airports)
+        {
+            em.detach(airport);
+            
+            for (FlightRoute departureRoute: airport.getDepartureRoutes())
+            {
+                em.detach(departureRoute);
+            }
+            
+            for (FlightRoute arrivalRoute: airport.getArrivalRoutes())
+            {
+                em.detach(arrivalRoute);
+            }
+        }   
+        
+        return airports;
     }
     
     @Override

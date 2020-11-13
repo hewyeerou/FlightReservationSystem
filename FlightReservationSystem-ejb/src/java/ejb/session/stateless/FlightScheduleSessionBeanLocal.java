@@ -45,5 +45,13 @@ public interface FlightScheduleSessionBeanLocal {
     public Boolean filterFlightSchedule(FlightSchedule flightSchedule, CabinClassEnum preferredCabinClass, Integer numPassengers);
 
     public Boolean hasSufficientBalanceSeats(SeatInventory seatInventory, Integer numPassengers);
+
+    public List<FlightSchedule> searchDirectFlightSchedulesUnmanaged(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, CabinClassEnum preferredCabinClass, Integer numPassengers);
+
+    public List<FlightSchedule> searchSingleTransitConnectingFlightScheduleUnmanaged(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, CabinClassEnum preferredCabinClass, Integer numPassengers);
+
+    public List<FlightSchedule> searchDoubleTransitConnectingFlightScheduleUnmanaged(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, CabinClassEnum preferredCabinClass, Integer numPassengers);
+
+    public FlightSchedule getFlightScheduleByIdUnmanaged(Long flightScheduleId) throws FlightScheduleNotFoundException;
     
 }

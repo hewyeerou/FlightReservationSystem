@@ -6,13 +6,19 @@
 package ejb.session.stateless;
 
 import entity.CabinSeatInventory;
+import entity.Passenger;
 import entity.SeatInventory;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import util.exception.CabinSeatInventoryExistException;
 
 /**
  *
@@ -34,16 +40,44 @@ public class CabinSeatInventorySessionBean implements CabinSeatInventorySessionB
     } 
     
     @Override
-    public Long createNewCabinSeatInventory(CabinSeatInventory cabinSeatInventory, Long seatInventoryId)
+    public List<CabinSeatInventory> retrieveCabinSeatInventoryInSeatInventoryUnmanaged(Long seatInventoryId)
     {
-        SeatInventory seatInventory = em.find(SeatInventory.class, seatInventoryId);
+        List<CabinSeatInventory> seats = retrieveCabinSeatInventoryInSeatInventory(seatInventoryId);
         
-        cabinSeatInventory.setSeatInventory(seatInventory);
-        seatInventory.getCabinSeatInventories().add(cabinSeatInventory);
-        seatInventory.setNumOfBalanceSeats(seatInventory.getNumOfBalanceSeats() - 1);
-        seatInventory.setNumOfReservedSeats(seatInventory.getNumOfReservedSeats() + 1);
-        em.persist(cabinSeatInventory);
-        em.flush();
+        for (CabinSeatInventory csi: seats)
+        {
+            em.detach(csi);
+            em.detach(csi.getSeatInventory());
+        }
+        
+        return seats;
+    }
+    
+    @Override
+    public Long createNewCabinSeatInventory(CabinSeatInventory cabinSeatInventory, Long seatInventoryId, Long passengerId) throws CabinSeatInventoryExistException
+    {
+        Query query = em.createQuery("SELECT c FROM CabinSeatInventory c WHERE c.seatInventory.seatInventoryId = :inSeatInventoryId AND c.seatTaken = :inReserveSeat");
+        query.setParameter("inSeatInventoryId", seatInventoryId);
+        query.setParameter("inReserveSeat", cabinSeatInventory.getSeatTaken());
+        
+        try
+        {
+            query.getSingleResult();
+            throw new CabinSeatInventoryExistException("Cabin seat number is already taken, please select another seat!");
+        }
+        catch (NoResultException | NonUniqueResultException ex)
+        {
+            SeatInventory seatInventory = em.find(SeatInventory.class, seatInventoryId);
+            Passenger passenger = em.find(Passenger.class, passengerId);
+        
+            cabinSeatInventory.setSeatInventory(seatInventory);
+            seatInventory.getCabinSeatInventories().add(cabinSeatInventory);
+            seatInventory.setNumOfBalanceSeats(seatInventory.getNumOfBalanceSeats() - 1);
+            seatInventory.setNumOfReservedSeats(seatInventory.getNumOfReservedSeats() + 1);
+            passenger.getCabinSeats().add(cabinSeatInventory);
+            em.persist(cabinSeatInventory);
+            em.flush();
+        }
         
         return cabinSeatInventory.getCabinSeatInventoryId();
     }

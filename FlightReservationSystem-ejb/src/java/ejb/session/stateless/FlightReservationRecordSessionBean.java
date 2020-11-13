@@ -16,6 +16,8 @@ import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import util.exception.FlightReservationRecordNotFoundException;
 
 /**
  *
@@ -54,5 +56,32 @@ public class FlightReservationRecordSessionBean implements FlightReservationReco
         em.persist(flightReservationRecord);
         em.flush();
         return flightReservationRecord.getRecordId();
+    }
+    
+    @Override
+    public List<FlightReservationRecord> retrieveReservationRecordsByCustomerId (Long customerId)
+    {
+        Query query = em.createQuery("SELECT frr FROM FlightReservationRecord frr WHERE frr.person.id = :inCustomerId ORDER BY frr.recordId ASC");
+        query.setParameter("inCustomerId", customerId);
+        
+        return query.getResultList();
+    }
+    
+    @Override
+    public FlightReservationRecord retrieveReservationRecordById (Long recordId) throws FlightReservationRecordNotFoundException
+    {
+        FlightReservationRecord record = em.find(FlightReservationRecord.class, recordId);
+        
+        if (record != null)
+        {
+            record.getFlightSchedules().size();
+            record.getPassengers().size();
+            
+            return record;
+        }
+        else
+        {
+            throw new FlightReservationRecordNotFoundException("Flight Reservation Record with ID " + recordId + " does not exist!");
+        }
     }
 }

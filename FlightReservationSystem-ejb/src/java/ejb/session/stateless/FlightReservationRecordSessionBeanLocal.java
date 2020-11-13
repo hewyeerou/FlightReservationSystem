@@ -8,6 +8,7 @@ package ejb.session.stateless;
 import entity.FlightReservationRecord;
 import java.util.List;
 import javax.ejb.Local;
+import util.exception.FlightReservationRecordNotFoundException;
 
 /**
  *
@@ -17,5 +18,9 @@ import javax.ejb.Local;
 public interface FlightReservationRecordSessionBeanLocal {
 
     public Long createNewFlightReservationRecord(FlightReservationRecord flightReservationRecord, Long personId, List<Long> flightSchedules);
+
+    public List<FlightReservationRecord> retrieveReservationRecordsByCustomerId(Long customerId);
+
+    public FlightReservationRecord retrieveReservationRecordById(Long recordId) throws FlightReservationRecordNotFoundException;
     
 }
