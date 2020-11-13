@@ -483,11 +483,11 @@ public class FlightOperationModule
             if(outboundFlight.getFlightType().equals("OUTBOUND"))
             {
                 option++;
-                System.out.printf("%20s%20s%30s%30s\n", option, outboundFlight.getFlightNumber(), outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode(), outboundFlight.getAircraftConfig().getAircraftType().getAircraftTypeName() + " " + outboundFlight.getAircraftConfig().getName());
+                System.out.printf("%20s%20s%30s%40s\n", option, outboundFlight.getFlightNumber(), outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode(), outboundFlight.getAircraftConfig().getAircraftType().getAircraftTypeName() + " " + outboundFlight.getAircraftConfig().getName());
             }
             else if((outboundFlight.getFlightType().equals("RETURN")))
             {
-                System.out.printf("%20s%20s%30s%30s\n","",outboundFlight.getFlightNumber(), outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode(), outboundFlight.getAircraftConfig().getAircraftType().getAircraftTypeName() + " " + outboundFlight.getAircraftConfig().getName());
+                System.out.printf("%20s%20s%30s%40s\n","",outboundFlight.getFlightNumber(), outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode(), outboundFlight.getAircraftConfig().getAircraftType().getAircraftTypeName() + " " + outboundFlight.getAircraftConfig().getName());
             }
             
         }
@@ -1712,58 +1712,57 @@ public class FlightOperationModule
             Integer flightDurationMins = flightDurationInMins % 60;
             
             
-            if(fsList.size() == 0)
-            {
-                flightSchedule.setDepartureDateTime(departureDT);
-                flightSchedule.setFlightHours(flightDurationHours);
-                flightSchedule.setFlightMinutes(flightDurationMins);
-                flightSchedule.setFlightScheduleType("OUTBOUND");
-                flightSchedule.setEnabled(true);
+//            if(fsList.size() == 0)
+//            {
+//                flightSchedule.setDepartureDateTime(departureDT);
+//                flightSchedule.setFlightHours(flightDurationHours);
+//                flightSchedule.setFlightMinutes(flightDurationMins);
+//                flightSchedule.setFlightScheduleType("OUTBOUND");
+//                flightSchedule.setEnabled(true);
+//            
+//                //create one new recurrent flight schedule
+//                flightScheduleId = flightScheduleSessionBeanRemote.createNewFlightSchedule(flightSchedule, flightSchedulePlanId);
+//
+//                //create seat inventory 
+//                SeatInventory seatInventory = new SeatInventory();
+//                Long seatInventoryId = 0l;
+//                //get max seat capacity from the flight's cabin classes
+//                for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
+//                {
+//                    Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
+//                    seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
+//                    seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
+//                    seatInventory.setNumOfReservedSeats(0);
+//
+//                    seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, flightScheduleId, cabinClass.getCabinClassId());
+//                }  
+//            }
             
-                //create one new recurrent flight schedule
-                flightScheduleId = flightScheduleSessionBeanRemote.createNewFlightSchedule(flightSchedule, flightSchedulePlanId);
-
-                //create seat inventory 
-                SeatInventory seatInventory = new SeatInventory();
-                Long seatInventoryId = 0l;
-                //get max seat capacity from the flight's cabin classes
-                for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
-                {
-                    Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
-                    seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
-                    seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
-                    seatInventory.setNumOfReservedSeats(0);
-
-                    seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, flightScheduleId, cabinClass.getCabinClassId());
-                }  
-            }
-            else
+            for(FlightSchedule flightSchedule1: fsList)
             {
-                for(FlightSchedule flightSchedule1: fsList)
-                {
-                    calendar.setTime(flightSchedule1.getDepartureDateTime());
-                    calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedule1.getFlightHours());
-                    calendar.add(GregorianCalendar.MINUTE, flightSchedule1.getFlightMinutes());
-                    calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
-                    Date arrivalDateTimeZone = calendar.getTime();
-                    
-                    calendar.setTime(departureDT);
-                    calendar.add(GregorianCalendar.HOUR_OF_DAY, flightDurationHours);
-                    calendar.add(GregorianCalendar.MINUTE, flightDurationMins);
-                    calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
-                    Date inputArrivalDateTimeZone = calendar.getTime();
-                    
-                    if(flightSchedule1.getDepartureDateTime().compareTo(departureDT) * departureDT.compareTo(arrivalDateTimeZone) >= 0 || flightSchedule1.getDepartureDateTime().compareTo(inputArrivalDateTimeZone) * inputArrivalDateTimeZone.compareTo(arrivalDateTimeZone) >= 0)
-                    {
-                        isRecurrentOverlapped.add(true);
-                    }
-                    else
-                    {
-                        isRecurrentOverlapped.add(false);
-                    }
+                calendar.setTime(flightSchedule1.getDepartureDateTime());
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedule1.getFlightHours());
+                calendar.add(GregorianCalendar.MINUTE, flightSchedule1.getFlightMinutes());
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+                Date arrivalDateTimeZone = calendar.getTime();
 
+                calendar.setTime(departureDT);
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flightDurationHours);
+                calendar.add(GregorianCalendar.MINUTE, flightDurationMins);
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+                Date inputArrivalDateTimeZone = calendar.getTime();
+
+                if(flightSchedule1.getDepartureDateTime().compareTo(departureDT) * departureDT.compareTo(arrivalDateTimeZone) >= 0 || flightSchedule1.getDepartureDateTime().compareTo(inputArrivalDateTimeZone) * inputArrivalDateTimeZone.compareTo(arrivalDateTimeZone) >= 0)
+                {
+                    isRecurrentOverlapped.add(true);
                 }
+                else
+                {
+                    isRecurrentOverlapped.add(false);
+                }
+
             }
+
             
             if(isRecurrentOverlapped.contains(true))
             {
