@@ -9,6 +9,7 @@ import entity.FlightReservationRecord;
 import java.util.List;
 import javax.ejb.Local;
 import util.exception.FlightReservationRecordNotFoundException;
+import util.exception.InputDataValidationException;
 
 /**
  *
@@ -17,10 +18,15 @@ import util.exception.FlightReservationRecordNotFoundException;
 @Local
 public interface FlightReservationRecordSessionBeanLocal {
 
-    public Long createNewFlightReservationRecord(FlightReservationRecord flightReservationRecord, Long personId, List<Long> flightSchedules);
-
-    public List<FlightReservationRecord> retrieveReservationRecordsByCustomerId(Long customerId);
-
-    public FlightReservationRecord retrieveReservationRecordById(Long recordId) throws FlightReservationRecordNotFoundException;
+    public Long createNewFlightReservationRecord(FlightReservationRecord flightReservationRecord, Long personId, List<Long> flightSchedules) throws InputDataValidationException;
     
+    public List<FlightReservationRecord> retrieveReservationRecordsByCustomerId(Long personId);
+
+    public FlightReservationRecord retrieveReservationRecordById(Long recordId, Long personId) throws FlightReservationRecordNotFoundException;
+
+    public FlightReservationRecord getFlightReservationRecordByFlightScheduleId(Long flightReservationRecordId);    
+
+    public List<FlightReservationRecord> retrieveReservationRecordsByCustomerIdUnmanaged(Long personId);
+
+    public FlightReservationRecord retrieveReservationRecordByIdUnmanaged(Long recordId, Long personId) throws FlightReservationRecordNotFoundException;
 }

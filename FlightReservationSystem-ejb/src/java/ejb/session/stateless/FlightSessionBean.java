@@ -6,10 +6,14 @@
 package ejb.session.stateless;
 
 import entity.AircraftConfig;
+import entity.CabinSeatInventory;
+import entity.Fare;
 import entity.Flight;
+import entity.FlightReservationRecord;
 import entity.FlightRoute;
 import entity.FlightSchedule;
 import entity.FlightSchedulePlan;
+import entity.Passenger;
 import entity.SeatInventory;
 import java.util.ArrayList;
 import java.util.List;
@@ -192,6 +196,7 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
             flight.getAircraftConfig().getCabinClasses().size();
             flight.getFlightRoute();
             flight.getFlightSchedulePlans().size();
+            flight.getReturnFlight().getAircraftConfig().getCabinClasses().size();
             
             for(FlightSchedulePlan flightScheduleplan: flight.getFlightSchedulePlans())
             {
@@ -199,6 +204,7 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
                 
                 for(FlightSchedule flightSchedule: flightScheduleplan.getFlightSchedules())
                 {
+                    flightSchedule.getFlightReservationRecords().size();
                     flightSchedule.getSeatInventories().size();
                     
                     for(SeatInventory seatInventory: flightSchedule.getSeatInventories())
@@ -207,6 +213,8 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
                     }
                 }
             }
+            
+           
             
             return flight;
         }
@@ -226,6 +234,7 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
             flight.getAircraftConfig();
             flight.getFlightRoute();
             flight.getFlightSchedulePlans().size();
+            
             
             return flight;
         }
@@ -247,21 +256,9 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
             List<Flight> flights = getAllFlights();
             List<String> flightNumList = new ArrayList<>();
             
-            for(Flight flight1:flights)
-            {
-                flightNumList.add(flight1.getFlightNumber());
-            }
-                    
-            if(!flightNumList.contains(flight.getFlightNumber()))
-            {
                 flightToUpdate.setFlightNumber(flight.getFlightNumber());
                 flightToUpdate.setFlightRoute(flight.getFlightRoute());
-                flightToUpdate.setAircraftConfig(flight.getAircraftConfig());
-            }
-            else
-            {
-                throw new FlightNumExistException("Flight number exist!");
-            }  
+                flightToUpdate.setAircraftConfig(flight.getAircraftConfig());  
         }
         else
         {

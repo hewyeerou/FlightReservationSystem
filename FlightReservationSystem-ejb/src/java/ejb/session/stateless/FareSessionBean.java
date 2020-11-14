@@ -37,40 +37,22 @@ public class FareSessionBean implements FareSessionBeanRemote, FareSessionBeanLo
     private FlightSchedulePlanSessionBeanLocal flightSchedulePlanSessionBeanLocal;
 
     @Override
-    public Long createNewFare(Fare newFare, Long flightSchedulePlanId, Long cabinClassId) throws FlightSchedulePlanNotFoundException, FareBasisCodeExistException, UnknownPersistenceException
+    public Long createNewFare(Fare newFare, Long flightSchedulePlanId, Long cabinClassId) throws FlightSchedulePlanNotFoundException
     {
-        try{
-            FlightSchedulePlan flightSchedulePlan = flightSchedulePlanSessionBeanLocal.getFlightSchedulePlanById(flightSchedulePlanId);
-            CabinClass cabinClass = em.find(CabinClass.class, cabinClassId);
+        FlightSchedulePlan flightSchedulePlan = flightSchedulePlanSessionBeanLocal.getFlightSchedulePlanById(flightSchedulePlanId);
+        CabinClass cabinClass = em.find(CabinClass.class, cabinClassId);
 
-            //set cabinclass
-            newFare.setCabinClass(cabinClass);
-            //set flightscheduleplan
-            newFare.setFlightSchedulePlan(flightSchedulePlan);
+        //set cabinclass
+        newFare.setCabinClass(cabinClass);
+        //set flightscheduleplan
+        newFare.setFlightSchedulePlan(flightSchedulePlan);
 
-            em.persist(newFare);
-            em.flush();
+        em.persist(newFare);
+        em.flush();
 
-            return newFare.getFareId();
-        }
-        catch(PersistenceException ex)
-        {
-            if(ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException"))
-            {
-                if(ex.getCause().getCause() != null && ex.getCause().getCause().getClass().getName().equals("java.sql.SQLIntegrityConstraintViolationException"))
-                {
-                    throw new FareBasisCodeExistException("Fare basis code exist!");
-                }
-                else
-                {
-                    throw new UnknownPersistenceException(ex.getMessage());
-                }
-            }
-            else
-            {
-                throw new UnknownPersistenceException(ex.getMessage());
-            }
-        }
+        return newFare.getFareId();
+        
+        
     }
     
     @Override

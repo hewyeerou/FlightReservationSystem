@@ -716,11 +716,11 @@ public class FlightPlanningModule
         
         for(FlightRoute flightRoute: flightRoutes)
         {
-            if(flightRoute.getFlightRouteType().equals("OUTBOUND"))
+            if(flightRoute.getFlightRouteType().equals("OUTBOUND") && flightRoute.getEnabled() == true)
             {
                 outboundFlightRoutes.add(flightRoute);
                     
-                if(flightRoute.getReturnFlightRoute().getFlightRouteId() != flightRoute.getFlightRouteId())
+                if(flightRoute.getReturnFlightRoute().getFlightRouteId() != flightRoute.getFlightRouteId() && flightRoute.getReturnFlightRoute().getEnabled() == true)
                 {
                     outboundFlightRoutes.add(flightRoute.getReturnFlightRoute());
                 }

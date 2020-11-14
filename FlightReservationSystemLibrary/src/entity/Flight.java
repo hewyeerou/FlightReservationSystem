@@ -19,6 +19,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -45,13 +46,16 @@ public class Flight implements Serializable {
     @OneToOne
     private Flight returnFlight;
     
+    @XmlTransient
     @OneToMany(mappedBy = "flight")
     private List<FlightSchedulePlan> flightSchedulePlans;
     
+    @XmlTransient
     @ManyToOne(optional=false)
     @JoinColumn(nullable=false)
     private FlightRoute flightRoute;
     
+    @XmlTransient
     @OneToOne(optional=false)
     @JoinColumn(nullable=false)
     private AircraftConfig aircraftConfig;

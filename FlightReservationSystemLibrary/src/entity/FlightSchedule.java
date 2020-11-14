@@ -23,6 +23,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.validation.constraints.Future;
 import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -41,14 +42,14 @@ public class FlightSchedule implements Serializable {
     @Future
     private Date departureDateTime;
     @Column(nullable = false)
-    @NotNull
     private Integer flightHours;
     @Column(nullable = false)
-    @NotNull
     private Integer flightMinutes;
     @Column(nullable = false)
     @NotNull
     private Boolean enabled;
+    
+    @XmlTransient
     @Column(nullable = false)
     @NotNull
     private String flightScheduleType;
@@ -56,13 +57,16 @@ public class FlightSchedule implements Serializable {
     @OneToOne
     private FlightSchedule returnFlightSchedule;
     
+    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private FlightSchedulePlan flightSchedulePlan;
     
+    @XmlTransient
     @OneToMany(mappedBy = "flightSchedule", orphanRemoval = true)
     private List<SeatInventory> seatInventories;
     
+    @XmlTransient
     @ManyToMany
     private List<FlightReservationRecord> flightReservationRecords;
 

@@ -8,9 +8,15 @@ package ejb.session.stateless;
 import entity.CabinSeatInventory;
 import entity.FlightReservationRecord;
 import entity.Passenger;
+import java.util.Set;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import util.exception.InputDataValidationException;
 import util.exception.PassengerNotFoundException;
 
 /**
@@ -23,17 +29,35 @@ public class PassengerSessionBean implements PassengerSessionBeanRemote, Passeng
     @PersistenceContext(unitName = "FlightReservationSystem-ejbPU")
     private EntityManager em;
     
-    @Override
-    public Long createNewPassenger(Passenger passenger, Long flightReservationRecordId)
+    private final ValidatorFactory validatorFactory;
+    private final Validator validator;
+     
+    public PassengerSessionBean()
     {
-        FlightReservationRecord flightReservationRecord = em.find(FlightReservationRecord.class, flightReservationRecordId);
-        passenger.setFlightReservationRecord(flightReservationRecord);
-        flightReservationRecord.getPassengers().add(passenger);
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
+    }
+    
+    @Override
+    public Long createNewPassenger(Passenger passenger, Long flightReservationRecordId) throws InputDataValidationException
+    {
+        Set<ConstraintViolation<Passenger>>constraintViolations = validator.validate(passenger);
         
-        em.persist(passenger);
-        em.flush();
-        
-        return passenger.getPassengerId();
+        if (constraintViolations.isEmpty())
+        {
+            FlightReservationRecord flightReservationRecord = em.find(FlightReservationRecord.class, flightReservationRecordId);
+            passenger.setFlightReservationRecord(flightReservationRecord);
+            flightReservationRecord.getPassengers().add(passenger);
+
+            em.persist(passenger);
+            em.flush();
+
+            return passenger.getPassengerId();
+        }
+        else
+        {
+            throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
+        }
     }
     
     @Override
@@ -61,5 +85,17 @@ public class PassengerSessionBean implements PassengerSessionBeanRemote, Passeng
         em.detach(p.getFlightReservationRecord());
       
         return p;
+    }
+    
+    private String prepareInputDataValidationErrorsMessage(Set<ConstraintViolation<Passenger>>constraintViolations)
+    {
+        String msg = "Input data validation error!:";
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            msg += "\n\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage();
+        }
+        
+        return msg;
     }
 }

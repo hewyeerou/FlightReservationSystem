@@ -13,6 +13,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -29,6 +30,7 @@ public class CabinSeatInventory implements Serializable {
     @Column(nullable = false)
     private String seatTaken;
             
+    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private SeatInventory seatInventory;

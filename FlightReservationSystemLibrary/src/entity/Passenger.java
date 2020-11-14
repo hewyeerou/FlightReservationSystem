@@ -18,6 +18,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -43,6 +44,7 @@ public class Passenger implements Serializable {
     @Size(max = 9)
     private String passportNum;
     
+    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private FlightReservationRecord flightReservationRecord;

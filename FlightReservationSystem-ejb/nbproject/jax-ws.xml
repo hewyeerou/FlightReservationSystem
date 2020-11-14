@@ -4,30 +4,6 @@
     <service name="PartnerWebService">
       <implementation-class>ejb.session.ws.PartnerWebService</implementation-class>
     </service>
-    <service name="FlightScheduleWebService">
-      <implementation-class>ejb.session.ws.FlightScheduleWebService</implementation-class>
-    </service>
-    <service name="AirportWebService">
-      <implementation-class>ejb.session.ws.AirportWebService</implementation-class>
-    </service>
-    <service name="CabinClassWebService">
-      <implementation-class>ejb.session.ws.CabinClassWebService</implementation-class>
-    </service>
-    <service name="FareWebService">
-      <implementation-class>ejb.session.ws.FareWebService</implementation-class>
-    </service>
-    <service name="SeatInventoryWebService">
-      <implementation-class>ejb.session.ws.SeatInventoryWebService</implementation-class>
-    </service>
-    <service name="FlightReservationRecordWebService">
-      <implementation-class>ejb.session.ws.FlightReservationRecordWebService</implementation-class>
-    </service>
-    <service name="PassengerWebService">
-      <implementation-class>ejb.session.ws.PassengerWebService</implementation-class>
-    </service>
-    <service name="CabinSeatInventoryWebService">
-      <implementation-class>ejb.session.ws.CabinSeatInventoryWebService</implementation-class>
-    </service>
   </services>
   <clients/>
 </jax-ws>

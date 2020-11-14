@@ -9,6 +9,7 @@ import entity.Customer;
 import javax.ejb.Local;
 import util.exception.CustomerNotFoundException;
 import util.exception.CustomerUsernameExistException;
+import util.exception.InputDataValidationException;
 import util.exception.InvalidLoginCredentialException;
 import util.exception.UnknownPersistenceException;
 
@@ -19,7 +20,7 @@ import util.exception.UnknownPersistenceException;
 @Local
 public interface CustomerSessionBeanLocal {
 
-    public Customer createNewCustomer(Customer newCustomer) throws CustomerUsernameExistException, UnknownPersistenceException;
+    public Customer createNewCustomer(Customer newCustomer) throws CustomerUsernameExistException, UnknownPersistenceException, InputDataValidationException;
 
     public Customer retrieveCustomerByUsername(String username) throws CustomerNotFoundException;
     

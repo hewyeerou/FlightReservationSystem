@@ -201,7 +201,7 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     @Override
     public List<FlightSchedule> searchDirectFlightSchedules(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, CabinClassEnum preferredCabinClass, Integer numPassengers)
     {
-        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy'T'HH:mm");
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
         Airport departureAirport = em.find(Airport.class, departureAirportId);
         Airport destinationAirport = em.find(Airport.class, destinationAirportId);
         
@@ -267,7 +267,7 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     {
         List<FlightSchedule> connectingFlights = new ArrayList<>();
         
-        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy'T'HH:mm");
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
         System.out.println(format.format(dateStart));
         System.out.println(format.format(dateEnd));
         Query query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.departureDateTime >= :inDateStart AND fs.departureDateTime < :inDateEnd AND fs.flightSchedulePlan.flight.flightRoute.origin.airportId = :inDepartureAirportId AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId <> :inDestinationAirportId ORDER BY fs.departureDateTime ASC");
@@ -370,7 +370,7 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     public List<FlightSchedule> searchDoubleTransitConnectingFlightSchedule (Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, CabinClassEnum preferredCabinClass, Integer numPassengers)
     {
         List<FlightSchedule> connectingFlights = new ArrayList<>();
-        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy'T'HH:mm");
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm");
         Query query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.departureDateTime >= :inDateStart AND fs.departureDateTime < :inDateEnd AND fs.flightSchedulePlan.flight.flightRoute.origin.airportId = :inDepartureAirportId AND fs.flightSchedulePlan.flight.flightRoute.destination.airportId <> :inDestinationAirportId ORDER BY fs.departureDateTime ASC");
         query.setParameter("inDateStart", dateStart);
         query.setParameter("inDateEnd", dateEnd);

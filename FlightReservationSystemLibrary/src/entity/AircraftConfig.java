@@ -21,6 +21,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -45,12 +46,15 @@ public class AircraftConfig implements Serializable {
     @Min(1)
     private Integer maxSeatCapacity;
     
+    @XmlTransient
     @OneToOne(mappedBy="aircraftConfig")
     private Flight flight;
     
+    @XmlTransient
     @OneToMany(mappedBy="aircraftConfig")
     private List<CabinClass> cabinClasses;
     
+    @XmlTransient
     @ManyToOne(optional=false)
     @JoinColumn(nullable=false)
     private AircraftType aircraftType;

@@ -47,6 +47,7 @@ import util.exception.InvalidAccessRightsException;
 import util.exception.UnknownPersistenceException;
 import util.exception.createOutboundReturnFlightCheckException;
 import ejb.session.stateless.SeatInventorySessionBeanRemote;
+import java.util.HashMap;
 
 /**
  *
@@ -460,7 +461,7 @@ public class FlightOperationModule
         List<Flight> flights = flightSessionBeanRemote.getAllFlights();
         List<Flight> outboundFlights = new ArrayList<>();
        
-        System.out.printf("%20s%20s%30s%30s\n", "#" ,"Flight Number", "Flight Route", "Aircraft Configuration");
+        System.out.printf("%20s%20s%30s%40s\n", "#" ,"Flight Number", "Flight Route", "Aircraft Configuration");
         
         Integer option = 0;
         
@@ -482,11 +483,11 @@ public class FlightOperationModule
             if(outboundFlight.getFlightType().equals("OUTBOUND"))
             {
                 option++;
-                System.out.printf("%20s%20s%30s%30s\n", option, outboundFlight.getFlightNumber(), outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode(), outboundFlight.getAircraftConfig().getAircraftType().getAircraftTypeName() + " " + outboundFlight.getAircraftConfig().getName());
+                System.out.printf("%20s%20s%30s%40s\n", option, outboundFlight.getFlightNumber(), outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode(), outboundFlight.getAircraftConfig().getAircraftType().getAircraftTypeName() + " " + outboundFlight.getAircraftConfig().getName());
             }
             else if((outboundFlight.getFlightType().equals("RETURN")))
             {
-                System.out.printf("%20s%20s%30s%30s\n","",outboundFlight.getFlightNumber(), outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode(), outboundFlight.getAircraftConfig().getAircraftType().getAircraftTypeName() + " " + outboundFlight.getAircraftConfig().getName());
+                System.out.printf("%20s%20s%30s%40s\n","",outboundFlight.getFlightNumber(), outboundFlight.getFlightRoute().getOrigin().getIataCode() + " - " + outboundFlight.getFlightRoute().getDestination().getIataCode(), outboundFlight.getAircraftConfig().getAircraftType().getAircraftTypeName() + " " + outboundFlight.getAircraftConfig().getName());
             }
             
         }
@@ -509,9 +510,9 @@ public class FlightOperationModule
         {
             Flight flight = flightSessionBeanRemote.getFlightByFlightNum(flightNum);
             
-            System.out.printf("%40s%40s\n", "Flight Number", "Flight Route");
+            System.out.printf("%30s%30s%30s\n", "Flight Number", "Flight Route", "AirCraft Configurations");
             
-            System.out.printf("%40s%40s\n", flight.getFlightNumber(), flight.getFlightRoute().getOrigin().getIataCode() + " - " + flight.getFlightRoute().getDestination().getIataCode());
+            System.out.printf("%30s%30s%30s\n", flight.getFlightNumber(), flight.getFlightRoute().getOrigin().getIataCode() + " - " + flight.getFlightRoute().getDestination().getIataCode(), flight.getAircraftConfig().getName());
             
             System.out.println("\n" + flight.getAircraftConfig().getNumOfCabinClasses() + " Available Cabin Classes in " + flightNum + ":\n");
             System.out.printf("%40s%40s\n", "Cabin Class", "Max. Seat Capacity");
@@ -597,7 +598,7 @@ public class FlightOperationModule
                     }
                     else if(option == 3)
                     {
-                        System.out.println("Current Aircraft Configuration: " + flight.getAircraftConfig()+ "\n");
+                        System.out.println("Current Aircraft Configuration: " + flight.getAircraftConfig().getName()+ "\n");
                         
                         aircraftConfigId = updateAircraftConfig(aircraftConfigs);
                         AircraftConfig aircraftConfig = aircraftConfigSessionBeanRemote.retrieveAircraftConfigById(aircraftConfigId);
@@ -631,7 +632,7 @@ public class FlightOperationModule
         } 
         catch (FlightNumExistException ex) 
         {
-            System.out.println("An error has occurred while updating flight route details: " + ex.getMessage() + "\n");
+            System.out.println("An error has occurred while updating flight details: " + ex.getMessage() + "\n");
         }
     }
     
@@ -718,7 +719,6 @@ public class FlightOperationModule
             {
                 if(flight.getFlightSchedulePlans().isEmpty())
                 {
-   
                     flightSessionBeanRemote.removeFlight(flight.getFlightId());
                     System.out.println("Flight deleted successfully!\n");
                     
@@ -758,6 +758,7 @@ public class FlightOperationModule
 
             Long flightSchedulePlanId = 0l;
             Long flightScheduleId = 0l;
+            Long returnFlightSchedulePlanId = 0l;
 
             if(flightNum.substring(0,2).equals("ML"))
             {
@@ -797,46 +798,12 @@ public class FlightOperationModule
                                 
                                 String command = "";
 
-                                //create fare for each flight schedule plan
-                                for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
-                                {
-                                    do{
-                                        while(true)
-                                        {
-                                            try
-                                            {
-                                                System.out.println("\nFares for Flight Schedule Plan " + flightSchedulePlanId + " :: " + cabinClass.getCabinClassType().toString());
-                                                System.out.print("Enter Fare Basis Code> ");
-                                                String fareBasisCode = scanner.nextLine().trim();
-                                                System.out.print("Enter Fare Amount> ");
-                                                BigDecimal fareAmount = scanner.nextBigDecimal();
-                                                scanner.nextLine();
-
-                                                newFare.setFareBasisCode(fareBasisCode);
-                                                newFare.setFareAmount(fareAmount);
-
-                                                createFareList.add(newFare);
-                                                Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());  
-                                                break;
-                                            }
-                                            catch (FareBasisCodeExistException ex)
-                                            {
-                                                System.out.println("An error has occurred while creating flight schedule: The fare basis code exist! \n");
-                                            } 
-                                        }
-                                        System.out.print("More? (Enter 'Q' to complete adding fares)>");
-                                        command = scanner.nextLine().trim();
-                                    }while(!command.equals("Q"));
-                                }
-
-
                                 System.out.println("\n*** FRS Management :: Flight Operation :: Flight Schedule Plan :: Create Single Schedule ***");
                                 flightScheduleId = doCreateEveryFlightSchedules(flightSchedulePlanId, flight, "SINGLE"); 
                                 System.out.println("\nSingle Main Flight Schedule created successfully!\n");
 
                                 List<FlightSchedule> flightSchedules = new ArrayList<>();
                                 FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
-                                Long returnFlightSchedulePlanId;
 
                                 //if flight has return flight
                                 if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
@@ -870,40 +837,6 @@ public class FlightOperationModule
 
                                                 returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
   
-                                                //create fare for flight schedule plan
-                                                for (CabinClass cabinClass : flight.getReturnFlight().getAircraftConfig().getCabinClasses()) 
-                                                {
-                                                do
-                                                { 
-                                                    while (true) 
-                                                    {
-                                                        try 
-                                                        {
-                                                            System.out.println("\nFares for Return Flight Schedule Plan " + returnFlightSchedulePlanId + " :: " + cabinClass.getCabinClassType().toString());
-                                                            System.out.print("Enter Fare Basis Code> ");
-                                                            String fareBasisCode = scanner.nextLine().trim();
-                                                            System.out.print("Enter Fare Amount> ");
-                                                            BigDecimal fareAmount = scanner.nextBigDecimal();
-                                                            scanner.nextLine();
-
-                                                            newFare.setFareBasisCode(fareBasisCode);
-                                                            newFare.setFareAmount(fareAmount);
-
-                                                            Long fareId = fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
-                                                            break;
-                                                        } 
-                                                        catch (FareBasisCodeExistException ex) 
-                                                        {
-                                                            System.out.println("An error has occurred while creating flight schedule: The fare basis code exist! \n");
-                                                        }
-                                                    }
-                                                    System.out.print("More? (Enter 'Q' to complete adding fares)>");
-                                                    command = scanner.nextLine().trim();
-                                                }while(!command.equals("Q"));
-                                                
-
-                                                }
-
                                                 FlightSchedule flightSchedule = doCreateEveryReturnFlightSchedules(flightScheduleId, flight, layoverDuration, "SINGLE");
                                                 
                                                 
@@ -944,16 +877,42 @@ public class FlightOperationModule
                                         }
                                     }
                                 } 
+                                
+                                //create fare for flight schedule plan
+                                for (CabinClass cabinClass : flight.getAircraftConfig().getCabinClasses()) 
+                                {
+                                    do
+                                    {   
+                                        System.out.println("\nFares for Flight Schedule Plan " + " :: " + cabinClass.getCabinClassType().toString());
+                                        System.out.print("Enter Fare Basis Code> ");
+                                        String fareBasisCode = scanner.nextLine().trim();
+                                        System.out.print("Enter Fare Amount> ");
+                                        BigDecimal fareAmount = scanner.nextBigDecimal();
+                                        scanner.nextLine();
+
+                                        newFare.setFareBasisCode(fareBasisCode);
+                                        newFare.setFareAmount(fareAmount);
+
+                                        Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());
+                                        
+                                        FlightSchedulePlan flightSchedulePlan1 = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
+                                        
+                                        if(flightSchedulePlan1.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan1.getFlightSchedulePlanId())
+                                        {
+                                            fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
+                                        }
+
+                                        System.out.print("More? (Enter 'Q' to complete adding fares)>");
+                                        command = scanner.nextLine().trim();
+                                    }while(!command.equals("Q"));
+                                }  
                                 break;
                             } 
                             catch (FlightSchedulePlanNotFoundException ex) 
                             {
                                 System.out.println("An error has occurred while retrieving flight schedule: The flight schedule plan does not exist! \n");
                             } 
-                            catch (UnknownPersistenceException ex) 
-                            {
-                                System.out.println("An error has occurred while: " + ex.getMessage() + "\n");
-                            }
+         
                         }
                         break;
                     }
@@ -974,43 +933,12 @@ public class FlightOperationModule
                         //create fare for each flightscheduleplan
                         
                         String command = "";
-                        for (CabinClass cabinClass : flight.getAircraftConfig().getCabinClasses()) 
-                        {
-                            do
-                            {
-                                while (true) 
-                                {
-                                    try 
-                                    {
-                                        System.out.println("\nFares for Flight Schedule Plan " + flightSchedulePlanId + " :: " + cabinClass.getCabinClassType().toString());
-                                        System.out.print("Enter Fare Basis Code> ");
-                                        String fareBasisCode = scanner.nextLine().trim();
-                                        System.out.print("Enter Fare Amount> ");
-                                        BigDecimal fareAmount = scanner.nextBigDecimal();
-                                        scanner.nextLine();
-
-                                        newFare.setFareBasisCode(fareBasisCode);
-                                        newFare.setFareAmount(fareAmount);
-
-                                        Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());
-                                        break;
-                                    } 
-                                    catch (FareBasisCodeExistException ex) 
-                                    {
-                                        System.out.println("An error has occurred while creating flight schedule: The fare basis code exist! \n");
-                                    }
-                                }
-                                System.out.print("More? (Enter 'Q' to complete adding fares)>");
-                                command = scanner.nextLine().trim();
-                            } while(!command.equals("Q"));
-                        }
                         
-
+//                        HashMap<Long, FlightSchedule> flightScheduleMap = new HashMap<>();
                         List<FlightSchedule> flightSchedules = new ArrayList<>();
                         List<Long> flightScheduleIdList = new ArrayList<>();
                         List<Fare> fares = new ArrayList<>();
                         FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
-                        Long returnFlightSchedulePlanId = 0l;
 
                         do
                         {
@@ -1043,8 +971,9 @@ public class FlightOperationModule
                                         flightSchedulePlanForReturnFlight.setStartDate(null);
                                         flightSchedulePlanForReturnFlight.setEnabled(true);
 
+//                                        flightScheduleMap.put(flightScheduleId, doCreateEveryReturnFlightSchedules(flightScheduleId, flight, layoverDuration, "MULTIPLE"));
                                         flightSchedules.add(doCreateEveryReturnFlightSchedules(flightScheduleId, flight, layoverDuration, "MULTIPLE"));
-                                        System.out.println("Flight schedule created successfully!\n");
+                                        System.out.println("Flight schedule has been captured successfully!\n");
 
                                         break;
                                     }
@@ -1062,41 +991,37 @@ public class FlightOperationModule
                             command = scanner.nextLine().trim();
                         } while(!command.equals("Q"));
 
-
                         if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
                         {
                             returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
-                            //create fare for each flightscheduleplan
-                            
-                           for (CabinClass cabinClass : flight.getReturnFlight().getAircraftConfig().getCabinClasses()) 
-                           {
-                                do{
-                                    while (true) 
-                                    {
-                                        try 
-                                        {
-                                            System.out.println("\nFares for Return Flight Schedule Plan " + returnFlightSchedulePlanId + " :: " + cabinClass.getCabinClassType().toString());
-                                            System.out.print("Enter Fare Basis Code> ");
-                                            String fareBasisCode = scanner.nextLine().trim();
-                                            System.out.print("Enter Fare Amount> ");
-                                            BigDecimal fareAmount = scanner.nextBigDecimal();
-                                            scanner.nextLine();
-
-                                            newFare.setFareBasisCode(fareBasisCode);
-                                            newFare.setFareAmount(fareAmount);
-                                            Long fareId = fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
-                                            break;
-                                        } 
-                                        catch (FareBasisCodeExistException ex) 
-                                        {
-                                            System.out.println("An error has occurred while creating flight schedule: The fare basis code exist! \n");
-                                        }
-                                    }
-                                    System.out.print("More? (Enter 'Q' to complete adding fares)>");
-                                    command = scanner.nextLine().trim();
-                                }while(!command.equals("Q"));
-                            }
-                        
+                           
+//                           for (HashMap.Entry<Long, FlightSchedule> entry : flightScheduleMap.entrySet())
+//                           {
+//                               try{
+//                                   Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(entry.getValue(), entry.getKey(), returnFlightSchedulePlanId);
+//                                   //create seat inventory 
+//                                   SeatInventory seatInventory = new SeatInventory();
+//                                   Long seatInventoryId = 0l;
+//                                   //get max seat capacity from the flight's cabin classes
+//                                   for (CabinClass cabinClass : flight.getAircraftConfig().getCabinClasses()) {
+//                                       Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
+//                                       seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
+//                                       seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
+//                                       seatInventory.setNumOfReservedSeats(0);
+//
+//                                       seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, returnFlightScheduleId, cabinClass.getCabinClassId());
+//                                   }
+//                                   break;
+//                               }
+//                               catch (FlightSchedulePlanNotFoundException ex) 
+//                                {
+//                                   System.out.println("An error has occurred while retrieving flight schedule plan: " + ex.getMessage() + "\n");
+//                                } 
+//                                catch (FlightScheduleNotFoundException ex) 
+//                                {
+//                                    System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
+//                                }
+//                           }
                         
                             for(int i = 0; i < flightScheduleIdList.size(); i++)
                             {
@@ -1104,21 +1029,20 @@ public class FlightOperationModule
                                 {
                                     try
                                     {
-                                        Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightSchedules.get(j), flightScheduleIdList.get(j), returnFlightSchedulePlanId);
+                                        Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightSchedules.get(i), flightScheduleIdList.get(i), returnFlightSchedulePlanId);
 
                                         //create seat inventory 
                                         SeatInventory seatInventory = new SeatInventory();
                                         Long seatInventoryId = 0l;
                                         //get max seat capacity from the flight's cabin classes
-                                        for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
-                                        {
+                                        for (CabinClass cabinClass : flight.getAircraftConfig().getCabinClasses()) {
                                             Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
                                             seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
                                             seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
                                             seatInventory.setNumOfReservedSeats(0);
 
                                             seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, returnFlightScheduleId, cabinClass.getCabinClassId());
-                                        } 
+                                        }
                                         break;
                                     } 
                                     catch (FlightSchedulePlanNotFoundException ex) 
@@ -1131,6 +1055,44 @@ public class FlightOperationModule
                                     }
                                 }
                             }
+                            
+                            //create fare for each flightscheduleplan
+                           for (CabinClass cabinClass : flight.getReturnFlight().getAircraftConfig().getCabinClasses()) 
+                           {
+                                do{
+                                    while (true) 
+                                    {
+                                        try 
+                                        {
+                                            System.out.println("\nFares for Flight Schedule Plan :: " + cabinClass.getCabinClassType().toString());
+                                            System.out.print("Enter Fare Basis Code> ");
+                                            String fareBasisCode = scanner.nextLine().trim();
+                                            System.out.print("Enter Fare Amount> ");
+                                            BigDecimal fareAmount = scanner.nextBigDecimal();
+                                            scanner.nextLine();
+
+                                            newFare.setFareBasisCode(fareBasisCode);
+                                            newFare.setFareAmount(fareAmount);
+                                            Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());
+                                            
+                                            FlightSchedulePlan flightSchedulePlan1 = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
+                                        
+                                            if(flightSchedulePlan1.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan1.getFlightSchedulePlanId())
+                                            {
+                                                fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
+                                            }
+                                            break;
+                                        } 
+                                        catch (FlightSchedulePlanNotFoundException ex) 
+                                        {
+                                            System.out.println("An error has occurred while creating flight schedule: The flight schedule plan does not exist! \n");
+                                        }                                         
+                                    }
+                                    System.out.print("More? (Enter 'Q' to complete adding fares)>");
+                                    command = scanner.nextLine().trim();
+                                }while(!command.equals("Q"));
+                            }
+                        
                         }
                         break;
                     } 
@@ -1205,39 +1167,6 @@ public class FlightOperationModule
 
                                         
                                         Fare newFare = new Fare();
-                                        
-                                        String command = "";
-
-                                        //create fare for each flightscheduleplan
-                                        for (CabinClass cabinClass : flight.getAircraftConfig().getCabinClasses()) 
-                                        {
-                                            do
-                                            {
-                                                while (true) 
-                                                {
-                                                    try 
-                                                    {
-                                                        System.out.println("\nFares for Flight Schedule Plan " + flightSchedulePlanId + " :: " + cabinClass.getCabinClassType().toString());
-                                                        System.out.print("Enter Fare Basis Code> ");
-                                                        String fareBasisCode = scanner.nextLine().trim();
-                                                        System.out.print("Enter Fare Amount> ");
-                                                        BigDecimal fareAmount = scanner.nextBigDecimal();
-                                                        scanner.nextLine();
-
-                                                        newFare.setFareBasisCode(fareBasisCode);
-                                                        newFare.setFareAmount(fareAmount);
-                                                        Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());
-                                                        break;
-                                                    } 
-                                                    catch (FareBasisCodeExistException ex) 
-                                                    {
-                                                        System.out.println("An error has occurred while creating flight schedule: The fare basis code exist! \n");
-                                                    }
-                                                }      
-                                                System.out.print("More? (Enter 'Q' to complete adding fares)>");
-                                                command = scanner.nextLine().trim();
-                                            }while(!command.equals("Q"));
-                                        }
 
                                         Long difference_In_Time = formattedEndDate.getTime() - formattedStartDate.getTime();
                                         Long days = TimeUnit.MILLISECONDS.toDays(difference_In_Time) % 365;
@@ -1294,43 +1223,8 @@ public class FlightOperationModule
                                                     flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
                                                     flightSchedulePlanForReturnFlight.setStartDate(flightSchedulePlanMain.getStartDate());
                                                     flightSchedulePlanForReturnFlight.setEnabled(true);
-                                                    Long returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
+                                                    returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
 
-                                                    
-                                                        
-                                                    //create fare for each flightscheduleplan
-                                                    for(CabinClass cabinClass: flight.getReturnFlight().getAircraftConfig().getCabinClasses())
-                                                    {
-                                                        do{
-                                                            while(true)
-                                                            {
-                                                                try
-                                                                {
-                                                                    System.out.println("\nFares for Return Flight Schedule Plan " + returnFlightSchedulePlanId + " :: " + cabinClass.getCabinClassType().toString());
-                                                                    System.out.print("Enter Fare Basis Code> ");
-                                                                    String fareBasisCode = scanner.nextLine().trim();
-                                                                    System.out.print("Enter Fare Amount> ");
-                                                                    BigDecimal fareAmount = scanner.nextBigDecimal();
-                                                                    scanner.nextLine();
-
-                                                                    newFare.setFareBasisCode(fareBasisCode);
-                                                                    newFare.setFareAmount(fareAmount);
-
-                                                                    Long fareId = fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());  
-                                                                    break;
-                                                                }
-                                                                catch (FareBasisCodeExistException ex)
-                                                                {
-                                                                    System.out.println("An error has occurred while creating flight schedule: The fare basis code exist! \n");
-                                                                }
-                                                            }
-                                                            System.out.print("More? (Enter 'Q' to complete adding fares)>");
-                                                            command = scanner.nextLine().trim();
-                                                        }while(!command.equals("Q"));
-                                                    } 
-                                                           
-                                                        
-                     
                                                     //loop through the main flight schedules to associate with every return flight schedules
                                                     for(FlightSchedule flightSchedule: flightSchedulePlanMain.getFlightSchedules())
                                                     {
@@ -1345,6 +1239,36 @@ public class FlightOperationModule
                                                 }
                                             }   
                                         }
+                                        
+                                        String command = "";
+                                        //create fare for each flightscheduleplan
+                                        for(CabinClass cabinClass: flight.getReturnFlight().getAircraftConfig().getCabinClasses())
+                                        {
+                                            do{ 
+                                                System.out.println("\nFares for Flight Schedule Plan  :: " + cabinClass.getCabinClassType().toString());
+                                                System.out.print("Enter Fare Basis Code> ");
+                                                String fareBasisCode = scanner.nextLine().trim();
+                                                System.out.print("Enter Fare Amount> ");
+                                                BigDecimal fareAmount = scanner.nextBigDecimal();
+                                                scanner.nextLine();
+
+                                                newFare.setFareBasisCode(fareBasisCode);
+                                                newFare.setFareAmount(fareAmount);
+
+                                                Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());  
+                                                
+                                                FlightSchedulePlan flightSchedulePlan1 = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
+                                        
+                                                if(flightSchedulePlan1.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan1.getFlightSchedulePlanId())
+                                                {
+                                                    fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
+                                                }
+                                                
+                                                System.out.print("More? (Enter 'Q' to complete adding fares)>");
+                                                command = scanner.nextLine().trim();
+                                            }while(!command.equals("Q"));
+                                        } 
+                                        
                                         break;
                                     } 
                                     catch (ParseException ex) 
@@ -1366,17 +1290,19 @@ public class FlightOperationModule
                                     {
                                         flightSchedulePlan.setFlightScheduleType("RECURRENT_WEEKLY");
                                         
-                                        System.out.print("Enter Start(Departure) Date (dd-mm-yyyy)> ");
+                                        System.out.print("Enter Day of the Week for Recurrent Flight(eg. Wednesday)> ");
+                                        String dayOfWeek = scanner.nextLine();
+                                        System.out.print("Enter Start Date (dd-mm-yyyy)> ");
                                         String startDate = scanner.nextLine();
-                                        System.out.print("Enter Start(Departure) Time (HH:mm)> ");
+                                        System.out.print("Enter Start Time (HH:mm)> ");
                                         String startTime = scanner.nextLine();
                                         System.out.print("Enter Flight Duration(hrs)> ");
                                         Double flightDuration = scanner.nextDouble();
                                         scanner.nextLine();
                                         System.out.print("Enter End Date(dd-mm-yyyy)> ");
                                         String endDate = scanner.nextLine();
-
-                                        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+                                        
+                                        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");                 
                                         Date formattedEndDate = formatter.parse(endDate);
                                         Date formattedStartDate = formatter.parse(startDate);
                                         
@@ -1384,7 +1310,60 @@ public class FlightOperationModule
                                         String dateTime = startDate + " " + startTime;
                                         Date formattedDateTime = formatterDateTime.parse(dateTime);
                                         
-                                        Long difference = formattedEndDate.getTime() - formattedStartDate.getTime();
+                                        //get the day of the week in integer (eg. 3 = Tuesday)
+                                        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+                                        gregorianCalendar.setTime(formattedDateTime);
+                                        Integer dayOfWeekRecurrent = gregorianCalendar.get(GregorianCalendar.DAY_OF_WEEK);
+                                        
+                                        Integer dayInt = 0;
+                                        //get the day of the week in String (eg Wednesday)
+                                        SimpleDateFormat simpleDateformat = new SimpleDateFormat("EEEE");
+                                        String dateOfWeekString = simpleDateformat.format(formattedDateTime);
+                                        
+                                        //to check if the day chose == start date
+                                        if(dayOfWeek.equals(dateOfWeekString))
+                                        {
+                                            dayInt = dayOfWeekRecurrent;
+                                        } 
+                                        else
+                                        {
+                                            switch(dayOfWeek) 
+                                            {
+                                                case "Sunday":
+                                                    dayInt = 1;
+                                                    break;
+                                                case "Monday":
+                                                    dayInt = 2;
+                                                    break;
+                                                case "Tuesday":
+                                                    dayInt = 3;
+                                                    break;
+                                                case "Wednesday":
+                                                    dayInt = 4;
+                                                    break;
+                                                case "Thursday":
+                                                    dayInt = 5;
+                                                    break;
+                                                case "Friday":
+                                                    dayInt = 6;
+                                                    break;   
+                                                case "Sat":
+                                                    dayInt = 7;
+                                                    break;
+                                            }
+                                        }
+                                        
+                                        //to get the difference between start date and start day of week
+                                        Integer daysOfWeekDiff = dayInt - dayOfWeekRecurrent;
+                                        gregorianCalendar.setTime(formattedDateTime);
+                                        gregorianCalendar.add(GregorianCalendar.DATE, daysOfWeekDiff);
+                                        Date finalStartDay = gregorianCalendar.getTime();
+                                        
+                                        String[] finalStartDaySplit = formatterDateTime.format(finalStartDay).split(" ");
+                                        String finalStartDate = finalStartDaySplit[0];
+                                        String finalStartTime = finalStartDaySplit[1];
+                                        
+                                        Long difference = formattedEndDate.getTime() - formatter.parse(finalStartDate).getTime();
                                         Long daysDifference = TimeUnit.MILLISECONDS.toDays(difference) % 365;
 
                                         if(daysDifference.intValue() < 7)
@@ -1395,7 +1374,7 @@ public class FlightOperationModule
                                         flightSchedulePlan.setIntervalDays(7);
                                         flightSchedulePlan.setEndDate(formattedEndDate);
                                         flightSchedulePlan.setFlightSchedulePlanType("OUTBOUND");
-                                        flightSchedulePlan.setStartDate(formattedDateTime);
+                                        flightSchedulePlan.setStartDate(finalStartDay);
                                         flightSchedulePlan.setEnabled(true);
 
                                         //create flight schedule plan
@@ -1403,43 +1382,11 @@ public class FlightOperationModule
 
                                         Fare newFare = new Fare();
                                         String command = "";
-
-                                        //create fare for each flightscheduleplan
                                         
-                                        for (CabinClass cabinClass : flight.getAircraftConfig().getCabinClasses()) 
-                                        {
-                                            do{
-                                                while (true) 
-                                                {
-                                                    try 
-                                                    {
-                                                        System.out.println("\nFares for Flight Schedule Plan " + flightSchedulePlanId + " :: " + cabinClass.getCabinClassType().toString());
-                                                        System.out.print("Enter Fare Basis Code> ");
-                                                        String fareBasisCode = scanner.nextLine().trim();
-                                                        System.out.print("Enter Fare Amount> ");
-                                                        BigDecimal fareAmount = scanner.nextBigDecimal();
-                                                        scanner.nextLine();
-
-                                                        newFare.setFareBasisCode(fareBasisCode);
-                                                        newFare.setFareAmount(fareAmount);
-                                                        Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());
-                                                        break;
-                                                    } 
-                                                    catch (FareBasisCodeExistException ex) 
-                                                    {
-                                                        System.out.println("An error has occurred while creating flight schedule: The fare basis code exist! \n");
-                                                    }
-                                                }
-                                                System.out.print("More? (Enter 'Q' to complete adding fares)>");
-                                                command = scanner.nextLine().trim();
-                                            }while(!command.equals("Q"));
-                                        }
-
-                                        Long difference_In_Time = formattedEndDate.getTime() - formattedStartDate.getTime();
+                                        Long difference_In_Time = formattedEndDate.getTime() - formatter.parse(finalStartDate).getTime();
                                         Long days = TimeUnit.MILLISECONDS.toDays(difference_In_Time) % 365;
                                         Integer numOfTimes = days.intValue()/7;
                                         
-                                        System.out.println("num of times" + numOfTimes);
 
                                         if(numOfTimes > 0)
                                         {
@@ -1448,14 +1395,15 @@ public class FlightOperationModule
                                             //create recurrent schedules for the plan
                                             for(int i = 0; i < numOfTimes; i++)
                                             {
-                                                createRecurrentFlightSchedule(flightSchedulePlanId, flight, startDate,  startTime, flightDuration, interval);
+                                                createRecurrentFlightSchedule(flightSchedulePlanId, flight, finalStartDate,  startTime, flightDuration, interval);
                                                 interval += 7;
                                             }
                                                                                       
                                             System.out.println("Recurrent Flight Schedules created successfully!\n");
 
                                             //create recurrent schedules plan
-                                            if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) {
+                                            if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
+                                            {
                                                 System.out.println("Do you want to create a complementary return flight schedule plan for recurrent flight schedule?");
                                                 while (true) 
                                                 {
@@ -1485,38 +1433,8 @@ public class FlightOperationModule
                                                         flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
                                                         flightSchedulePlanForReturnFlight.setStartDate(flightSchedulePlanMain.getStartDate());
                                                         flightSchedulePlanForReturnFlight.setEnabled(true);
-                                                        Long returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
+                                                        returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
                                                         
-                                                        //create fare for each flightscheduleplan
-                                                        for(CabinClass cabinClass: flight.getReturnFlight().getAircraftConfig().getCabinClasses())
-                                                        {
-                                                            do{
-                                                                while(true)
-                                                                {
-                                                                    try
-                                                                    {
-                                                                        System.out.println("\nFares for Return Flight Schedule Plan " + returnFlightSchedulePlanId + " :: " + cabinClass.getCabinClassType().toString());
-                                                                        System.out.print("Enter Fare Basis Code> ");
-                                                                        String fareBasisCode = scanner.nextLine().trim();
-                                                                        System.out.print("Enter Fare Amount> ");
-                                                                        BigDecimal fareAmount = scanner.nextBigDecimal();
-                                                                        scanner.nextLine();
-
-                                                                        newFare.setFareBasisCode(fareBasisCode);
-                                                                        newFare.setFareAmount(fareAmount);
-
-                                                                        Long fareId = fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());  
-                                                                        break;
-                                                                    }
-                                                                    catch (FareBasisCodeExistException ex)
-                                                                    {
-                                                                        System.out.println("An error has occurred while creating flight schedule: The fare basis code exist! \n");
-                                                                    }
-                                                                }
-                                                                System.out.print("More? (Enter 'Q' to complete adding fares)>");
-                                                                command = scanner.nextLine().trim();
-                                                            }while(!command.equals("Q"));
-                                                        } 
 
                                                         //loop through the main flight schedules to associate with every return flight schedules
                                                         for(FlightSchedule flightSchedule: flightSchedulePlanMain.getFlightSchedules())
@@ -1531,8 +1449,35 @@ public class FlightOperationModule
                                                         break;
                                                     }
                                                 }
-                                                break;
                                             }
+                                            
+                                            
+                                            //create fare for each flightscheduleplan
+                                            for(CabinClass cabinClass: flight.getReturnFlight().getAircraftConfig().getCabinClasses())
+                                            {
+                                                do{ 
+                                                    System.out.println("\nFares for Flight Schedule Plan :: " + cabinClass.getCabinClassType().toString());
+                                                    System.out.print("Enter Fare Basis Code> ");
+                                                    String fareBasisCode = scanner.nextLine().trim();
+                                                    System.out.print("Enter Fare Amount> ");
+                                                    BigDecimal fareAmount = scanner.nextBigDecimal();
+                                                    scanner.nextLine();
+
+                                                    newFare.setFareBasisCode(fareBasisCode);
+                                                    newFare.setFareAmount(fareAmount);
+
+                                                    Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());  
+                                                    FlightSchedulePlan flightSchedulePlan1 = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
+                                        
+                                                    if(flightSchedulePlan1.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan1.getFlightSchedulePlanId())
+                                                    {
+                                                        fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
+                                                    }
+                                                    
+                                                    System.out.print("More? (Enter 'Q' to complete adding fares)>");
+                                                    command = scanner.nextLine().trim();
+                                                }while(!command.equals("Q"));
+                                            } 
                                         }
                                         else
                                         {
@@ -1570,14 +1515,6 @@ public class FlightOperationModule
         {
             System.out.println("An error has occurred while creating the new flight schedule: The flight does not exist!\n");
         } 
-        catch (FlightSchedulePlanNotFoundException ex) 
-        {
-            System.out.println("An error has occurred while creating the new flight schedule: The flight schedule plan does not exist!\n");
-        }  
-        catch (UnknownPersistenceException ex) 
-        {
-            System.out.println("An error has occurred while creating the new flight schedule: " + ex.getMessage() + "\n");
-        }
         
     }
     
@@ -1625,8 +1562,7 @@ public class FlightOperationModule
 
                 GregorianCalendar calendar = new GregorianCalendar();
                 calendar.setTime(formattedDT);
-                //to add timediff to departure time 
-//                calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedulePlanFromDb.getFlight().getFlightRoute().getOrigin().getTimeZoneDiff());
+
                 Date departureDT = formatter.parse(formatter.format(calendar.getTime()));
                 calendar.setTime(departureDT);
                 //to add flight duration to the departure time = arrival time
@@ -1634,7 +1570,7 @@ public class FlightOperationModule
                 calendar.add(GregorianCalendar.MINUTE, flightDurationMins);
                 //to add timezone to arrival date time
                 Date arrivalDT = calendar.getTime();
-                calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff() - flight.getFlightRoute().getOrigin().getTimeZoneDiff());
                 Date arrivalDTTimeZone = calendar.getTime();
                 
                 
@@ -1671,7 +1607,7 @@ public class FlightOperationModule
                         calendar.setTime(flightSchedule1.getDepartureDateTime());
                         calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedule1.getFlightHours());
                         calendar.add(GregorianCalendar.MINUTE, flightSchedule1.getFlightMinutes());
-                        calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+                        calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff() - flight.getFlightRoute().getOrigin().getTimeZoneDiff());
                         Date arrivalDateTimeZone = calendar.getTime();
 
                         //to check if departure date entered overlap with other flight schedules
@@ -1753,7 +1689,7 @@ public class FlightOperationModule
             calendar.add(GregorianCalendar.MINUTE, flightSchedule.getFlightMinutes());
             Date arrivalDatetime = calendar.getTime();
             //to add in time diff (arrival time zone)
-            calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff() - flight.getFlightRoute().getOrigin().getTimeZoneDiff());
             Date arrivalDatetimeTimezone = calendar.getTime();
             //to add in layover duration
             calendar.add(GregorianCalendar.HOUR_OF_DAY, layoverDurationHours);
@@ -1816,8 +1752,7 @@ public class FlightOperationModule
             //add it to calendar so that it can be incremented
             GregorianCalendar calendar = new GregorianCalendar();
             calendar.setTime(formattedDepartureDT);
-            //to add timediff to departure time 
-//            calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedulePlanFromDb.getFlight().getFlightRoute().getOrigin().getTimeZoneDiff());
+
             //to add the recurrent interval day to the departure date every loop
             calendar.add(GregorianCalendar.DATE, interval);
             Date departureDT = formatterDeparture.parse(formatterDeparture.format(calendar.getTime()));
@@ -1828,58 +1763,57 @@ public class FlightOperationModule
             Integer flightDurationMins = flightDurationInMins % 60;
             
             
-            if(fsList.size() == 0)
-            {
-                flightSchedule.setDepartureDateTime(departureDT);
-                flightSchedule.setFlightHours(flightDurationHours);
-                flightSchedule.setFlightMinutes(flightDurationMins);
-                flightSchedule.setFlightScheduleType("OUTBOUND");
-                flightSchedule.setEnabled(true);
+//            if(fsList.size() == 0)
+//            {
+//                flightSchedule.setDepartureDateTime(departureDT);
+//                flightSchedule.setFlightHours(flightDurationHours);
+//                flightSchedule.setFlightMinutes(flightDurationMins);
+//                flightSchedule.setFlightScheduleType("OUTBOUND");
+//                flightSchedule.setEnabled(true);
+//            
+//                //create one new recurrent flight schedule
+//                flightScheduleId = flightScheduleSessionBeanRemote.createNewFlightSchedule(flightSchedule, flightSchedulePlanId);
+//
+//                //create seat inventory 
+//                SeatInventory seatInventory = new SeatInventory();
+//                Long seatInventoryId = 0l;
+//                //get max seat capacity from the flight's cabin classes
+//                for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
+//                {
+//                    Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
+//                    seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
+//                    seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
+//                    seatInventory.setNumOfReservedSeats(0);
+//
+//                    seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, flightScheduleId, cabinClass.getCabinClassId());
+//                }  
+//            }
             
-                //create one new recurrent flight schedule
-                flightScheduleId = flightScheduleSessionBeanRemote.createNewFlightSchedule(flightSchedule, flightSchedulePlanId);
-
-                //create seat inventory 
-                SeatInventory seatInventory = new SeatInventory();
-                Long seatInventoryId = 0l;
-                //get max seat capacity from the flight's cabin classes
-                for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
-                {
-                    Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
-                    seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
-                    seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
-                    seatInventory.setNumOfReservedSeats(0);
-
-                    seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, flightScheduleId, cabinClass.getCabinClassId());
-                }  
-            }
-            else
+            for(FlightSchedule flightSchedule1: fsList)
             {
-                for(FlightSchedule flightSchedule1: fsList)
-                {
-                    calendar.setTime(flightSchedule1.getDepartureDateTime());
-                    calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedule1.getFlightHours());
-                    calendar.add(GregorianCalendar.MINUTE, flightSchedule1.getFlightMinutes());
-                    calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
-                    Date arrivalDateTimeZone = calendar.getTime();
-                    
-                    calendar.setTime(departureDT);
-                    calendar.add(GregorianCalendar.HOUR_OF_DAY, flightDurationHours);
-                    calendar.add(GregorianCalendar.MINUTE, flightDurationMins);
-                    calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
-                    Date inputArrivalDateTimeZone = calendar.getTime();
-                    
-                    if(flightSchedule1.getDepartureDateTime().compareTo(departureDT) * departureDT.compareTo(arrivalDateTimeZone) >= 0 || flightSchedule1.getDepartureDateTime().compareTo(inputArrivalDateTimeZone) * inputArrivalDateTimeZone.compareTo(arrivalDateTimeZone) >= 0)
-                    {
-                        isRecurrentOverlapped.add(true);
-                    }
-                    else
-                    {
-                        isRecurrentOverlapped.add(false);
-                    }
+                calendar.setTime(flightSchedule1.getDepartureDateTime());
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedule1.getFlightHours());
+                calendar.add(GregorianCalendar.MINUTE, flightSchedule1.getFlightMinutes());
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff() - flight.getFlightRoute().getOrigin().getTimeZoneDiff());
+                Date arrivalDateTimeZone = calendar.getTime();
 
+                calendar.setTime(departureDT);
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flightDurationHours);
+                calendar.add(GregorianCalendar.MINUTE, flightDurationMins);
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff() - flight.getFlightRoute().getOrigin().getTimeZoneDiff());
+                Date inputArrivalDateTimeZone = calendar.getTime();
+
+                if(flightSchedule1.getDepartureDateTime().compareTo(departureDT) * departureDT.compareTo(arrivalDateTimeZone) >= 0 || flightSchedule1.getDepartureDateTime().compareTo(inputArrivalDateTimeZone) * inputArrivalDateTimeZone.compareTo(arrivalDateTimeZone) >= 0)
+                {
+                    isRecurrentOverlapped.add(true);
                 }
+                else
+                {
+                    isRecurrentOverlapped.add(false);
+                }
+
             }
+
             
             if(isRecurrentOverlapped.contains(true))
             {
@@ -1947,7 +1881,7 @@ public class FlightOperationModule
             calendar.add(GregorianCalendar.MINUTE, flightSchedule.getFlightMinutes());
             Date arrivalDateTimeReturn = calendar.getTime();
             //to add in time diff (arrival timezone)
-            calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff() - flight.getFlightRoute().getOrigin().getTimeZoneDiff());
             Date arrivalDateTimeReturnTimezone = calendar.getTime();
             //to add in layover duration
             calendar.add(GregorianCalendar.HOUR_OF_DAY, layoverDurationHours);
@@ -1998,11 +1932,11 @@ public class FlightOperationModule
         
         for(FlightSchedulePlan flightSchedulePlan: flightSchedulePlans)
         {
-            if(flightSchedulePlan.getFlightSchedulePlanType().equals("OUTBOUND"))
+            if(flightSchedulePlan.getFlightSchedulePlanType().equals("OUTBOUND") && flightSchedulePlan.getEnabled() == true)
             {
                 outboundFlightSchedulePlans.add(flightSchedulePlan);
                 
-                if(flightSchedulePlan.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan.getFlightSchedulePlanId())
+                if(flightSchedulePlan.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan.getFlightSchedulePlanId() && flightSchedulePlan.getReturnFlightSchedulePlan().getEnabled() == true)
                 {
                     outboundFlightSchedulePlans.add(flightSchedulePlan.getReturnFlightSchedulePlan());
                 }
@@ -2062,7 +1996,7 @@ public class FlightOperationModule
                 calendar.add(GregorianCalendar.MINUTE, flightSchedule.getFlightMinutes());
                 Date arrivalDateTime = calendar.getTime();
                 //to add in time diff (arrival timezone)
-                calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedulePlan.getFlight().getFlightRoute().getDestination().getTimeZoneDiff());
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedulePlan.getFlight().getFlightRoute().getDestination().getTimeZoneDiff() - flightSchedulePlan.getFlight().getFlightRoute().getOrigin().getTimeZoneDiff());
                 Date arrivalDateTimeTimezone = calendar.getTime();
 
                 
