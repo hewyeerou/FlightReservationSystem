@@ -49,7 +49,6 @@ public class FlightSchedule implements Serializable {
     @NotNull
     private Boolean enabled;
     
-    @XmlTransient
     @Column(nullable = false)
     @NotNull
     private String flightScheduleType;
@@ -57,16 +56,13 @@ public class FlightSchedule implements Serializable {
     @OneToOne
     private FlightSchedule returnFlightSchedule;
     
-    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private FlightSchedulePlan flightSchedulePlan;
     
-    @XmlTransient
     @OneToMany(mappedBy = "flightSchedule", orphanRemoval = true)
     private List<SeatInventory> seatInventories;
     
-    @XmlTransient
     @ManyToMany
     private List<FlightReservationRecord> flightReservationRecords;
 
@@ -84,6 +80,7 @@ public class FlightSchedule implements Serializable {
         this.enabled = enabled;
     }
 
+    @XmlTransient
     public FlightSchedule getReturnFlightSchedule() {
         return returnFlightSchedule;
     }
@@ -165,6 +162,7 @@ public class FlightSchedule implements Serializable {
         this.flightSchedulePlan = flightSchedulePlan;
     }
 
+    @XmlTransient
     public List<SeatInventory> getSeatInventories() {
         return seatInventories;
     }
@@ -173,6 +171,7 @@ public class FlightSchedule implements Serializable {
         this.seatInventories = seatInventories;
     }
 
+    @XmlTransient
     public List<FlightReservationRecord> getFlightReservationRecords() {
         return flightReservationRecords;
     }

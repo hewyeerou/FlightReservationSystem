@@ -57,16 +57,13 @@ public class CabinClass implements Serializable {
     @Min(1)
     private Integer maxSeatCapacity;
     
-    @XmlTransient
     @ManyToOne(optional=false)
     @JoinColumn(nullable=false)
     private AircraftConfig aircraftConfig;
     
-    @XmlTransient
     @OneToMany(mappedBy = "cabinClass")
     private List<SeatInventory> seatInventories;
     
-    @XmlTransient
     @OneToMany(mappedBy = "cabinClass")
     private List<Fare> fares;
 
@@ -92,6 +89,7 @@ public class CabinClass implements Serializable {
         this.cabinClassId = cabinClassId;
     }
 
+    @XmlTransient
     public List<SeatInventory> getSeatInventories() {
         return seatInventories;
     }
@@ -100,6 +98,7 @@ public class CabinClass implements Serializable {
         this.seatInventories = seatInventories;
     }
 
+    @XmlTransient
     public List<Fare> getFares() {
         return fares;
     }
@@ -174,6 +173,7 @@ public class CabinClass implements Serializable {
         this.maxSeatCapacity = maxSeatCapacity;
     }
 
+    @XmlTransient
     public AircraftConfig getAircraftConfig() {
         return aircraftConfig;
     }

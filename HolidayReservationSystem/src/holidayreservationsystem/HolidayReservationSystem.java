@@ -29,10 +29,16 @@ import ws.client.partner.CabinSeatInventory;
 import ws.client.partner.CabinSeatInventoryExistException_Exception;
 import ws.client.partner.Fare;
 import ws.client.partner.FareNotFoundException_Exception;
+import ws.client.partner.Flight;
+import ws.client.partner.FlightNotFoundException_Exception;
 import ws.client.partner.FlightReservationRecord;
 import ws.client.partner.FlightReservationRecordNotFoundException_Exception;
+import ws.client.partner.FlightRoute;
+import ws.client.partner.FlightRouteNotFoundException_Exception;
 import ws.client.partner.FlightSchedule;
 import ws.client.partner.FlightScheduleNotFoundException_Exception;
+import ws.client.partner.FlightSchedulePlan;
+import ws.client.partner.FlightSchedulePlanNotFoundException_Exception;
 import ws.client.partner.InvalidLoginCredentialException_Exception;
 import ws.client.partner.Partner;
 import ws.client.partner.PartnerNotFoundException_Exception;
@@ -64,6 +70,7 @@ public class HolidayReservationSystem {
     
     public static void main(String[] args) 
     {
+       totalPrice = new BigDecimal(0); 
        runApp();
     }
     
@@ -292,6 +299,7 @@ public class HolidayReservationSystem {
         Boolean reserveFlight = false;
         Boolean canReserveOutbound = false;
         Boolean canReserveReturn = false;
+        Boolean doSearchAgain = false;
         List<Integer> outboundOptions = new ArrayList<>();
         List<Integer> returnOptions = new ArrayList<>();
         
@@ -321,7 +329,7 @@ public class HolidayReservationSystem {
             }
         }
         
-        List<Airport> airports = getAllAirportsUnmanaged();
+        List<Airport> airports = getAllAirports();
         
         while(true)
         {
@@ -511,6 +519,7 @@ public class HolidayReservationSystem {
                 if (!cabinClassPreference.equals("F") && !cabinClassPreference.equals("J") && !cabinClassPreference.equals("W") && !cabinClassPreference.equals("Y") && !cabinClassPreference.equals("NA"))
                 {
                     System.out.println("Invalid option, please try again!\n");
+                    continue;
                 }
                 else
                 {
@@ -530,46 +539,7 @@ public class HolidayReservationSystem {
                     {
                         outboundCabinClass = CabinClassEnum.ECONOMY_CLASS;
                     }
-
-                    if (tripType == 1)
-                    {
-                        break;
-                    }
-                }
-            }   
-            catch (InputMismatchException ex)
-            {
-                System.out.println("Invalid input, enter 'F', 'J', 'W', 'Y' or 'NA' !\n");
-                scanner.next();
-            }
-
-            try
-            {
-                System.out.print("\nEnter you preference for (F: First Class, J: Business Class, W: Premiumn Economy Class, Y: Economy Class, NA: No Preference) for return flight> ");
-                String cabinClassPreference = scanner.nextLine().trim();
-
-                if (!cabinClassPreference.equals("F") && !cabinClassPreference.equals("J") && !cabinClassPreference.equals("W") && !cabinClassPreference.equals("Y") && !cabinClassPreference.equals("NA"))
-                {
-                    System.out.println("Invalid option, please try again!\n");
-                }
-                else
-                {
-                    if (cabinClassPreference.equals("F"))
-                    {
-                        returnCabinClass = CabinClassEnum.FIRST_CLASS;
-                    }
-                    else if (cabinClassPreference.equals("J"))
-                    {
-                        returnCabinClass = CabinClassEnum.BUSINESS_CLASS;
-                    }
-                    else if (cabinClassPreference.equals("W"))
-                    {
-                        returnCabinClass = CabinClassEnum.PREMIUM_ECONOMY_CLASS;
-                    }
-                    else if (cabinClassPreference.equals("Y"))
-                    {
-                        returnCabinClass = CabinClassEnum.ECONOMY_CLASS;
-                    }
+                    
                     break;
                 }
             }
@@ -580,6 +550,49 @@ public class HolidayReservationSystem {
             }
         }
         
+        if (tripType == 2)
+        {
+            while (true)
+            {
+                try
+                {
+                    System.out.print("\nEnter you preference for (F: First Class, J: Business Class, W: Premiumn Economy Class, Y: Economy Class, NA: No Preference) for return flight> ");
+                    String cabinClassPreference = scanner.nextLine().trim();
+
+                    if (!cabinClassPreference.equals("F") && !cabinClassPreference.equals("J") && !cabinClassPreference.equals("W") && !cabinClassPreference.equals("Y") && !cabinClassPreference.equals("NA"))
+                    {
+                        System.out.println("Invalid option, please try again!\n");
+                        continue;
+                    }
+                    else
+                    {
+                        if (cabinClassPreference.equals("F"))
+                        {
+                            returnCabinClass = CabinClassEnum.FIRST_CLASS;
+                        }
+                        else if (cabinClassPreference.equals("J"))
+                        {
+                            returnCabinClass = CabinClassEnum.BUSINESS_CLASS;
+                        }
+                        else if (cabinClassPreference.equals("W"))
+                        {
+                            returnCabinClass = CabinClassEnum.PREMIUM_ECONOMY_CLASS;
+                        }
+                        else if (cabinClassPreference.equals("Y"))
+                        {
+                            returnCabinClass = CabinClassEnum.ECONOMY_CLASS;
+                        }
+                        break;
+                    }
+                }
+                catch (InputMismatchException ex)
+                {
+                    System.out.println("Invalid input, enter 'F', 'J', 'W', 'Y' or 'NA' !\n");
+                    scanner.next();
+                }
+            } 
+        }
+    
         System.out.println("\nOutbound Flight: \n");
         if (outboundFlightType == 1)
         {
@@ -670,7 +683,8 @@ public class HolidayReservationSystem {
 
                         if (response.equals("Y"))
                         {
-                            doPartnerSearchFlight();
+                            doSearchAgain = true;
+                            break;
                         }
                         else if (response.equals("N"))
                         {
@@ -682,10 +696,7 @@ public class HolidayReservationSystem {
                         }
                     }
                 }
-                if (response.equals("N"))
-                {
-                    break;
-                }
+                break;
             }
             catch (InputMismatchException ex)
             {
@@ -714,6 +725,11 @@ public class HolidayReservationSystem {
             {
                 doPartnerReserveFlight(tripType, numPassengers, outboundFlightType, returnFlightType, outboundCabinClass, returnCabinClass, outboundOptions, returnOptions);
             }
+        }
+        
+        if (doSearchAgain)
+        {
+            doPartnerReserveFlight(tripType, numPassengers, outboundFlightType, returnFlightType, outboundCabinClass, returnCabinClass, outboundOptions, returnOptions);
         }
     }
     
@@ -1285,81 +1301,99 @@ public class HolidayReservationSystem {
         SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");      
         List<CabinClass> printed = new ArrayList<>();
         
-        // find out arrival time
-        Integer flightHours = flightSchedule.getFlightHours();
-        Integer flightMins = flightSchedule.getFlightMinutes();
-        Integer timeZoneDiff = flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getTimeZoneDiff() - flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getTimeZoneDiff();  
-        GregorianCalendar calendar = new GregorianCalendar();
-        Date date = asDate(flightSchedule.getDepartureDateTime());
-        calendar.setTime(date);
-        calendar.add(GregorianCalendar.HOUR_OF_DAY, flightHours);
-        calendar.add(GregorianCalendar.MINUTE, flightMins);
-        calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
-        Date arrivalDateTime = calendar.getTime();
-        
-        System.out.printf("%10s%18s%30s%30s%20s\n", "Flight No.", "Itinerary", "Departure Date and Time", "Arrival Date and Time", "Flight Duration");
-        System.out.printf("%10s%18s%30s%30s%20s\n", flightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber(), flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode(), dateTimeFormatter.format(flightSchedule.getDepartureDateTime()), dateTimeFormatter.format(arrivalDateTime), flightSchedule.getFlightHours().toString() + "h " + flightSchedule.getFlightMinutes().toString() + "min");
-        List<CabinClass> cabinClasses = retrieveCabinClassesByAircraftConfigIdUnmanaged(flightSchedule.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
-        if (preferredCabinClass == null)
+        try
         {
-            System.out.println("Price of cabin class(es):\n");
-            System.out.printf("%40s%25s%30s\n", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
-            for (CabinClass cc: cabinClasses)
-            {
-                try
-                {
-                    SeatInventory seatInventory = retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged(cc.getCabinClassId(), flightSchedule.getFlightScheduleId());
-                    if (seatInventory.getNumOfBalanceSeats() < numPassengers)
-                    {
-                        continue;
-                    }
+        // find out arrival time
+            Integer flightHours = flightSchedule.getFlightHours();
+            Integer flightMins = flightSchedule.getFlightMinutes();
+            FlightSchedulePlan fsp = getFlightSchedulePlanById(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId());  
+            Flight f = getFlightById(fsp.getFlight().getFlightId());
+            FlightRoute fr = getFlightRouteById(f.getFlightRoute().getFlightRouteId(), true, false);            
+            Integer timeZoneDiff = fr.getDestination().getTimeZoneDiff() - fr.getOrigin().getTimeZoneDiff();  
+            GregorianCalendar calendar = new GregorianCalendar();
+            Date date = asDate(flightSchedule.getDepartureDateTime());
+            calendar.setTime(date);
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, flightHours);
+            calendar.add(GregorianCalendar.MINUTE, flightMins);
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
+            Date arrivalDateTime = calendar.getTime();
 
-                    List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                    BigDecimal lowestFare = fares.get(0).getFareAmount();
-                    for (Fare fare: fares)
+            System.out.printf("%10s%18s%30s%30s%20s\n", "Flight No.", "Itinerary", "Departure Date and Time", "Arrival Date and Time", "Flight Duration");
+            System.out.printf("%10s%18s%30s%30s%20s\n", f.getFlightNumber(), fr.getOrigin().getIataCode() + "-" + fr.getDestination().getIataCode(), dateTimeFormatter.format(asDate(flightSchedule.getDepartureDateTime())), dateTimeFormatter.format(arrivalDateTime), flightSchedule.getFlightHours().toString() + "h " + flightSchedule.getFlightMinutes().toString() + "min");
+            List<CabinClass> cabinClasses = retrieveCabinClassesByAircraftConfigId(f.getAircraftConfig().getAircraftConfigId());
+            
+            if (preferredCabinClass == null)
+            {
+                System.out.println("Price of cabin class(es):\n");
+                System.out.printf("%40s%25s%30s\n", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
+                for (CabinClass cc: cabinClasses)
+                {
+                    try
                     {
-                        if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                        SeatInventory seatInventory = retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(cc.getCabinClassId(), flightSchedule.getFlightScheduleId());
+                        if (seatInventory.getNumOfBalanceSeats() < numPassengers)
                         {
-                            lowestFare = fare.getFareAmount();
+                            continue;
+                        }
+
+                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fsp.getFlightSchedulePlanId(), cc.getCabinClassId());
+                        if (!fares.isEmpty())
+                        {
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
+                            {
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
+                            }
+                            
+                            System.out.printf("%40s%25s%30s\n", cc.getCabinClassType().toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
+                            printed.add(cc);
                         }
                     }
+                    catch (SeatInventoryNotFoundException_Exception ex)
+                    {
+                        System.out.println("Seat Inventory Not Found!\n");
+                        continue;
+                    }
+                }
 
-                    System.out.printf("%40s%25s%30s\n", cc.getCabinClassType().toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
-                    printed.add(cc);
-                }
-                catch (SeatInventoryNotFoundException_Exception ex)
-                {
-                    continue;
-                }
-                
                 if (printed.isEmpty())
                 {
                     System.out.println("\tThere are insufficient seats in the cabin classes for this reservation!\n");
                 }
             }
-        }
-        else
-        {
-            System.out.printf("%40s%25s%30s\n", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
-            for (CabinClass cc: cabinClasses)
+            else
             {
-                if (cc.getCabinClassType().equals(preferredCabinClass))
+                System.out.printf("%40s%25s%30s\n", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
+                for (CabinClass cc: cabinClasses)
                 {
-                    List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                    BigDecimal lowestFare = fares.get(0).getFareAmount();
-                    for (Fare fare: fares)
+                    if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
-                        if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
+                        if (!fares.isEmpty())
                         {
-                            lowestFare = fare.getFareAmount();
-                        }
-                    }
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
+                            {
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
+                            }
 
-                    System.out.printf("\t%30s%25s%30s\n", cc.getCabinClassType().toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
-                } 
+                            System.out.printf("%40s%25s%30s\n", cc.getCabinClassType().toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
+                        }
+                    } 
+                }
             }
+            System.out.println("");
         }
-        System.out.println("");
+        catch (FlightSchedulePlanNotFoundException_Exception | FlightNotFoundException_Exception | FlightRouteNotFoundException_Exception ex)
+        {
+            System.out.println(ex.getMessage() + "\n");
+        }
     }
     
     public static Integer doPrintSingleTransitFlightSchedule(List<FlightSchedule> flightSchedules, CabinClassEnum preferredCabinClass, Integer numPassengers, Integer options, Boolean isReturn)
@@ -1369,9 +1403,9 @@ public class HolidayReservationSystem {
             SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
             BigDecimal pricePerPassenger = new BigDecimal(0);
             FlightSchedule fs1 = flightSchedules.remove(0);
-            List<CabinClass> cabinClassesOne = retrieveCabinClassesByAircraftConfigIdUnmanaged(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
+            List<CabinClass> cabinClassesOne = retrieveCabinClassesByAircraftConfigId(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
             FlightSchedule fs2 = flightSchedules.remove(0);
-            List<CabinClass> cabinClassesTwo = retrieveCabinClassesByAircraftConfigIdUnmanaged(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
+            List<CabinClass> cabinClassesTwo = retrieveCabinClassesByAircraftConfigId(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
             
             if (!isReturn)
             {
@@ -1419,35 +1453,41 @@ public class HolidayReservationSystem {
                 {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
-                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
+                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
+                        if (!fares.isEmpty())
                         {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
                             {
-                                lowestFare = fare.getFareAmount();
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
                             }
-                        }
 
-                        pricePerPassenger = pricePerPassenger.add(lowestFare);
-                    } 
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
+                    }
                 }
                 
                 for (CabinClass cc: cabinClassesTwo)
                 {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
-                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
+                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
+                        if (!fares.isEmpty())
                         {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
                             {
-                                lowestFare = fare.getFareAmount();
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
                             }
-                        }
 
-                        pricePerPassenger = pricePerPassenger.add(lowestFare);
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
                     } 
                 }
                 System.out.println("");
@@ -1473,11 +1513,11 @@ public class HolidayReservationSystem {
             SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
             BigDecimal pricePerPassenger = new BigDecimal(0);
             FlightSchedule fs1 = flightSchedules.remove(0);
-            List<CabinClass> cabinClassesOne = retrieveCabinClassesByAircraftConfigIdUnmanaged(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
+            List<CabinClass> cabinClassesOne = retrieveCabinClassesByAircraftConfigId(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
             FlightSchedule fs2 = flightSchedules.remove(0);
-            List<CabinClass> cabinClassesTwo = retrieveCabinClassesByAircraftConfigIdUnmanaged(fs2.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
+            List<CabinClass> cabinClassesTwo = retrieveCabinClassesByAircraftConfigId(fs2.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
             FlightSchedule fs3 = flightSchedules.remove(0);
-            List<CabinClass> cabinClassesThree = retrieveCabinClassesByAircraftConfigIdUnmanaged(fs3.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
+            List<CabinClass> cabinClassesThree = retrieveCabinClassesByAircraftConfigId(fs3.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
             
             if (!isReturn)
             {
@@ -1540,35 +1580,41 @@ public class HolidayReservationSystem {
                 {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
-                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
+                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
+                        if (fares.isEmpty())
                         {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
                             {
-                                lowestFare = fare.getFareAmount();
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
                             }
-                        }
 
-                        pricePerPassenger = pricePerPassenger.add(lowestFare);
-                    } 
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
+                    }
                 }
                 
                 for (CabinClass cc: cabinClassesTwo)
                 {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
-                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
+                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
+                        if (!fares.isEmpty())
                         {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
                             {
-                                lowestFare = fare.getFareAmount();
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
                             }
-                        }
 
-                        pricePerPassenger = pricePerPassenger.add(lowestFare);
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
                     }
                 }
                 
@@ -1576,18 +1622,21 @@ public class HolidayReservationSystem {
                 {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
-                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs3.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
+                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fs3.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
+                        if (!fares.isEmpty())
                         {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
                             {
-                                lowestFare = fare.getFareAmount();
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
                             }
-                        }
 
-                        pricePerPassenger = pricePerPassenger.add(lowestFare);
-                    } 
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
+                    }
                 }
                 System.out.println("");
                 // Print out price per passenger and price for all passengers for the connecting flight
@@ -1612,6 +1661,9 @@ public class HolidayReservationSystem {
         Integer options = 0;
         Integer outboundChoice = 0;
         List<FlightSchedule> flightSchedules = new ArrayList<>();
+        totalPrice = new BigDecimal(0);
+        reserveFlightSchedules = new ArrayList<>();
+        mapping = new HashMap<>();
         
         System.out.println("\n*** Holiday Reservation System :: Search Flights :: Reserve Flight ***\n");
         
@@ -1850,9 +1902,9 @@ public class HolidayReservationSystem {
 
                 try
                 {
-                    FlightSchedule fs = getFlightScheduleByIdUnmanaged(fsId);
+                    FlightSchedule fs = getFlightScheduleById(fsId);
                     Long ccId = mapping.get(fs);
-                    CabinClass cc = retrieveCabinClassByIdUnmanaged(ccId);
+                    CabinClass cc = retrieveCabinClassById(ccId);
                     doSelectSeat(reservationId, cc, fs, numPassengers, passengers);
                 } 
                 catch (FlightScheduleNotFoundException_Exception | CabinClassNotFoundException_Exception ex)
@@ -2186,62 +2238,71 @@ public class HolidayReservationSystem {
     public static void doReserveDirectFlight(FlightSchedule flightSchedule, CabinClassEnum cabinClassType, Integer numPassengers)
     {
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm");
-
         reserveFlightSchedules.add(flightSchedule.getFlightScheduleId());
         Integer ccOption = 0;
         Integer ccChoice = 0;
         
-        // find out arrival time
-        Integer flightHours = flightSchedule.getFlightHours();
-        Integer flightMins = flightSchedule.getFlightMinutes();
-        Integer timeZoneDiff = flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getTimeZoneDiff() - flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getTimeZoneDiff();  
-        GregorianCalendar calendar = new GregorianCalendar();
-        Date date = asDate(flightSchedule.getDepartureDateTime());
-        calendar.setTime(date);
-        calendar.add(GregorianCalendar.HOUR_OF_DAY, flightHours);
-        calendar.add(GregorianCalendar.MINUTE, flightMins);
-        calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
-        Date arrivalDateTime = calendar.getTime();
-        
-        System.out.println("Flight schedule to be booked: \n");
-        System.out.printf("%10s%18s%30s%30s%20s\n", flightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber(), flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + flightSchedule.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode(), formatter.format(flightSchedule.getDepartureDateTime()), formatter.format(arrivalDateTime), flightSchedule.getFlightHours().toString() + "h " + flightSchedule.getFlightMinutes().toString() + "min");
-        if (cabinClassType == null)
+        try
         {
-            try
+            // find out arrival time
+            Integer flightHours = flightSchedule.getFlightHours();
+            Integer flightMins = flightSchedule.getFlightMinutes();
+            FlightSchedulePlan fsp = getFlightSchedulePlanById(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId());  
+            Flight f = getFlightById(fsp.getFlight().getFlightId());
+            FlightRoute fr = getFlightRouteById(f.getFlightRoute().getFlightRouteId(), true, false);            
+            Integer timeZoneDiff = fr.getDestination().getTimeZoneDiff() - fr.getOrigin().getTimeZoneDiff();  
+            GregorianCalendar calendar = new GregorianCalendar();
+            Date date = asDate(flightSchedule.getDepartureDateTime());
+            calendar.setTime(date);
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, flightHours);
+            calendar.add(GregorianCalendar.MINUTE, flightMins);
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
+            Date arrivalDateTime = calendar.getTime();
+
+            System.out.println("Flight schedule to be booked: \n");
+            System.out.printf("%10s%18s%30s%30s%20s\n", f.getFlightNumber(), fr.getOrigin().getIataCode() + "-" + fr.getDestination().getIataCode(), formatter.format(asDate(flightSchedule.getDepartureDateTime())), formatter.format(arrivalDateTime), flightSchedule.getFlightHours().toString() + "h " + flightSchedule.getFlightMinutes().toString() + "min");
+            if (cabinClassType == null)
             {
-                Long cabinClassOneId = doSelectCabinClass(flightSchedule, numPassengers);
-                BigDecimal price = getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId(), cabinClassOneId);
-                totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
-                mapping.put(flightSchedule, cabinClassOneId);
+                try
+                {
+                    Long cabinClassOneId = doSelectCabinClass(flightSchedule, numPassengers);
+                    BigDecimal price = getHighestFareByFlightSchedulePlanIdAndCabinClassId(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId(), cabinClassOneId);
+                    totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
+                    mapping.put(flightSchedule, cabinClassOneId);
+                }
+                catch(FareNotFoundException_Exception ex)
+                {
+                    System.out.println(ex.getMessage() + "\n");
+                }
             }
-            catch(FareNotFoundException_Exception ex)
+            else
             {
-                System.out.println(ex.getMessage() + "\n");
+                try
+                {
+                    CabinClass cabinClass = retrieveCabinClassByAircraftConfigIdAndType(flightSchedule.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId(), cabinClassType);
+                    List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId(),cabinClass.getCabinClassId());
+                    BigDecimal price = fares.get(0).getFareAmount();
+                    for (Fare fare: fares)
+                    {
+                        if (fare.getFareAmount().compareTo(price) < 0)
+                        {
+                            price = fare.getFareAmount();
+                        }
+                    }
+
+                    totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
+
+                    mapping.put(flightSchedule, cabinClass.getCabinClassId());
+                }
+                catch (CabinClassNotFoundException_Exception ex)
+                {
+                    System.out.println(ex.getMessage() + "\n");
+                }
             }
         }
-        else
+        catch (FlightSchedulePlanNotFoundException_Exception | FlightNotFoundException_Exception | FlightRouteNotFoundException_Exception ex)
         {
-            try
-            {
-                CabinClass cabinClass = retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged(flightSchedule.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId(), cabinClassType);
-                List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId(),cabinClass.getCabinClassId());
-                BigDecimal price = fares.get(0).getFareAmount();
-                for (Fare f: fares)
-                {
-                    if (f.getFareAmount().compareTo(price) < 0)
-                    {
-                        price = f.getFareAmount();
-                    }
-                }
-
-                totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
-               
-                mapping.put(flightSchedule, cabinClass.getCabinClassId());
-            }
-            catch (CabinClassNotFoundException_Exception ex)
-            {
-                System.out.println(ex.getMessage() + "\n");
-            }
+            System.out.println(ex.getMessage() + "\n");
         }
     }
     
@@ -2286,11 +2347,11 @@ public class HolidayReservationSystem {
         {
             try {
                 Long cabinClassOneId = doSelectCabinClass(fs1, numPassengers);
-                BigDecimal price = getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cabinClassOneId);
+                BigDecimal price = getHighestFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cabinClassOneId);
                 totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
                 
                 Long cabinClassTwoId = doSelectCabinClass(fs2, numPassengers);
-                price = getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cabinClassTwoId);
+                price = getHighestFareByFlightSchedulePlanIdAndCabinClassId(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cabinClassTwoId);
                 totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
                 
                 mapping.put(fs1, cabinClassOneId);
@@ -2305,14 +2366,14 @@ public class HolidayReservationSystem {
         {
             try
             {
-                CabinClass cabinClass = retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId(), cabinClassType);
-                BigDecimal price = getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(),cabinClass.getCabinClassId());
+                CabinClass cabinClass = retrieveCabinClassByAircraftConfigIdAndType(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId(), cabinClassType);
+                BigDecimal price = getHighestFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(),cabinClass.getCabinClassId());
                 totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
                 
                 mapping.put(fs1, cabinClass.getCabinClassId());
                 
-                cabinClass = retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged(fs2.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId(), cabinClassType);
-                price = getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(),cabinClass.getCabinClassId());
+                cabinClass = retrieveCabinClassByAircraftConfigIdAndType(fs2.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId(), cabinClassType);
+                price = getHighestFareByFlightSchedulePlanIdAndCabinClassId(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(),cabinClass.getCabinClassId());
                 totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
                 
                 mapping.put(fs2, cabinClass.getCabinClassId());
@@ -2381,15 +2442,15 @@ public class HolidayReservationSystem {
             try
             {
                 Long cabinClassOneId = doSelectCabinClass(fs1, numPassengers);
-                BigDecimal price = getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cabinClassOneId);
+                BigDecimal price = getHighestFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cabinClassOneId);
                 totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
 
                 Long cabinClassTwoId = doSelectCabinClass(fs2, numPassengers);
-                price = getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cabinClassTwoId);
+                price = getHighestFareByFlightSchedulePlanIdAndCabinClassId(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cabinClassTwoId);
                 totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
 
                 Long cabinClassThreeId = doSelectCabinClass(fs3, numPassengers);
-                price = getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs3.getFlightSchedulePlan().getFlightSchedulePlanId(), cabinClassThreeId);
+                price = getHighestFareByFlightSchedulePlanIdAndCabinClassId(fs3.getFlightSchedulePlan().getFlightSchedulePlanId(), cabinClassThreeId);
                 totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
 
                 mapping.put(fs1, cabinClassOneId);
@@ -2405,20 +2466,20 @@ public class HolidayReservationSystem {
         {
             try
             {
-                CabinClass cabinClass = retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId(), cabinClassType);
-                BigDecimal price = getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(),cabinClass.getCabinClassId());
+                CabinClass cabinClass = retrieveCabinClassByAircraftConfigIdAndType(fs1.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId(), cabinClassType);
+                BigDecimal price = getHighestFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(),cabinClass.getCabinClassId());
                 totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
                 
                 mapping.put(fs1, cabinClass.getCabinClassId());
                 
-                cabinClass = retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged(fs2.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId(), cabinClassType);
-                price = getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(),cabinClass.getCabinClassId());
+                cabinClass = retrieveCabinClassByAircraftConfigIdAndType(fs2.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId(), cabinClassType);
+                price = getHighestFareByFlightSchedulePlanIdAndCabinClassId(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(),cabinClass.getCabinClassId());
                 totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
                 
                 mapping.put(fs2, cabinClass.getCabinClassId());
                 
-                cabinClass = retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged(fs3.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId(), cabinClassType);
-                price = getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(fs3.getFlightSchedulePlan().getFlightSchedulePlanId(),cabinClass.getCabinClassId());
+                cabinClass = retrieveCabinClassByAircraftConfigIdAndType(fs3.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId(), cabinClassType);
+                price = getHighestFareByFlightSchedulePlanIdAndCabinClassId(fs3.getFlightSchedulePlan().getFlightSchedulePlanId(),cabinClass.getCabinClassId());
                 totalPrice = totalPrice.add(price.multiply(new BigDecimal(numPassengers)));
 
                 mapping.put(fs3, cabinClass.getCabinClassId());
@@ -2435,10 +2496,10 @@ public class HolidayReservationSystem {
         Scanner scanner = new Scanner (System.in);
         Integer ccOption = 0;
         Integer ccChoice = 0;
-        List<CabinClass> cc = retrieveCabinClassesByAircraftConfigIdUnmanaged(flightSchedule.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
+        List<CabinClass> cc = retrieveCabinClassesByAircraftConfigId(flightSchedule.getFlightSchedulePlan().getFlight().getAircraftConfig().getAircraftConfigId());
 
         System.out.println("Cabin classes available in " + flightSchedule.getFlightSchedulePlan().getFlight().getFlightNumber() + ": \n");
-        System.out.printf("%10s40s%25s%30s\n", "No.", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
+        System.out.printf("%10s%40s%25s%30s\n", "No.", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
         HashMap<Integer, Integer> cClasses = new HashMap<>();
 
         for (CabinClass c: cc)
@@ -2446,27 +2507,31 @@ public class HolidayReservationSystem {
             try
             {   
                 // Display only cabin classes that have sufficient number of balance seat for number of passengers
-                SeatInventory si = retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged(c.getCabinClassId(), flightSchedule.getFlightScheduleId());
-                List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId(), c.getCabinClassId());
-
-                BigDecimal fare = fares.get(0).getFareAmount();
-                for (Fare f: fares)
+                SeatInventory si = retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(c.getCabinClassId(), flightSchedule.getFlightScheduleId());
+                List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId(), c.getCabinClassId());
+                
+               if (!fares.isEmpty())
                 {
-                    if (fare.compareTo(f.getFareAmount()) > 0)
+                    BigDecimal fare = fares.get(0).getFareAmount();
+                    for (Fare f: fares)
                     {
-                        fare = f.getFareAmount();
+                        if (fare.compareTo(f.getFareAmount()) > 0)
+                        {
+                            fare = f.getFareAmount();
+                        }
                     }
-                }
-
-                if (si.getNumOfBalanceSeats() >= numPassengers)
-                {
-                    ccOption++;
-                    cClasses.put(ccOption, cc.indexOf(c));
-                    System.out.printf("%10s%40s%25s%30s\n", ccOption.toString(), c.getCabinClassType().toString(), fare.toString(), (fare.multiply(new BigDecimal(numPassengers))).toString());
+                    
+                    if (si.getNumOfBalanceSeats() >= numPassengers)
+                    {
+                        ccOption++;
+                        cClasses.put(ccOption, cc.indexOf(c));
+                        System.out.printf("%10s%40s%25s%30s\n", ccOption.toString(), c.getCabinClassType().toString(), fare.toString(), (fare.multiply(new BigDecimal(numPassengers))).toString());
+                    }
                 }
             }
             catch (SeatInventoryNotFoundException_Exception ex)
             {
+                System.out.println("Not found");
                 continue;
             }
         }
@@ -2492,6 +2557,7 @@ public class HolidayReservationSystem {
             catch (InputMismatchException ex)
             {
                 System.out.println("Invalid input, select an option from 1-" + ccOption + "!\n");
+                scanner.next();
             }
         }
 
@@ -2509,8 +2575,8 @@ public class HolidayReservationSystem {
         System.out.println("X represents a seat that has already been reserved\n");
         try
         {
-            SeatInventory si = retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged(cabinClass.getCabinClassId(), flightSchedule.getFlightScheduleId());
-            List<CabinSeatInventory> takenSeats = retrieveCabinSeatInventoryInSeatInventoryUnmanaged(si.getSeatInventoryId());
+            SeatInventory si = retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(cabinClass.getCabinClassId(), flightSchedule.getFlightScheduleId());
+            List<CabinSeatInventory> takenSeats = retrieveCabinSeatInventoryInSeatInventory(si.getSeatInventoryId());
 
             Integer numAisle = cabinClass.getNumOfAisle();
             Integer numSeatsAbreast = cabinClass.getNumOfSeatsAbreast();
@@ -2736,7 +2802,7 @@ public class HolidayReservationSystem {
                 {
                     Boolean createSuccess = false;
                     Long passenger = passengers.remove(0);
-                    Passenger p = retrievePassengerByPassengerIdUnmanaged(passenger);
+                    Passenger p = retrievePassengerByPassengerId(passenger);
                     System.out.print("Please select a seat for passenger " + p.getFirstName() + " " + p.getLastName() + " > ");
                     String reserveSeat = scanner.nextLine().trim();
 
@@ -2786,6 +2852,7 @@ public class HolidayReservationSystem {
                 catch (InputMismatchException ex)
                 {
                     System.out.println("Invalid input, enter the chosen seat in the given format!\n");
+                    scanner.next();
                 }
             }
         }
@@ -2797,6 +2864,7 @@ public class HolidayReservationSystem {
     
     private static void doViewPartnerFlightReservations()
     {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
         System.out.println("\n*** Holiday Reservation System :: View All Flight Reservations ***\n");
         
         List<FlightReservationRecord> records = retrieveReservationRecordsByCustomerId(currentPartner.getId());
@@ -2809,11 +2877,11 @@ public class HolidayReservationSystem {
         {
             Integer listing = 0;
         
-            System.out.printf("%5s%20s%15s\n", "ID", "No. of Passengers", "Total Amount");
+            System.out.printf("%13s%20s%20s%15s\n", "Record ID", "Departure Date", "No. of Passengers", "Total Amount");
             for (FlightReservationRecord frr: records)
             {
                 listing++;
-                System.out.printf("%5s%20s%15s\n", frr.getRecordId().toString(), frr.getNumOfPassengers().toString(), frr.getTotalAmount());
+                System.out.printf("%13s%20s%20s%15s\n", frr.getRecordId().toString(), formatter.format(frr.getFlightSchedules().get(0).getDepartureDateTime()), frr.getNumOfPassengers().toString(), frr.getTotalAmount());
             } 
         }
     }
@@ -2835,7 +2903,7 @@ public class HolidayReservationSystem {
             List<Passenger> passengers = record.getPassengers();
             HashMap<FlightSchedule, List<CabinSeatInventory>> seating = new HashMap<>();
             HashMap<FlightSchedule, CabinClass> mapping = new HashMap<>();
-            Passenger p = retrievePassengerByPassengerIdUnmanaged(passengers.get(0).getPassengerId());
+            Passenger p = retrievePassengerByPassengerId(passengers.get(0).getPassengerId());
 
             for (CabinSeatInventory csi: p.getCabinSeats())
             {
@@ -2852,7 +2920,7 @@ public class HolidayReservationSystem {
 
             for (Passenger passenger: passengers)
             {
-                Passenger ps = retrievePassengerByPassengerIdUnmanaged(passenger.getPassengerId());
+                Passenger ps = retrievePassengerByPassengerId(passenger.getPassengerId());
                 for (CabinSeatInventory csi: ps.getCabinSeats())
                 {
                     FlightSchedule f = csi.getSeatInventory().getFlightSchedule();
@@ -2866,8 +2934,17 @@ public class HolidayReservationSystem {
             System.out.println("Flight Schedule(s):");
             for (FlightSchedule fs: record.getFlightSchedules())
             {
-                System.out.printf("%10s%15s%30s%40s\n", "Flight No.", "Itinerary", "Departure Date and Time", "Cabin Class");
-                System.out.printf("%10s%15s%30s%40s\n", fs.getFlightSchedulePlan().getFlight().getFlightNumber(), fs.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + fs.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode(), formatter.format(fs.getDepartureDateTime()), mapping.get(fs).getCabinClassType().toString());
+                GregorianCalendar calendar = new GregorianCalendar();
+                Integer timeZoneDiff = fs.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getTimeZoneDiff() - fs.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getTimeZoneDiff();
+                Date departure = asDate(fs.getDepartureDateTime());
+                calendar.setTime(departure);
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, fs.getFlightHours());
+                calendar.add(GregorianCalendar.MINUTE, fs.getFlightMinutes());
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, timeZoneDiff);
+                Date arrival = calendar.getTime();
+                
+                System.out.printf("%10s%15s%30s%30s%40s\n", "Flight No.", "Itinerary", "Departure Date and Time", "Arrival Date and Time", "Cabin Class");
+                System.out.printf("%10s%15s%30s%30s%40s\n", fs.getFlightSchedulePlan().getFlight().getFlightNumber(), fs.getFlightSchedulePlan().getFlight().getFlightRoute().getOrigin().getIataCode() + "-" + fs.getFlightSchedulePlan().getFlight().getFlightRoute().getDestination().getIataCode(), formatter.format(fs.getDepartureDateTime()), formatter.format(arrival), mapping.get(fs).getCabinClassType().toString());
                 System.out.println("Seats Taken in this flight schedule:");
                 for (CabinSeatInventory cabinSeat: seating.get(fs))
                 {
@@ -2877,10 +2954,10 @@ public class HolidayReservationSystem {
             }
 
             System.out.println("Passengers: \n");
-            System.out.printf("%20s%20s%20s\n", "First Name", "First Name", "Passport No.");
+            System.out.printf("%20s%20s%20s\n", "First Name", "Last Name", "Passport No.");
             for (Passenger passenger: passengers)
             {
-                Passenger ps = retrievePassengerByPassengerIdUnmanaged(p.getPassengerId());
+                Passenger ps = retrievePassengerByPassengerId(passenger.getPassengerId());
                 System.out.printf("%20s%20s%20s\n", ps.getFirstName(), ps.getLastName(), ps.getPassportNum());
             }
 
@@ -2889,10 +2966,11 @@ public class HolidayReservationSystem {
         catch (InputMismatchException ex)
         {
             System.out.println("Invalid input, enter the record ID in digits!\n");
+            scanner.next();
         }
         catch (FlightReservationRecordNotFoundException_Exception | PassengerNotFoundException_Exception ex)
         {
-            System.out.println(ex.getMessage());
+            System.out.println(ex.getMessage() + "\n");
         }
     }
     
@@ -2922,70 +3000,16 @@ public class HolidayReservationSystem {
         return port.createNewPassenger(passenger, flightReservationRecordId);
     }
 
-    private static java.util.List<ws.client.partner.Airport> getAllAirportsUnmanaged() {
-        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
-        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
-        return port.getAllAirportsUnmanaged();
-    }
-
-    private static java.util.List<ws.client.partner.Fare> getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(java.lang.Long name, java.lang.Long cabinClassId) {
-        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
-        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
-        return port.getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(name, cabinClassId);
-    }
-
-    private static FlightSchedule getFlightScheduleByIdUnmanaged(java.lang.Long flightScheduleId) throws FlightScheduleNotFoundException_Exception {
-        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
-        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
-        return port.getFlightScheduleByIdUnmanaged(flightScheduleId);
-    }
-
-    private static BigDecimal getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(java.lang.Long flightSchedulePlanId, java.lang.Long cabinClassId) throws FareNotFoundException_Exception {
-        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
-        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
-        return port.getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(flightSchedulePlanId, cabinClassId);
-    }
-
     private static Partner partnerLogin(java.lang.String username, java.lang.String password) throws InvalidLoginCredentialException_Exception, PartnerNotFoundException_Exception {
         ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
         ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
         return port.partnerLogin(username, password);
     }
 
-    private static CabinClass retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged(java.lang.Long aircraftConfigId, ws.client.partner.CabinClassEnum type) throws CabinClassNotFoundException_Exception {
-        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
-        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
-        return port.retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged(aircraftConfigId, type);
-    }
-
-    private static CabinClass retrieveCabinClassByIdUnmanaged(java.lang.Long cabinClassId) throws CabinClassNotFoundException_Exception {
-        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
-        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
-        return port.retrieveCabinClassByIdUnmanaged(cabinClassId);
-    }
-
-    private static java.util.List<ws.client.partner.CabinClass> retrieveCabinClassesByAircraftConfigIdUnmanaged(java.lang.Long aircraftConfigId) {
-        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
-        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
-        return port.retrieveCabinClassesByAircraftConfigIdUnmanaged(aircraftConfigId);
-    }
-
-    private static java.util.List<ws.client.partner.CabinSeatInventory> retrieveCabinSeatInventoryInSeatInventoryUnmanaged(java.lang.Long seatInventoryId) {
-        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
-        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
-        return port.retrieveCabinSeatInventoryInSeatInventoryUnmanaged(seatInventoryId);
-    }
-
     private static Partner retrievePartnerByUsername(java.lang.String username) throws PartnerNotFoundException_Exception {
         ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
         ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
         return port.retrievePartnerByUsername(username);
-    }
-
-    private static Passenger retrievePassengerByPassengerIdUnmanaged(java.lang.Long passengerId) throws PassengerNotFoundException_Exception {
-        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
-        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
-        return port.retrievePassengerByPassengerIdUnmanaged(passengerId);
     }
 
     private static FlightReservationRecord retrieveReservationRecordById(java.lang.Long recordId, java.lang.Long personId) throws FlightReservationRecordNotFoundException_Exception {
@@ -2998,12 +3022,6 @@ public class HolidayReservationSystem {
         ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
         ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
         return port.retrieveReservationRecordsByCustomerId(customerId);
-    }
-
-    private static SeatInventory retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged(java.lang.Long cabinClassId, java.lang.Long flightScheduleId) throws SeatInventoryNotFoundException_Exception {
-        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
-        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
-        return port.retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged(cabinClassId, flightScheduleId);
     }
 
     private static java.util.List<ws.client.partner.FlightSchedule> searchDirectFlightSchedules(java.lang.Long departureAirportId, java.lang.Long destinationAirportId, javax.xml.datatype.XMLGregorianCalendar dateStart, javax.xml.datatype.XMLGregorianCalendar dateEnd, ws.client.partner.CabinClassEnum preferredCabinClass, java.lang.Integer numPassengers) {
@@ -3023,4 +3041,83 @@ public class HolidayReservationSystem {
         ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
         return port.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
     }
+
+    private static java.util.List<ws.client.partner.Airport> getAllAirports() {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.getAllAirports();
+    }
+
+    private static java.util.List<ws.client.partner.Fare> getFareByFlightSchedulePlanIdAndCabinClassId(java.lang.Long name, java.lang.Long cabinClassId) {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.getFareByFlightSchedulePlanIdAndCabinClassId(name, cabinClassId);
+    }
+
+    private static FlightSchedule getFlightScheduleById(java.lang.Long flightScheduleId) throws FlightScheduleNotFoundException_Exception {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.getFlightScheduleById(flightScheduleId);
+    }
+
+    private static CabinClass retrieveCabinClassByAircraftConfigIdAndType(java.lang.Long aircraftConfigId, ws.client.partner.CabinClassEnum type) throws CabinClassNotFoundException_Exception {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.retrieveCabinClassByAircraftConfigIdAndType(aircraftConfigId, type);
+    }
+
+    private static CabinClass retrieveCabinClassById(java.lang.Long cabinClassId) throws CabinClassNotFoundException_Exception {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.retrieveCabinClassById(cabinClassId);
+    }
+
+    private static java.util.List<ws.client.partner.CabinClass> retrieveCabinClassesByAircraftConfigId(java.lang.Long aircraftConfigId) {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.retrieveCabinClassesByAircraftConfigId(aircraftConfigId);
+    }
+
+    private static java.util.List<ws.client.partner.CabinSeatInventory> retrieveCabinSeatInventoryInSeatInventory(java.lang.Long seatInventoryId) {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.retrieveCabinSeatInventoryInSeatInventory(seatInventoryId);
+    }
+
+    private static Passenger retrievePassengerByPassengerId(java.lang.Long passengerId) throws PassengerNotFoundException_Exception {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.retrievePassengerByPassengerId(passengerId);
+    }
+
+    private static SeatInventory retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(java.lang.Long cabinClassId, java.lang.Long flightScheduleId) throws SeatInventoryNotFoundException_Exception {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(cabinClassId, flightScheduleId);
+    }
+
+    private static FlightSchedulePlan getFlightSchedulePlanById(java.lang.Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException_Exception {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.getFlightSchedulePlanById(flightSchedulePlanId);
+    }
+
+    private static FlightRoute getFlightRouteById(java.lang.Long flightRouteId, java.lang.Boolean fetchAirport, java.lang.Boolean fetchFlights) throws FlightRouteNotFoundException_Exception {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.getFlightRouteById(flightRouteId, fetchAirport, fetchFlights);
+    }
+
+    private static Flight getFlightById(java.lang.Long flightSchedulePlanId) throws FlightNotFoundException_Exception {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.getFlightById(flightSchedulePlanId);
+    }
+
+    private static BigDecimal getHighestFareByFlightSchedulePlanIdAndCabinClassId(java.lang.Long flightSchedulePlanId, java.lang.Long cabinClassId) throws FareNotFoundException_Exception {
+        ws.client.partner.PartnerWebService_Service service = new ws.client.partner.PartnerWebService_Service();
+        ws.client.partner.PartnerWebService port = service.getPartnerWebServicePort();
+        return port.getHighestFareByFlightSchedulePlanIdAndCabinClassId(flightSchedulePlanId, cabinClassId);
+    }
+
 }

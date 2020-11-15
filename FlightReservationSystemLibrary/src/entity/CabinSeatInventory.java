@@ -30,7 +30,6 @@ public class CabinSeatInventory implements Serializable {
     @Column(nullable = false)
     private String seatTaken;
             
-    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private SeatInventory seatInventory;

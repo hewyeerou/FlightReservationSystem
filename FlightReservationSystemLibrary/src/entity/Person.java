@@ -13,6 +13,7 @@ import javax.persistence.InheritanceType;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -50,9 +51,7 @@ public abstract class Person implements Serializable {
         
         this.username = username;
         this.password = password;
-    }
-   
-    
+    }  
 
     @Override
     public int hashCode() {
@@ -103,6 +102,7 @@ public abstract class Person implements Serializable {
         this.password = password;
     }
 
+    @XmlTransient
     public List<FlightReservationRecord> getFlightReservationRecords() {
         return flightReservationRecords;
     }

@@ -40,12 +40,10 @@ public class Fare implements Serializable {
     @Digits(integer = 9, fraction = 2)
     private BigDecimal fareAmount;
     
-    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private CabinClass cabinClass;
     
-    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private FlightSchedulePlan flightSchedulePlan;
@@ -108,6 +106,7 @@ public class Fare implements Serializable {
         this.fareAmount = fareAmount;
     }
 
+    @XmlTransient
     public FlightSchedulePlan getFlightSchedulePlan() {
         return flightSchedulePlan;
     }
@@ -116,6 +115,7 @@ public class Fare implements Serializable {
         this.flightSchedulePlan = flightSchedulePlan;
     }
 
+    @XmlTransient
     public CabinClass getCabinClass() {
         return cabinClass;
     }

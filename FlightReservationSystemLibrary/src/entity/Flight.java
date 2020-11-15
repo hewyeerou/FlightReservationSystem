@@ -46,16 +46,13 @@ public class Flight implements Serializable {
     @OneToOne
     private Flight returnFlight;
     
-    @XmlTransient
     @OneToMany(mappedBy = "flight")
     private List<FlightSchedulePlan> flightSchedulePlans;
-    
-    @XmlTransient
+
     @ManyToOne(optional=false)
     @JoinColumn(nullable=false)
     private FlightRoute flightRoute;
     
-    @XmlTransient
     @OneToOne(optional=false)
     @JoinColumn(nullable=false)
     private AircraftConfig aircraftConfig;
@@ -129,6 +126,7 @@ public class Flight implements Serializable {
         this.aircraftConfig = aircraftConfig;
     }
 
+    @XmlTransient
     public List<FlightSchedulePlan> getFlightSchedulePlans() {
         return flightSchedulePlans;
     }
@@ -137,6 +135,7 @@ public class Flight implements Serializable {
         this.flightSchedulePlans = flightSchedulePlans;
     }
 
+    @XmlTransient
     public Flight getReturnFlight() {
         return returnFlight;
     }
@@ -148,7 +147,7 @@ public class Flight implements Serializable {
     public String getFlightType() {
         return flightType;
     }
-
+    
     public void setFlightType(String flightType) {
         this.flightType = flightType;
     }
@@ -160,8 +159,4 @@ public class Flight implements Serializable {
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
     }
-    
-    
-    
-    
 }

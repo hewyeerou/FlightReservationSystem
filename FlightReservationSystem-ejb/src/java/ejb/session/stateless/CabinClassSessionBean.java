@@ -38,31 +38,6 @@ public class CabinClassSessionBean implements CabinClassSessionBeanRemote, Cabin
     }
     
     @Override
-    public List<CabinClass> retrieveCabinClassesByAircraftConfigIdUnmanaged(Long aircraftConfigId)
-    {
-        List<CabinClass> cabinClasses = retrieveCabinClassesByAircraftConfigId(aircraftConfigId);
-        
-        for (CabinClass cc: cabinClasses)
-        {
-            em.detach(cc);
-            
-            em.detach(cc.getAircraftConfig());
-            
-            for (Fare fare: cc.getFares())
-            {
-                em.detach(fare);
-            }
-            
-            for (SeatInventory si: cc.getSeatInventories())
-            {
-                em.detach(si);
-            }
-        }
-        
-        return cabinClasses;
-    }
-    
-    @Override
     public CabinClass retrieveCabinClassByAircraftConfigIdAndType(Long aircraftConfigId, CabinClassEnum type) throws CabinClassNotFoundException
     {
         Query query = em.createQuery("SELECT cc FROM CabinClass cc WHERE cc.aircraftConfig.aircraftConfigId = :inAircraftConfigId AND cc.cabinClassType = :type");
@@ -77,28 +52,6 @@ public class CabinClassSessionBean implements CabinClassSessionBeanRemote, Cabin
         {
             throw new CabinClassNotFoundException("Cabin Class cannot be found does not exist!\n");
         }
-    }
-    
-    @Override
-    public CabinClass retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged(Long aircraftConfigId, CabinClassEnum type) throws CabinClassNotFoundException
-    {
-        CabinClass cc = retrieveCabinClassByAircraftConfigIdAndType(aircraftConfigId, type);
-        
-        em.detach(cc);
-            
-        em.detach(cc.getAircraftConfig());
-
-        for (Fare fare: cc.getFares())
-        {
-            em.detach(fare);
-        }
-
-        for (SeatInventory si: cc.getSeatInventories())
-        {
-            em.detach(si);
-        }
-        
-        return cc;
     }
     
     @Override
@@ -117,27 +70,5 @@ public class CabinClassSessionBean implements CabinClassSessionBeanRemote, Cabin
         {
             throw new CabinClassNotFoundException("Cabin Class with ID " + cabinClassId + " does not exist!\n");
         }
-    }
-    
-    @Override
-    public CabinClass retrieveCabinClassByIdUnmanaged(Long cabinClassId) throws CabinClassNotFoundException
-    {
-        CabinClass cc = retrieveCabinClassById(cabinClassId);
-        
-        em.detach(cc);
-            
-        em.detach(cc.getAircraftConfig());
-
-        for (Fare fare: cc.getFares())
-        {
-            em.detach(fare);
-        }
-
-        for (SeatInventory si: cc.getSeatInventories())
-        {
-            em.detach(si);
-        }
-        
-        return cc;
     }
 }

@@ -90,27 +90,12 @@ public class FlightReservationRecordSessionBean implements FlightReservationReco
         Query query = em.createQuery("SELECT frr FROM FlightReservationRecord frr WHERE frr.person.id = :inCustomerId ORDER BY frr.recordId ASC");
         query.setParameter("inCustomerId", customerId);
         
-        return query.getResultList();
-    }
-    
-    @Override
-    public List<FlightReservationRecord> retrieveReservationRecordsByCustomerIdUnmanaged (Long customerId)
-    {
-        List<FlightReservationRecord> reservations = retrieveReservationRecordsByCustomerId(customerId);
+        List<FlightReservationRecord> reservations = query.getResultList();
         
-        for (FlightReservationRecord reservation: reservations)
+        for (FlightReservationRecord frr: reservations)
         {
-            em.detach(reservation);
-            
-            for (FlightSchedule fs: reservation.getFlightSchedules())
-            {
-                em.detach(fs);
-            }
-            
-            for (Passenger p: reservation.getPassengers())
-            {
-                em.detach(p);
-            }
+            frr.getFlightSchedules().size();
+            frr.getPassengers().size();
         }
         
         return reservations;
@@ -122,11 +107,11 @@ public class FlightReservationRecordSessionBean implements FlightReservationReco
         FlightReservationRecord record = em.find(FlightReservationRecord.class, recordId);
         Person person = em.find(Person.class, personId);
         
-        Person customer = record.getPerson();
-        
-        if (person.equals(customer))
+        if (record != null)
         {
-            if (record != null)
+            Person customer = record.getPerson();
+        
+            if (person.equals(customer))
             {
                 record.getFlightSchedules().size();
                 record.getPassengers().size();
@@ -135,35 +120,15 @@ public class FlightReservationRecordSessionBean implements FlightReservationReco
             }
             else
             {
-                throw new FlightReservationRecordNotFoundException("Flight Reservation Record with ID " + recordId + " does not exist!");
+                throw new FlightReservationRecordNotFoundException("Flight Reservation Record with ID " + recordId + " cannot be viewed as it is not made by you!");
             }
         }
         else
         {
-            throw new FlightReservationRecordNotFoundException("Flight Reservation Record with ID " + recordId + " cannot be viewed as it is not made by you!");
+            throw new FlightReservationRecordNotFoundException("Flight Reservation Record with ID " + recordId + " does not exist!");
         }
     }
     
-    @Override
-    public FlightReservationRecord retrieveReservationRecordByIdUnmanaged (Long recordId, Long personId) throws FlightReservationRecordNotFoundException
-    {
-        FlightReservationRecord reservation = retrieveReservationRecordById(recordId, personId);
-        
-        em.detach(reservation);
-            
-        for (FlightSchedule fs: reservation.getFlightSchedules())
-        {
-            em.detach(fs);
-        }
-
-        for (Passenger p: reservation.getPassengers())
-        {
-            em.detach(p);
-        }
-        
-        return reservation;
-    }
-
     @Override
     public FlightReservationRecord getFlightReservationRecordByFlightScheduleId(Long flightReservationRecordId)
     {

@@ -4,44 +4,35 @@
 <xsd:import namespace="http://ws.session.ejb/" schemaLocation="http://localhost:8080/PartnerWebService/PartnerWebService?xsd=1"/>
 </xsd:schema>
 </types>
-<message name="getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged">
-<part name="parameters" element="tns:getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged"/>
+<message name="getFareByFlightSchedulePlanIdAndCabinClassId">
+<part name="parameters" element="tns:getFareByFlightSchedulePlanIdAndCabinClassId"/>
 </message>
-<message name="getFareByFlightSchedulePlanIdAndCabinClassIdUnmanagedResponse">
-<part name="parameters" element="tns:getFareByFlightSchedulePlanIdAndCabinClassIdUnmanagedResponse"/>
+<message name="getFareByFlightSchedulePlanIdAndCabinClassIdResponse">
+<part name="parameters" element="tns:getFareByFlightSchedulePlanIdAndCabinClassIdResponse"/>
 </message>
-<message name="getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged">
-<part name="parameters" element="tns:getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged"/>
+<message name="getHighestFareByFlightSchedulePlanIdAndCabinClassId">
+<part name="parameters" element="tns:getHighestFareByFlightSchedulePlanIdAndCabinClassId"/>
 </message>
-<message name="getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanagedResponse">
-<part name="parameters" element="tns:getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanagedResponse"/>
+<message name="getHighestFareByFlightSchedulePlanIdAndCabinClassIdResponse">
+<part name="parameters" element="tns:getHighestFareByFlightSchedulePlanIdAndCabinClassIdResponse"/>
 </message>
 <message name="FareNotFoundException">
 <part name="fault" element="tns:FareNotFoundException"/>
 </message>
-<message name="retrieveReservationRecordById">
-<part name="parameters" element="tns:retrieveReservationRecordById"/>
+<message name="getAllAirports">
+<part name="parameters" element="tns:getAllAirports"/>
 </message>
-<message name="retrieveReservationRecordByIdResponse">
-<part name="parameters" element="tns:retrieveReservationRecordByIdResponse"/>
+<message name="getAllAirportsResponse">
+<part name="parameters" element="tns:getAllAirportsResponse"/>
 </message>
-<message name="FlightReservationRecordNotFoundException">
-<part name="fault" element="tns:FlightReservationRecordNotFoundException"/>
+<message name="getFlightScheduleById">
+<part name="parameters" element="tns:getFlightScheduleById"/>
 </message>
-<message name="createNewFlightReservationRecord">
-<part name="parameters" element="tns:createNewFlightReservationRecord"/>
+<message name="getFlightScheduleByIdResponse">
+<part name="parameters" element="tns:getFlightScheduleByIdResponse"/>
 </message>
-<message name="createNewFlightReservationRecordResponse">
-<part name="parameters" element="tns:createNewFlightReservationRecordResponse"/>
-</message>
-<message name="InputDataValidationException">
-<part name="fault" element="tns:InputDataValidationException"/>
-</message>
-<message name="retrieveReservationRecordsByCustomerId">
-<part name="parameters" element="tns:retrieveReservationRecordsByCustomerId"/>
-</message>
-<message name="retrieveReservationRecordsByCustomerIdResponse">
-<part name="parameters" element="tns:retrieveReservationRecordsByCustomerIdResponse"/>
+<message name="FlightScheduleNotFoundException">
+<part name="fault" element="tns:FlightScheduleNotFoundException"/>
 </message>
 <message name="searchDirectFlightSchedules">
 <part name="parameters" element="tns:searchDirectFlightSchedules"/>
@@ -61,21 +52,6 @@
 <message name="searchDoubleTransitConnectingFlightScheduleResponse">
 <part name="parameters" element="tns:searchDoubleTransitConnectingFlightScheduleResponse"/>
 </message>
-<message name="getFlightScheduleByIdUnmanaged">
-<part name="parameters" element="tns:getFlightScheduleByIdUnmanaged"/>
-</message>
-<message name="getFlightScheduleByIdUnmanagedResponse">
-<part name="parameters" element="tns:getFlightScheduleByIdUnmanagedResponse"/>
-</message>
-<message name="FlightScheduleNotFoundException">
-<part name="fault" element="tns:FlightScheduleNotFoundException"/>
-</message>
-<message name="getAllAirportsUnmanaged">
-<part name="parameters" element="tns:getAllAirportsUnmanaged"/>
-</message>
-<message name="getAllAirportsUnmanagedResponse">
-<part name="parameters" element="tns:getAllAirportsUnmanagedResponse"/>
-</message>
 <message name="retrievePartnerByUsername">
 <part name="parameters" element="tns:retrievePartnerByUsername"/>
 </message>
@@ -94,11 +70,29 @@
 <message name="InvalidLoginCredentialException">
 <part name="fault" element="tns:InvalidLoginCredentialException"/>
 </message>
-<message name="retrieveCabinClassesByAircraftConfigIdUnmanaged">
-<part name="parameters" element="tns:retrieveCabinClassesByAircraftConfigIdUnmanaged"/>
+<message name="getFlightRouteById">
+<part name="parameters" element="tns:getFlightRouteById"/>
 </message>
-<message name="retrieveCabinClassesByAircraftConfigIdUnmanagedResponse">
-<part name="parameters" element="tns:retrieveCabinClassesByAircraftConfigIdUnmanagedResponse"/>
+<message name="getFlightRouteByIdResponse">
+<part name="parameters" element="tns:getFlightRouteByIdResponse"/>
+</message>
+<message name="FlightRouteNotFoundException">
+<part name="fault" element="tns:FlightRouteNotFoundException"/>
+</message>
+<message name="retrieveCabinClassById">
+<part name="parameters" element="tns:retrieveCabinClassById"/>
+</message>
+<message name="retrieveCabinClassByIdResponse">
+<part name="parameters" element="tns:retrieveCabinClassByIdResponse"/>
+</message>
+<message name="CabinClassNotFoundException">
+<part name="fault" element="tns:CabinClassNotFoundException"/>
+</message>
+<message name="retrieveCabinClassByAircraftConfigIdAndType">
+<part name="parameters" element="tns:retrieveCabinClassByAircraftConfigIdAndType"/>
+</message>
+<message name="retrieveCabinClassByAircraftConfigIdAndTypeResponse">
+<part name="parameters" element="tns:retrieveCabinClassByAircraftConfigIdAndTypeResponse"/>
 </message>
 <message name="createNewCabinSeatInventory">
 <part name="parameters" element="tns:createNewCabinSeatInventory"/>
@@ -109,20 +103,8 @@
 <message name="CabinSeatInventoryExistException">
 <part name="fault" element="tns:CabinSeatInventoryExistException"/>
 </message>
-<message name="retrieveCabinSeatInventoryInSeatInventoryUnmanaged">
-<part name="parameters" element="tns:retrieveCabinSeatInventoryInSeatInventoryUnmanaged"/>
-</message>
-<message name="retrieveCabinSeatInventoryInSeatInventoryUnmanagedResponse">
-<part name="parameters" element="tns:retrieveCabinSeatInventoryInSeatInventoryUnmanagedResponse"/>
-</message>
-<message name="retrievePassengerByPassengerIdUnmanaged">
-<part name="parameters" element="tns:retrievePassengerByPassengerIdUnmanaged"/>
-</message>
-<message name="retrievePassengerByPassengerIdUnmanagedResponse">
-<part name="parameters" element="tns:retrievePassengerByPassengerIdUnmanagedResponse"/>
-</message>
-<message name="PassengerNotFoundException">
-<part name="fault" element="tns:PassengerNotFoundException"/>
+<message name="InputDataValidationException">
+<part name="fault" element="tns:InputDataValidationException"/>
 </message>
 <message name="createNewPassenger">
 <part name="parameters" element="tns:createNewPassenger"/>
@@ -130,53 +112,93 @@
 <message name="createNewPassengerResponse">
 <part name="parameters" element="tns:createNewPassengerResponse"/>
 </message>
-<message name="retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged">
-<part name="parameters" element="tns:retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged"/>
+<message name="retrieveSeatInventoryByCabinClassIdAndFlightScheduleId">
+<part name="parameters" element="tns:retrieveSeatInventoryByCabinClassIdAndFlightScheduleId"/>
 </message>
-<message name="retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanagedResponse">
-<part name="parameters" element="tns:retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanagedResponse"/>
+<message name="retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdResponse">
+<part name="parameters" element="tns:retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdResponse"/>
 </message>
 <message name="SeatInventoryNotFoundException">
 <part name="fault" element="tns:SeatInventoryNotFoundException"/>
 </message>
-<message name="retrieveCabinClassByIdUnmanaged">
-<part name="parameters" element="tns:retrieveCabinClassByIdUnmanaged"/>
+<message name="getFlightById">
+<part name="parameters" element="tns:getFlightById"/>
 </message>
-<message name="retrieveCabinClassByIdUnmanagedResponse">
-<part name="parameters" element="tns:retrieveCabinClassByIdUnmanagedResponse"/>
+<message name="getFlightByIdResponse">
+<part name="parameters" element="tns:getFlightByIdResponse"/>
 </message>
-<message name="CabinClassNotFoundException">
-<part name="fault" element="tns:CabinClassNotFoundException"/>
+<message name="FlightNotFoundException">
+<part name="fault" element="tns:FlightNotFoundException"/>
 </message>
-<message name="retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged">
-<part name="parameters" element="tns:retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged"/>
+<message name="retrieveCabinSeatInventoryInSeatInventory">
+<part name="parameters" element="tns:retrieveCabinSeatInventoryInSeatInventory"/>
 </message>
-<message name="retrieveCabinClassByAircraftConfigIdAndTypeUnmanagedResponse">
-<part name="parameters" element="tns:retrieveCabinClassByAircraftConfigIdAndTypeUnmanagedResponse"/>
+<message name="retrieveCabinSeatInventoryInSeatInventoryResponse">
+<part name="parameters" element="tns:retrieveCabinSeatInventoryInSeatInventoryResponse"/>
+</message>
+<message name="retrieveCabinClassesByAircraftConfigId">
+<part name="parameters" element="tns:retrieveCabinClassesByAircraftConfigId"/>
+</message>
+<message name="retrieveCabinClassesByAircraftConfigIdResponse">
+<part name="parameters" element="tns:retrieveCabinClassesByAircraftConfigIdResponse"/>
+</message>
+<message name="retrievePassengerByPassengerId">
+<part name="parameters" element="tns:retrievePassengerByPassengerId"/>
+</message>
+<message name="retrievePassengerByPassengerIdResponse">
+<part name="parameters" element="tns:retrievePassengerByPassengerIdResponse"/>
+</message>
+<message name="PassengerNotFoundException">
+<part name="fault" element="tns:PassengerNotFoundException"/>
+</message>
+<message name="getFlightSchedulePlanById">
+<part name="parameters" element="tns:getFlightSchedulePlanById"/>
+</message>
+<message name="getFlightSchedulePlanByIdResponse">
+<part name="parameters" element="tns:getFlightSchedulePlanByIdResponse"/>
+</message>
+<message name="FlightSchedulePlanNotFoundException">
+<part name="fault" element="tns:FlightSchedulePlanNotFoundException"/>
+</message>
+<message name="retrieveReservationRecordsByCustomerId">
+<part name="parameters" element="tns:retrieveReservationRecordsByCustomerId"/>
+</message>
+<message name="retrieveReservationRecordsByCustomerIdResponse">
+<part name="parameters" element="tns:retrieveReservationRecordsByCustomerIdResponse"/>
+</message>
+<message name="retrieveReservationRecordById">
+<part name="parameters" element="tns:retrieveReservationRecordById"/>
+</message>
+<message name="retrieveReservationRecordByIdResponse">
+<part name="parameters" element="tns:retrieveReservationRecordByIdResponse"/>
+</message>
+<message name="FlightReservationRecordNotFoundException">
+<part name="fault" element="tns:FlightReservationRecordNotFoundException"/>
+</message>
+<message name="createNewFlightReservationRecord">
+<part name="parameters" element="tns:createNewFlightReservationRecord"/>
+</message>
+<message name="createNewFlightReservationRecordResponse">
+<part name="parameters" element="tns:createNewFlightReservationRecordResponse"/>
 </message>
 <portType name="PartnerWebService">
-<operation name="getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/getFareByFlightSchedulePlanIdAndCabinClassIdUnmanagedRequest" message="tns:getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/getFareByFlightSchedulePlanIdAndCabinClassIdUnmanagedResponse" message="tns:getFareByFlightSchedulePlanIdAndCabinClassIdUnmanagedResponse"/>
+<operation name="getFareByFlightSchedulePlanIdAndCabinClassId">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/getFareByFlightSchedulePlanIdAndCabinClassIdRequest" message="tns:getFareByFlightSchedulePlanIdAndCabinClassId"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/getFareByFlightSchedulePlanIdAndCabinClassIdResponse" message="tns:getFareByFlightSchedulePlanIdAndCabinClassIdResponse"/>
 </operation>
-<operation name="getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanagedRequest" message="tns:getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanagedResponse" message="tns:getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanagedResponse"/>
-<fault message="tns:FareNotFoundException" name="FareNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged/Fault/FareNotFoundException"/>
+<operation name="getHighestFareByFlightSchedulePlanIdAndCabinClassId">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/getHighestFareByFlightSchedulePlanIdAndCabinClassIdRequest" message="tns:getHighestFareByFlightSchedulePlanIdAndCabinClassId"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/getHighestFareByFlightSchedulePlanIdAndCabinClassIdResponse" message="tns:getHighestFareByFlightSchedulePlanIdAndCabinClassIdResponse"/>
+<fault message="tns:FareNotFoundException" name="FareNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/getHighestFareByFlightSchedulePlanIdAndCabinClassId/Fault/FareNotFoundException"/>
 </operation>
-<operation name="retrieveReservationRecordById">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveReservationRecordByIdRequest" message="tns:retrieveReservationRecordById"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveReservationRecordByIdResponse" message="tns:retrieveReservationRecordByIdResponse"/>
-<fault message="tns:FlightReservationRecordNotFoundException" name="FlightReservationRecordNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveReservationRecordById/Fault/FlightReservationRecordNotFoundException"/>
+<operation name="getAllAirports">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/getAllAirportsRequest" message="tns:getAllAirports"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/getAllAirportsResponse" message="tns:getAllAirportsResponse"/>
 </operation>
-<operation name="createNewFlightReservationRecord">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/createNewFlightReservationRecordRequest" message="tns:createNewFlightReservationRecord"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/createNewFlightReservationRecordResponse" message="tns:createNewFlightReservationRecordResponse"/>
-<fault message="tns:InputDataValidationException" name="InputDataValidationException" wsam:Action="http://ws.session.ejb/PartnerWebService/createNewFlightReservationRecord/Fault/InputDataValidationException"/>
-</operation>
-<operation name="retrieveReservationRecordsByCustomerId">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveReservationRecordsByCustomerIdRequest" message="tns:retrieveReservationRecordsByCustomerId"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveReservationRecordsByCustomerIdResponse" message="tns:retrieveReservationRecordsByCustomerIdResponse"/>
+<operation name="getFlightScheduleById">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightScheduleByIdRequest" message="tns:getFlightScheduleById"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightScheduleByIdResponse" message="tns:getFlightScheduleByIdResponse"/>
+<fault message="tns:FlightScheduleNotFoundException" name="FlightScheduleNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightScheduleById/Fault/FlightScheduleNotFoundException"/>
 </operation>
 <operation name="searchDirectFlightSchedules">
 <input wsam:Action="http://ws.session.ejb/PartnerWebService/searchDirectFlightSchedulesRequest" message="tns:searchDirectFlightSchedules"/>
@@ -190,15 +212,6 @@
 <input wsam:Action="http://ws.session.ejb/PartnerWebService/searchDoubleTransitConnectingFlightScheduleRequest" message="tns:searchDoubleTransitConnectingFlightSchedule"/>
 <output wsam:Action="http://ws.session.ejb/PartnerWebService/searchDoubleTransitConnectingFlightScheduleResponse" message="tns:searchDoubleTransitConnectingFlightScheduleResponse"/>
 </operation>
-<operation name="getFlightScheduleByIdUnmanaged">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightScheduleByIdUnmanagedRequest" message="tns:getFlightScheduleByIdUnmanaged"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightScheduleByIdUnmanagedResponse" message="tns:getFlightScheduleByIdUnmanagedResponse"/>
-<fault message="tns:FlightScheduleNotFoundException" name="FlightScheduleNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightScheduleByIdUnmanaged/Fault/FlightScheduleNotFoundException"/>
-</operation>
-<operation name="getAllAirportsUnmanaged">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/getAllAirportsUnmanagedRequest" message="tns:getAllAirportsUnmanaged"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/getAllAirportsUnmanagedResponse" message="tns:getAllAirportsUnmanagedResponse"/>
-</operation>
 <operation name="retrievePartnerByUsername">
 <input wsam:Action="http://ws.session.ejb/PartnerWebService/retrievePartnerByUsernameRequest" message="tns:retrievePartnerByUsername"/>
 <output wsam:Action="http://ws.session.ejb/PartnerWebService/retrievePartnerByUsernameResponse" message="tns:retrievePartnerByUsernameResponse"/>
@@ -210,9 +223,20 @@
 <fault message="tns:PartnerNotFoundException" name="PartnerNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/partnerLogin/Fault/PartnerNotFoundException"/>
 <fault message="tns:InvalidLoginCredentialException" name="InvalidLoginCredentialException" wsam:Action="http://ws.session.ejb/PartnerWebService/partnerLogin/Fault/InvalidLoginCredentialException"/>
 </operation>
-<operation name="retrieveCabinClassesByAircraftConfigIdUnmanaged">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassesByAircraftConfigIdUnmanagedRequest" message="tns:retrieveCabinClassesByAircraftConfigIdUnmanaged"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassesByAircraftConfigIdUnmanagedResponse" message="tns:retrieveCabinClassesByAircraftConfigIdUnmanagedResponse"/>
+<operation name="getFlightRouteById">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightRouteByIdRequest" message="tns:getFlightRouteById"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightRouteByIdResponse" message="tns:getFlightRouteByIdResponse"/>
+<fault message="tns:FlightRouteNotFoundException" name="FlightRouteNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightRouteById/Fault/FlightRouteNotFoundException"/>
+</operation>
+<operation name="retrieveCabinClassById">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassByIdRequest" message="tns:retrieveCabinClassById"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassByIdResponse" message="tns:retrieveCabinClassByIdResponse"/>
+<fault message="tns:CabinClassNotFoundException" name="CabinClassNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassById/Fault/CabinClassNotFoundException"/>
+</operation>
+<operation name="retrieveCabinClassByAircraftConfigIdAndType">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassByAircraftConfigIdAndTypeRequest" message="tns:retrieveCabinClassByAircraftConfigIdAndType"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassByAircraftConfigIdAndTypeResponse" message="tns:retrieveCabinClassByAircraftConfigIdAndTypeResponse"/>
+<fault message="tns:CabinClassNotFoundException" name="CabinClassNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassByAircraftConfigIdAndType/Fault/CabinClassNotFoundException"/>
 </operation>
 <operation name="createNewCabinSeatInventory">
 <input wsam:Action="http://ws.session.ejb/PartnerWebService/createNewCabinSeatInventoryRequest" message="tns:createNewCabinSeatInventory"/>
@@ -220,39 +244,57 @@
 <fault message="tns:CabinSeatInventoryExistException" name="CabinSeatInventoryExistException" wsam:Action="http://ws.session.ejb/PartnerWebService/createNewCabinSeatInventory/Fault/CabinSeatInventoryExistException"/>
 <fault message="tns:InputDataValidationException" name="InputDataValidationException" wsam:Action="http://ws.session.ejb/PartnerWebService/createNewCabinSeatInventory/Fault/InputDataValidationException"/>
 </operation>
-<operation name="retrieveCabinSeatInventoryInSeatInventoryUnmanaged">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinSeatInventoryInSeatInventoryUnmanagedRequest" message="tns:retrieveCabinSeatInventoryInSeatInventoryUnmanaged"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinSeatInventoryInSeatInventoryUnmanagedResponse" message="tns:retrieveCabinSeatInventoryInSeatInventoryUnmanagedResponse"/>
-</operation>
-<operation name="retrievePassengerByPassengerIdUnmanaged">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrievePassengerByPassengerIdUnmanagedRequest" message="tns:retrievePassengerByPassengerIdUnmanaged"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrievePassengerByPassengerIdUnmanagedResponse" message="tns:retrievePassengerByPassengerIdUnmanagedResponse"/>
-<fault message="tns:PassengerNotFoundException" name="PassengerNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/retrievePassengerByPassengerIdUnmanaged/Fault/PassengerNotFoundException"/>
-</operation>
 <operation name="createNewPassenger">
 <input wsam:Action="http://ws.session.ejb/PartnerWebService/createNewPassengerRequest" message="tns:createNewPassenger"/>
 <output wsam:Action="http://ws.session.ejb/PartnerWebService/createNewPassengerResponse" message="tns:createNewPassengerResponse"/>
 <fault message="tns:InputDataValidationException" name="InputDataValidationException" wsam:Action="http://ws.session.ejb/PartnerWebService/createNewPassenger/Fault/InputDataValidationException"/>
 </operation>
-<operation name="retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanagedRequest" message="tns:retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanagedResponse" message="tns:retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanagedResponse"/>
-<fault message="tns:SeatInventoryNotFoundException" name="SeatInventoryNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged/Fault/SeatInventoryNotFoundException"/>
+<operation name="retrieveSeatInventoryByCabinClassIdAndFlightScheduleId">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdRequest" message="tns:retrieveSeatInventoryByCabinClassIdAndFlightScheduleId"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdResponse" message="tns:retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdResponse"/>
+<fault message="tns:SeatInventoryNotFoundException" name="SeatInventoryNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveSeatInventoryByCabinClassIdAndFlightScheduleId/Fault/SeatInventoryNotFoundException"/>
 </operation>
-<operation name="retrieveCabinClassByIdUnmanaged">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassByIdUnmanagedRequest" message="tns:retrieveCabinClassByIdUnmanaged"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassByIdUnmanagedResponse" message="tns:retrieveCabinClassByIdUnmanagedResponse"/>
-<fault message="tns:CabinClassNotFoundException" name="CabinClassNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassByIdUnmanaged/Fault/CabinClassNotFoundException"/>
+<operation name="getFlightById">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightByIdRequest" message="tns:getFlightById"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightByIdResponse" message="tns:getFlightByIdResponse"/>
+<fault message="tns:FlightNotFoundException" name="FlightNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightById/Fault/FlightNotFoundException"/>
 </operation>
-<operation name="retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged">
-<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassByAircraftConfigIdAndTypeUnmanagedRequest" message="tns:retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged"/>
-<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassByAircraftConfigIdAndTypeUnmanagedResponse" message="tns:retrieveCabinClassByAircraftConfigIdAndTypeUnmanagedResponse"/>
-<fault message="tns:CabinClassNotFoundException" name="CabinClassNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged/Fault/CabinClassNotFoundException"/>
+<operation name="retrieveCabinSeatInventoryInSeatInventory">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinSeatInventoryInSeatInventoryRequest" message="tns:retrieveCabinSeatInventoryInSeatInventory"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinSeatInventoryInSeatInventoryResponse" message="tns:retrieveCabinSeatInventoryInSeatInventoryResponse"/>
+</operation>
+<operation name="retrieveCabinClassesByAircraftConfigId">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassesByAircraftConfigIdRequest" message="tns:retrieveCabinClassesByAircraftConfigId"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveCabinClassesByAircraftConfigIdResponse" message="tns:retrieveCabinClassesByAircraftConfigIdResponse"/>
+</operation>
+<operation name="retrievePassengerByPassengerId">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrievePassengerByPassengerIdRequest" message="tns:retrievePassengerByPassengerId"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrievePassengerByPassengerIdResponse" message="tns:retrievePassengerByPassengerIdResponse"/>
+<fault message="tns:PassengerNotFoundException" name="PassengerNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/retrievePassengerByPassengerId/Fault/PassengerNotFoundException"/>
+</operation>
+<operation name="getFlightSchedulePlanById">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightSchedulePlanByIdRequest" message="tns:getFlightSchedulePlanById"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightSchedulePlanByIdResponse" message="tns:getFlightSchedulePlanByIdResponse"/>
+<fault message="tns:FlightSchedulePlanNotFoundException" name="FlightSchedulePlanNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/getFlightSchedulePlanById/Fault/FlightSchedulePlanNotFoundException"/>
+</operation>
+<operation name="retrieveReservationRecordsByCustomerId">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveReservationRecordsByCustomerIdRequest" message="tns:retrieveReservationRecordsByCustomerId"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveReservationRecordsByCustomerIdResponse" message="tns:retrieveReservationRecordsByCustomerIdResponse"/>
+</operation>
+<operation name="retrieveReservationRecordById">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveReservationRecordByIdRequest" message="tns:retrieveReservationRecordById"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveReservationRecordByIdResponse" message="tns:retrieveReservationRecordByIdResponse"/>
+<fault message="tns:FlightReservationRecordNotFoundException" name="FlightReservationRecordNotFoundException" wsam:Action="http://ws.session.ejb/PartnerWebService/retrieveReservationRecordById/Fault/FlightReservationRecordNotFoundException"/>
+</operation>
+<operation name="createNewFlightReservationRecord">
+<input wsam:Action="http://ws.session.ejb/PartnerWebService/createNewFlightReservationRecordRequest" message="tns:createNewFlightReservationRecord"/>
+<output wsam:Action="http://ws.session.ejb/PartnerWebService/createNewFlightReservationRecordResponse" message="tns:createNewFlightReservationRecordResponse"/>
+<fault message="tns:InputDataValidationException" name="InputDataValidationException" wsam:Action="http://ws.session.ejb/PartnerWebService/createNewFlightReservationRecord/Fault/InputDataValidationException"/>
 </operation>
 </portType>
 <binding name="PartnerWebServicePortBinding" type="tns:PartnerWebService">
 <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
-<operation name="getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged">
+<operation name="getFareByFlightSchedulePlanIdAndCabinClassId">
 <soap:operation soapAction=""/>
 <input>
 <soap:body use="literal"/>
@@ -261,7 +303,7 @@
 <soap:body use="literal"/>
 </output>
 </operation>
-<operation name="getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged">
+<operation name="getHighestFareByFlightSchedulePlanIdAndCabinClassId">
 <soap:operation soapAction=""/>
 <input>
 <soap:body use="literal"/>
@@ -273,7 +315,7 @@
 <soap:fault name="FareNotFoundException" use="literal"/>
 </fault>
 </operation>
-<operation name="retrieveReservationRecordById">
+<operation name="getAllAirports">
 <soap:operation soapAction=""/>
 <input>
 <soap:body use="literal"/>
@@ -281,11 +323,8 @@
 <output>
 <soap:body use="literal"/>
 </output>
-<fault name="FlightReservationRecordNotFoundException">
-<soap:fault name="FlightReservationRecordNotFoundException" use="literal"/>
-</fault>
 </operation>
-<operation name="createNewFlightReservationRecord">
+<operation name="getFlightScheduleById">
 <soap:operation soapAction=""/>
 <input>
 <soap:body use="literal"/>
@@ -293,18 +332,9 @@
 <output>
 <soap:body use="literal"/>
 </output>
-<fault name="InputDataValidationException">
-<soap:fault name="InputDataValidationException" use="literal"/>
+<fault name="FlightScheduleNotFoundException">
+<soap:fault name="FlightScheduleNotFoundException" use="literal"/>
 </fault>
-</operation>
-<operation name="retrieveReservationRecordsByCustomerId">
-<soap:operation soapAction=""/>
-<input>
-<soap:body use="literal"/>
-</input>
-<output>
-<soap:body use="literal"/>
-</output>
 </operation>
 <operation name="searchDirectFlightSchedules">
 <soap:operation soapAction=""/>
@@ -325,27 +355,6 @@
 </output>
 </operation>
 <operation name="searchDoubleTransitConnectingFlightSchedule">
-<soap:operation soapAction=""/>
-<input>
-<soap:body use="literal"/>
-</input>
-<output>
-<soap:body use="literal"/>
-</output>
-</operation>
-<operation name="getFlightScheduleByIdUnmanaged">
-<soap:operation soapAction=""/>
-<input>
-<soap:body use="literal"/>
-</input>
-<output>
-<soap:body use="literal"/>
-</output>
-<fault name="FlightScheduleNotFoundException">
-<soap:fault name="FlightScheduleNotFoundException" use="literal"/>
-</fault>
-</operation>
-<operation name="getAllAirportsUnmanaged">
 <soap:operation soapAction=""/>
 <input>
 <soap:body use="literal"/>
@@ -381,7 +390,7 @@
 <soap:fault name="InvalidLoginCredentialException" use="literal"/>
 </fault>
 </operation>
-<operation name="retrieveCabinClassesByAircraftConfigIdUnmanaged">
+<operation name="getFlightRouteById">
 <soap:operation soapAction=""/>
 <input>
 <soap:body use="literal"/>
@@ -389,6 +398,33 @@
 <output>
 <soap:body use="literal"/>
 </output>
+<fault name="FlightRouteNotFoundException">
+<soap:fault name="FlightRouteNotFoundException" use="literal"/>
+</fault>
+</operation>
+<operation name="retrieveCabinClassById">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+<fault name="CabinClassNotFoundException">
+<soap:fault name="CabinClassNotFoundException" use="literal"/>
+</fault>
+</operation>
+<operation name="retrieveCabinClassByAircraftConfigIdAndType">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+<fault name="CabinClassNotFoundException">
+<soap:fault name="CabinClassNotFoundException" use="literal"/>
+</fault>
 </operation>
 <operation name="createNewCabinSeatInventory">
 <soap:operation soapAction=""/>
@@ -405,27 +441,6 @@
 <soap:fault name="InputDataValidationException" use="literal"/>
 </fault>
 </operation>
-<operation name="retrieveCabinSeatInventoryInSeatInventoryUnmanaged">
-<soap:operation soapAction=""/>
-<input>
-<soap:body use="literal"/>
-</input>
-<output>
-<soap:body use="literal"/>
-</output>
-</operation>
-<operation name="retrievePassengerByPassengerIdUnmanaged">
-<soap:operation soapAction=""/>
-<input>
-<soap:body use="literal"/>
-</input>
-<output>
-<soap:body use="literal"/>
-</output>
-<fault name="PassengerNotFoundException">
-<soap:fault name="PassengerNotFoundException" use="literal"/>
-</fault>
-</operation>
 <operation name="createNewPassenger">
 <soap:operation soapAction=""/>
 <input>
@@ -438,7 +453,7 @@
 <soap:fault name="InputDataValidationException" use="literal"/>
 </fault>
 </operation>
-<operation name="retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged">
+<operation name="retrieveSeatInventoryByCabinClassIdAndFlightScheduleId">
 <soap:operation soapAction=""/>
 <input>
 <soap:body use="literal"/>
@@ -450,7 +465,7 @@
 <soap:fault name="SeatInventoryNotFoundException" use="literal"/>
 </fault>
 </operation>
-<operation name="retrieveCabinClassByIdUnmanaged">
+<operation name="getFlightById">
 <soap:operation soapAction=""/>
 <input>
 <soap:body use="literal"/>
@@ -458,11 +473,11 @@
 <output>
 <soap:body use="literal"/>
 </output>
-<fault name="CabinClassNotFoundException">
-<soap:fault name="CabinClassNotFoundException" use="literal"/>
+<fault name="FlightNotFoundException">
+<soap:fault name="FlightNotFoundException" use="literal"/>
 </fault>
 </operation>
-<operation name="retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged">
+<operation name="retrieveCabinSeatInventoryInSeatInventory">
 <soap:operation soapAction=""/>
 <input>
 <soap:body use="literal"/>
@@ -470,8 +485,71 @@
 <output>
 <soap:body use="literal"/>
 </output>
-<fault name="CabinClassNotFoundException">
-<soap:fault name="CabinClassNotFoundException" use="literal"/>
+</operation>
+<operation name="retrieveCabinClassesByAircraftConfigId">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="retrievePassengerByPassengerId">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+<fault name="PassengerNotFoundException">
+<soap:fault name="PassengerNotFoundException" use="literal"/>
+</fault>
+</operation>
+<operation name="getFlightSchedulePlanById">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+<fault name="FlightSchedulePlanNotFoundException">
+<soap:fault name="FlightSchedulePlanNotFoundException" use="literal"/>
+</fault>
+</operation>
+<operation name="retrieveReservationRecordsByCustomerId">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="retrieveReservationRecordById">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+<fault name="FlightReservationRecordNotFoundException">
+<soap:fault name="FlightReservationRecordNotFoundException" use="literal"/>
+</fault>
+</operation>
+<operation name="createNewFlightReservationRecord">
+<soap:operation soapAction=""/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+<fault name="InputDataValidationException">
+<soap:fault name="InputDataValidationException" use="literal"/>
 </fault>
 </operation>
 </binding>

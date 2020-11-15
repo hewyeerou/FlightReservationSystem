@@ -60,16 +60,13 @@ public class FlightSchedulePlan implements Serializable {
     @OneToOne
     private FlightSchedulePlan returnFlightSchedulePlan;
     
-    @XmlTransient
     @ManyToOne(optional=false)
     @JoinColumn(nullable=false)
     private Flight flight;
     
-    @XmlTransient
     @OneToMany(mappedBy = "flightSchedulePlan")
     private List<Fare> fares;
     
-    @XmlTransient
     @OneToMany(mappedBy = "flightSchedulePlan")
     private List<FlightSchedule> flightSchedules;
 
@@ -154,6 +151,7 @@ public class FlightSchedulePlan implements Serializable {
         this.flight = flight;
     }
 
+    @XmlTransient
     public List<Fare> getFares() {
         return fares;
     }
@@ -178,6 +176,7 @@ public class FlightSchedulePlan implements Serializable {
         this.endDate = endDate;
     }
 
+    @XmlTransient
     public List<FlightSchedule> getFlightSchedules() {
         return flightSchedules;
     }
@@ -194,13 +193,12 @@ public class FlightSchedulePlan implements Serializable {
         this.intervalDays = intervalDays;
     }
 
+    @XmlTransient
     public FlightSchedulePlan getReturnFlightSchedulePlan() {
         return returnFlightSchedulePlan;
     }
 
     public void setReturnFlightSchedulePlan(FlightSchedulePlan returnFlightSchedulePlan) {
         this.returnFlightSchedulePlan = returnFlightSchedulePlan;
-    }
-    
-    
+    } 
 }

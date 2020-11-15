@@ -32,10 +32,8 @@ public interface FareSessionBeanLocal {
 
     public BigDecimal getLowestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException;
 
-    public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(Long flightSchedulePlanId, Long cabinClassId);
 
     public BigDecimal getHighestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException;
 
-    public BigDecimal getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException;
     
 }

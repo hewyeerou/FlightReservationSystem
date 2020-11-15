@@ -76,17 +76,6 @@ public class PassengerSessionBean implements PassengerSessionBeanRemote, Passeng
         }
     }
     
-    @Override
-    public Passenger retrievePassengerByPassengerIdUnmanaged (Long passengerId) throws PassengerNotFoundException
-    {
-        Passenger p = retrievePassengerByPassengerId(passengerId);
-        
-        em.detach(p);
-        em.detach(p.getFlightReservationRecord());
-      
-        return p;
-    }
-    
     private String prepareInputDataValidationErrorsMessage(Set<ConstraintViolation<Passenger>>constraintViolations)
     {
         String msg = "Input data validation error!:";

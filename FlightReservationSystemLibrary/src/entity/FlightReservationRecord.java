@@ -33,16 +33,13 @@ public class FlightReservationRecord implements Serializable {
     @Column(nullable = false, precision = 7, scale = 2)
     private BigDecimal totalAmount;
     
-    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private Person person;
-    
-    @XmlTransient
+
     @OneToMany(mappedBy = "flightReservationRecord")
     private List<Passenger> passengers;
-    
-    @XmlTransient
+
     @ManyToMany(mappedBy = "flightReservationRecords")
     private List<FlightSchedule> flightSchedules;
     
@@ -110,6 +107,7 @@ public class FlightReservationRecord implements Serializable {
         this.totalAmount = totalAmount;
     }
 
+    @XmlTransient
     public Person getPerson() {
         return person;
     }

@@ -39,5 +39,6 @@ public interface FlightSessionBeanLocal {
     public void removeFlight(Long flightId) throws FlightNotFoundException;
 
     public void setFlightDisabled(Long flightId);
+
     
 }

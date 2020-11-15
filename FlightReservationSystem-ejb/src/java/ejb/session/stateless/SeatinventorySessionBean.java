@@ -47,7 +47,6 @@ public class SeatInventorySessionBean implements SeatInventorySessionBeanRemote,
         validator = validatorFactory.getValidator();
     }
     
-    
     @Override
     public Long createSeatInventory(SeatInventory seatInventory, Long flightScheduleId, Long cabinClassId) throws FlightScheduleNotFoundException, InputDataValidationException
     {   
@@ -74,8 +73,6 @@ public class SeatInventorySessionBean implements SeatInventorySessionBeanRemote,
         {
             throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
         }
-        
-        
     }
     
     @Override
@@ -87,31 +84,14 @@ public class SeatInventorySessionBean implements SeatInventorySessionBeanRemote,
         
         try
         {
-            return (SeatInventory)query.getSingleResult();
+            SeatInventory si = (SeatInventory)query.getSingleResult();
+            si.getCabinSeatInventories().size();
+            return si;
         }
         catch (NoResultException | NonUniqueResultException ex)
         {
             throw new SeatInventoryNotFoundException();
         }
-    }
-    
-    @Override
-    public SeatInventory retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged(Long cabinClassId, Long flightScheduleId) throws SeatInventoryNotFoundException
-    {
-        SeatInventory seatInventory = retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(cabinClassId, flightScheduleId);
-        
-        em.detach(seatInventory);
-        
-        em.detach(seatInventory.getFlightSchedule());
-        
-        em.detach(seatInventory.getCabinClass());
-    
-        for (CabinSeatInventory cabinSeatInventory: seatInventory.getCabinSeatInventories())
-        {
-            em.detach(cabinSeatInventory);
-        }
-        
-        return seatInventory;
     }
     
     private String prepareInputDataValidationErrorsMessage(Set<ConstraintViolation<SeatInventory>>constraintViolations)

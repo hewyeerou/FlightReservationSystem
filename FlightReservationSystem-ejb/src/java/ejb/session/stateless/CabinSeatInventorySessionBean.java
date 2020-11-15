@@ -55,20 +55,6 @@ public class CabinSeatInventorySessionBean implements CabinSeatInventorySessionB
     } 
     
     @Override
-    public List<CabinSeatInventory> retrieveCabinSeatInventoryInSeatInventoryUnmanaged(Long seatInventoryId)
-    {
-        List<CabinSeatInventory> seats = retrieveCabinSeatInventoryInSeatInventory(seatInventoryId);
-        
-        for (CabinSeatInventory csi: seats)
-        {
-            em.detach(csi);
-            em.detach(csi.getSeatInventory());
-        }
-        
-        return seats;
-    }
-    
-    @Override
     public Long createNewCabinSeatInventory(CabinSeatInventory cabinSeatInventory, Long seatInventoryId, Long passengerId) throws CabinSeatInventoryExistException, InputDataValidationException
     {
         Query query = em.createQuery("SELECT c FROM CabinSeatInventory c WHERE c.seatInventory.seatInventoryId = :inSeatInventoryId AND c.seatTaken = :inReserveSeat");

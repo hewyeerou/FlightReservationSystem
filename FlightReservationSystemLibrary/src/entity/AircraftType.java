@@ -40,7 +40,6 @@ public class AircraftType implements Serializable {
     @Min(1)
     private Integer maxSeatCapacity;
     
-    @XmlTransient
     @OneToMany(mappedBy="aircraftType", fetch=FetchType.LAZY)
     private List<AircraftConfig> aircraftConfigs;
 
@@ -104,6 +103,7 @@ public class AircraftType implements Serializable {
         this.maxSeatCapacity = maxSeatCapacity;
     }
 
+    @XmlTransient
     public List<AircraftConfig> getAircraftConfigs() {
         return aircraftConfigs;
     }

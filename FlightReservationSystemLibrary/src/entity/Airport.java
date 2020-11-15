@@ -53,11 +53,9 @@ public class Airport implements Serializable {
     @NotNull
     private Integer timeZoneDiff;
 
-    @XmlTransient
     @OneToMany(mappedBy = "origin", fetch=FetchType.LAZY)
     private List<FlightRoute> departureRoutes;
     
-    @XmlTransient
     @OneToMany(mappedBy = "destination", fetch=FetchType.LAZY)
     private List<FlightRoute> arrivalRoutes;
     
@@ -151,6 +149,7 @@ public class Airport implements Serializable {
         this.country = country;
     }
 
+    @XmlTransient
     public List<FlightRoute> getDepartureRoutes() {
         return departureRoutes;
     }
@@ -159,6 +158,7 @@ public class Airport implements Serializable {
         this.departureRoutes = departureRoutes;
     }
 
+    @XmlTransient
     public List<FlightRoute> getArrivalRoutes() {
         return arrivalRoutes;
     }

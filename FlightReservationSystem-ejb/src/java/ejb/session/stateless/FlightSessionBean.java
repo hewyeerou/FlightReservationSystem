@@ -278,9 +278,6 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
         {
             throw new FlightNotFoundException("Flight " + flightId + " does not exist!");
         }
-        
-
-        
     }
     
     @Override
@@ -365,5 +362,4 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
         
         return msg;
     }
-       
 }
