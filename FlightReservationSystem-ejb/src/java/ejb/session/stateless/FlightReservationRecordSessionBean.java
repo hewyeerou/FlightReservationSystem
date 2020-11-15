@@ -14,10 +14,17 @@ import entity.Passenger;
 import entity.Person;
 import entity.SeatInventory;
 import java.util.List;
+import java.util.Set;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import util.exception.FlightReservationRecordNotFoundException;
+import util.exception.InputDataValidationException;
 
 /**
  *
@@ -28,36 +35,134 @@ public class FlightReservationRecordSessionBean implements FlightReservationReco
 
     @PersistenceContext(unitName = "FlightReservationSystem-ejbPU")
     private EntityManager em;
+    
+    private final ValidatorFactory validatorFactory;
+    private final Validator validator;
+    
+    public FlightReservationRecordSessionBean()
+    {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
+    }
 
     @Override
-    public Long createNewFlightReservationRecord(FlightReservationRecord flightReservationRecord, Long personId, List<Long> flightSchedules)
-    {            
-        Person person = em.find(Person.class, personId);
-        flightReservationRecord.setPerson(person);
+    public Long createNewFlightReservationRecord(FlightReservationRecord flightReservationRecord, Long personId, List<Long> flightSchedules) throws InputDataValidationException
+    {
+        Set<ConstraintViolation<FlightReservationRecord>>constraintViolations = validator.validate(flightReservationRecord);
         
-        if (person instanceof Customer)
+        if(constraintViolations.isEmpty())
         {
-            Customer customer = (Customer)person;
-            customer.getFlightReservationRecords().add(flightReservationRecord);
+            Person person = em.find(Person.class, personId);
+            flightReservationRecord.setPerson(person);
+
+            if (person instanceof Customer)
+            {
+                Customer customer = (Customer)person;
+                customer.getFlightReservationRecords().add(flightReservationRecord);
+            }
+            else if (person instanceof Partner)
+            {
+                Partner partner = (Partner)person;
+                partner.getFlightReservationRecords().add(flightReservationRecord);
+            }
+
+            for (Long fs: flightSchedules)
+            {
+                FlightSchedule flightS = em.find(FlightSchedule.class, fs);
+                flightReservationRecord.getFlightSchedules().add(flightS);
+                flightS.getFlightReservationRecords().add(flightReservationRecord);
+            }
+
+            em.persist(flightReservationRecord);
+            em.flush();
+            return flightReservationRecord.getRecordId();
         }
-        else if (person instanceof Partner)
+        else
         {
-            Partner partner = (Partner)person;
-            partner.getFlightReservationRecords().add(flightReservationRecord);
+            throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
         }
-        
-        for (Long fs: flightSchedules)
-        {
-            FlightSchedule flightS = em.find(FlightSchedule.class, fs);
-            flightReservationRecord.getFlightSchedules().add(flightS);
-            flightS.getFlightReservationRecords().add(flightReservationRecord);
-        }
-        
-        em.persist(flightReservationRecord);
-        em.flush();
-        return flightReservationRecord.getRecordId();
     }
     
+    @Override
+    public List<FlightReservationRecord> retrieveReservationRecordsByCustomerId (Long customerId)
+    {
+        Query query = em.createQuery("SELECT frr FROM FlightReservationRecord frr WHERE frr.person.id = :inCustomerId ORDER BY frr.recordId ASC");
+        query.setParameter("inCustomerId", customerId);
+        
+        return query.getResultList();
+    }
+    
+    @Override
+    public List<FlightReservationRecord> retrieveReservationRecordsByCustomerIdUnmanaged (Long customerId)
+    {
+        List<FlightReservationRecord> reservations = retrieveReservationRecordsByCustomerId(customerId);
+        
+        for (FlightReservationRecord reservation: reservations)
+        {
+            em.detach(reservation);
+            
+            for (FlightSchedule fs: reservation.getFlightSchedules())
+            {
+                em.detach(fs);
+            }
+            
+            for (Passenger p: reservation.getPassengers())
+            {
+                em.detach(p);
+            }
+        }
+        
+        return reservations;
+    }
+    
+    @Override
+    public FlightReservationRecord retrieveReservationRecordById (Long recordId, Long personId) throws FlightReservationRecordNotFoundException
+    {
+        FlightReservationRecord record = em.find(FlightReservationRecord.class, recordId);
+        Person person = em.find(Person.class, personId);
+        
+        Person customer = record.getPerson();
+        
+        if (person.equals(customer))
+        {
+            if (record != null)
+            {
+                record.getFlightSchedules().size();
+                record.getPassengers().size();
+
+                return record;
+            }
+            else
+            {
+                throw new FlightReservationRecordNotFoundException("Flight Reservation Record with ID " + recordId + " does not exist!");
+            }
+        }
+        else
+        {
+            throw new FlightReservationRecordNotFoundException("Flight Reservation Record with ID " + recordId + " cannot be viewed as it is not made by you!");
+        }
+    }
+    
+    @Override
+    public FlightReservationRecord retrieveReservationRecordByIdUnmanaged (Long recordId, Long personId) throws FlightReservationRecordNotFoundException
+    {
+        FlightReservationRecord reservation = retrieveReservationRecordById(recordId, personId);
+        
+        em.detach(reservation);
+            
+        for (FlightSchedule fs: reservation.getFlightSchedules())
+        {
+            em.detach(fs);
+        }
+
+        for (Passenger p: reservation.getPassengers())
+        {
+            em.detach(p);
+        }
+        
+        return reservation;
+    }
+
     @Override
     public FlightReservationRecord getFlightReservationRecordByFlightScheduleId(Long flightReservationRecordId)
     {
@@ -81,6 +186,17 @@ public class FlightReservationRecordSessionBean implements FlightReservationReco
         
         
         return flightReservationRecord;
+    }
+    
+    private String prepareInputDataValidationErrorsMessage(Set<ConstraintViolation<FlightReservationRecord>>constraintViolations)
+    {
+        String msg = "Input data validation error!:";
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            msg += "\n\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage();
+        }
         
+        return msg;
     }
 }

@@ -33,7 +33,6 @@ public class Partner extends Person implements Serializable {
         this.name = name;
     }
    
-
     @Override
     public int hashCode() {
         int hash = 0;
@@ -66,6 +65,4 @@ public class Partner extends Person implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
-
-    
 }

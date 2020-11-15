@@ -8,6 +8,8 @@ package ejb.session.stateless;
 import entity.CabinSeatInventory;
 import java.util.List;
 import javax.ejb.Local;
+import util.exception.CabinSeatInventoryExistException;
+import util.exception.InputDataValidationException;
 
 /**
  *
@@ -18,6 +20,8 @@ public interface CabinSeatInventorySessionBeanLocal {
 
     public List<CabinSeatInventory> retrieveCabinSeatInventoryInSeatInventory(Long seatInventoryId);
 
-    public Long createNewCabinSeatInventory(CabinSeatInventory cabinSeatInventory, Long seatInventoryId);
+    public Long createNewCabinSeatInventory(CabinSeatInventory cabinSeatInventory, Long seatInventoryId, Long passengerId) throws CabinSeatInventoryExistException, InputDataValidationException;
+
+    public List<CabinSeatInventory> retrieveCabinSeatInventoryInSeatInventoryUnmanaged(Long seatInventoryId);
     
 }

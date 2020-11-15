@@ -19,6 +19,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -35,10 +36,12 @@ public class FlightRoute implements Serializable {
     @OneToOne(optional = true)
     private FlightRoute returnFlightRoute;
     
+    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private Airport origin;
     
+    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private Airport destination;
@@ -51,7 +54,8 @@ public class FlightRoute implements Serializable {
     @NotNull
     private Boolean enabled;
     
-    @OneToMany(mappedBy = "flightRoute")
+    @XmlTransient
+    @OneToMany(mappedBy = "flightRoute", fetch = FetchType.LAZY)
     private List<Flight> flights;
 
     public FlightRoute() {

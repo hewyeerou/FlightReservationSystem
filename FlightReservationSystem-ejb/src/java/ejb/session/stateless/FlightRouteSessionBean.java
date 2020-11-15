@@ -10,13 +10,19 @@ import entity.Flight;
 import entity.FlightRoute;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import util.exception.FlightRouteExistException;
 import util.exception.FlightRouteNotFoundException;
+import util.exception.InputDataValidationException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -30,124 +36,151 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
     @PersistenceContext(unitName = "FlightReservationSystem-ejbPU")
     private EntityManager em;
     
+    private final ValidatorFactory validatorFactory;
+    private final Validator validator;
+
+    public FlightRouteSessionBean() {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
+    }
+
+    
     @Override
-    public Long createNewFlightRoute(FlightRoute flightRoute, Long originAirportId, Long destinationAirportId) throws FlightRouteExistException, UnknownPersistenceException
+    public Long createNewFlightRoute(FlightRoute flightRoute, Long originAirportId, Long destinationAirportId) throws FlightRouteExistException, UnknownPersistenceException, InputDataValidationException
     {
-        try
+        Set<ConstraintViolation<FlightRoute>>constraintViolations = validator.validate(flightRoute);
+        
+        if(constraintViolations.isEmpty())
         {
-            //check duplicate record
-
-            List<FlightRoute> flightRoutes = getAllFlightRoute();
-            List<String> flightRoutesPair = new ArrayList<>();
-            
-            for(FlightRoute route: flightRoutes)
+            try
             {
-                flightRoutesPair.add(route.getOrigin() + "-" + route.getDestination());
-            }
-            String routePair = flightRoute.getOrigin() + "-" + flightRoute.getDestination();
-            
-            if(!flightRoutesPair.contains(routePair))
-            {
-                Airport originAirport = em.find(Airport.class, originAirportId);
-                Airport destinationAirport = em.find(Airport.class, destinationAirportId);
+                //check duplicate record
+                List<FlightRoute> flightRoutes = getAllFlightRoute();
+                List<String> flightRoutesPair = new ArrayList<>();
 
-                //flightRoute - origin airport
-                flightRoute.setOrigin(originAirport);
-                originAirport.getDepartureRoutes().add(flightRoute);
-                
-                //flightRoute - destination airport
-                flightRoute.setDestination(destinationAirport);
-                destinationAirport.getArrivalRoutes().add(flightRoute);
-                
-                //flightRoute - returnflightRoute
-                flightRoute.setReturnFlightRoute(flightRoute);
-
-                for(Flight flight: flightRoute.getFlights())
+                for(FlightRoute route: flightRoutes)
                 {
-                    flight.setFlightRoute(flightRoute);
-                    flightRoute.getFlights().add(flight);
+                    flightRoutesPair.add(route.getOrigin() + "-" + route.getDestination());
                 }
+                String routePair = flightRoute.getOrigin() + "-" + flightRoute.getDestination();
 
-                em.persist(flightRoute);
-                em.flush();
-                
-                return flightRoute.getFlightRouteId();
-            }
-            else
-            {
-                throw new FlightRouteExistException("Flight route already exist!");
-            }  
-        }
-        catch(PersistenceException ex)
-        {
-            if(ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException"))
-            {
-                if(ex.getCause().getCause() != null && ex.getCause().getCause().getClass().getName().equals("java.sql.SQLIntegrityConstraintViolationException"))
+                if(!flightRoutesPair.contains(routePair))
                 {
-                    throw new FlightRouteExistException();
+                    Airport originAirport = em.find(Airport.class, originAirportId);
+                    Airport destinationAirport = em.find(Airport.class, destinationAirportId);
+
+                    //flightRoute - origin airport
+                    flightRoute.setOrigin(originAirport);
+                    originAirport.getDepartureRoutes().add(flightRoute);
+
+                    //flightRoute - destination airport
+                    flightRoute.setDestination(destinationAirport);
+                    destinationAirport.getArrivalRoutes().add(flightRoute);
+
+                    //flightRoute - returnflightRoute
+                    flightRoute.setReturnFlightRoute(flightRoute);
+
+                    for(Flight flight: flightRoute.getFlights())
+                    {
+                        flight.setFlightRoute(flightRoute);
+                        flightRoute.getFlights().add(flight);
+                    }
+
+                    em.persist(flightRoute);
+                    em.flush();
+
+                    return flightRoute.getFlightRouteId();
+                }
+                else
+                {
+                    throw new FlightRouteExistException("Flight route already exist!");
+                }  
+            }
+            catch(PersistenceException ex)
+            {
+                if(ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException"))
+                {
+                    if(ex.getCause().getCause() != null && ex.getCause().getCause().getClass().getName().equals("java.sql.SQLIntegrityConstraintViolationException"))
+                    {
+                        throw new FlightRouteExistException();
+                    }
+                    else
+                    {
+                        throw new UnknownPersistenceException(ex.getMessage());
+                    }
                 }
                 else
                 {
                     throw new UnknownPersistenceException(ex.getMessage());
                 }
             }
-            else
-            {
-                throw new UnknownPersistenceException(ex.getMessage());
-            }
         }
+        else
+        {
+            throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
+        }
+        
     }
     
     @Override
-    public Long createNewReturnFlightRoute(FlightRoute returnFlightRoute, Long flightRouteId) throws FlightRouteExistException, UnknownPersistenceException
+    public Long createNewReturnFlightRoute(FlightRoute returnFlightRoute, Long flightRouteId) throws FlightRouteExistException, UnknownPersistenceException, InputDataValidationException
     {
-        try
+        Set<ConstraintViolation<FlightRoute>>constraintViolations = validator.validate(returnFlightRoute);
+        
+        if(constraintViolations.isEmpty())
         {
-                FlightRoute flightRoute = em.find(FlightRoute.class, flightRouteId);
-
-                Airport originAirport = flightRoute.getDestination();
-                Airport destinationAirport = flightRoute.getOrigin();
-
-                //returnFlightRoute - originAirport
-                returnFlightRoute.setOrigin(originAirport);
-                originAirport.getDepartureRoutes().add(returnFlightRoute);
-                
-                //returnFlightRoute - destinationAirport
-                returnFlightRoute.setDestination(destinationAirport);
-                destinationAirport.getArrivalRoutes().add(returnFlightRoute);
-
-                //flightRoute - returnFlightRoute
-                flightRoute.setReturnFlightRoute(returnFlightRoute);
-                returnFlightRoute.setReturnFlightRoute(returnFlightRoute);
-
-                for(Flight flight: returnFlightRoute.getFlights())
-                {
-                    flight.setFlightRoute(returnFlightRoute);
-                    returnFlightRoute.getFlights().add(flight);
-                }
-
-                em.persist(returnFlightRoute);
-                em.flush();
-
-                return returnFlightRoute.getFlightRouteId();  
-        }
-        catch(PersistenceException ex)
-        {
-            if(ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException"))
+            try
             {
-                if(ex.getCause().getCause() != null && ex.getCause().getCause().getClass().getName().equals("java.sql.SQLIntegrityConstraintViolationException"))
+                    FlightRoute flightRoute = em.find(FlightRoute.class, flightRouteId);
+
+                    Airport originAirport = flightRoute.getDestination();
+                    Airport destinationAirport = flightRoute.getOrigin();
+
+                    //returnFlightRoute - originAirport
+                    returnFlightRoute.setOrigin(originAirport);
+                    originAirport.getDepartureRoutes().add(returnFlightRoute);
+
+                    //returnFlightRoute - destinationAirport
+                    returnFlightRoute.setDestination(destinationAirport);
+                    destinationAirport.getArrivalRoutes().add(returnFlightRoute);
+
+                    //flightRoute - returnFlightRoute
+                    flightRoute.setReturnFlightRoute(returnFlightRoute);
+                    returnFlightRoute.setReturnFlightRoute(returnFlightRoute);
+
+                    for(Flight flight: returnFlightRoute.getFlights())
+                    {
+                        flight.setFlightRoute(returnFlightRoute);
+                        returnFlightRoute.getFlights().add(flight);
+                    }
+
+                    em.persist(returnFlightRoute);
+                    em.flush();
+
+                    return returnFlightRoute.getFlightRouteId();  
+            }
+            catch(PersistenceException ex)
+            {
+                if(ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException"))
                 {
-                    throw new FlightRouteExistException();
+                    if(ex.getCause().getCause() != null && ex.getCause().getCause().getClass().getName().equals("java.sql.SQLIntegrityConstraintViolationException"))
+                    {
+                        throw new FlightRouteExistException();
+                    }
+                    else
+                    {
+                        throw new UnknownPersistenceException(ex.getMessage());
+                    }
                 }
                 else
                 {
                     throw new UnknownPersistenceException(ex.getMessage());
                 }
             }
-            else
-            {
-                throw new UnknownPersistenceException(ex.getMessage());
-            }
+        }
+        else
+        {
+            throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
         }
         
     }
@@ -204,26 +237,6 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
         em.remove(returnFlightRouteRemove);
     }
     
-//    @Override
-//    public void removeReturnFlightRoute(Long flightRouteId, Long flightRouteIdAssociatedWithReturnFlightRoute) throws FlightRouteNotFoundException
-//    {
-//        FlightRoute flightRouteRemove = getFlightRouteById(flightRouteId, true, true);
-//        
-//        flightRouteRemove.getOrigin().getDepartureRoutes().remove(flightRouteRemove);
-//        flightRouteRemove.getDestination().getArrivalRoutes().remove(flightRouteRemove);
-//        
-//        flightRouteRemove.setReturnFlightRoute(null);
-//        
-//         //if it is return flight route, set the flight route associated to this return flight to itself
-//         //disassociate 
-//        FlightRoute flightRouteAssociatedToReturnFlightRoute = em.find(FlightRoute.class, flightRouteIdAssociatedWithReturnFlightRoute);
-//        flightRouteAssociatedToReturnFlightRoute.setReturnFlightRoute(flightRouteAssociatedToReturnFlightRoute);
-//               
-//
-//        em.remove(flightRouteRemove);
-//    }
-
-    
     @Override
     public void setFlightRouteDisabled(Long flightRouteId)
     {
@@ -233,6 +246,18 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
         {
             flightRouteToUpdate.setEnabled(false);
         }       
+    }
+    
+    private String prepareInputDataValidationErrorsMessage(Set<ConstraintViolation<FlightRoute>>constraintViolations)
+    {
+        String msg = "Input data validation error!:";
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            msg += "\n\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage();
+        }
+        
+        return msg;
     }
     
     

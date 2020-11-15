@@ -13,14 +13,20 @@ import entity.FlightSchedulePlan;
 import entity.SeatInventory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import util.exception.FlightNotFoundException;
 import util.exception.FlightSchedulePlanNotFoundException;
+import util.exception.InputDataValidationException;
 
 /**
  *
@@ -38,72 +44,100 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
     @EJB(name = "FareSessionBeanLocal")
     private FareSessionBeanLocal fareSessionBeanLocal;
     
+    private final ValidatorFactory validatorFactory;
+    private final Validator validator;
+
+    public FlightSchedulePlanSessionBean() {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
+    }
+    
+    
     @Override
-    public Long createNewFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan, String flightNum) throws FlightNotFoundException{      
-        //flight
-        Flight flight = flightSessionBeanLocal.getFlightByFlightNum(flightNum);
+    public Long createNewFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan, String flightNum) throws FlightNotFoundException, InputDataValidationException
+    {      
+        Set<ConstraintViolation<FlightSchedulePlan>>constraintViolations = validator.validate(flightSchedulePlan);
         
-        //flight schedule plan - flight
-        flightSchedulePlan.setFlight(flight);
-        flight.getFlightSchedulePlans().add(flightSchedulePlan);
-        
-        //flight schedule plan - fare
-        for(Fare fare: flightSchedulePlan.getFares())
+        if(constraintViolations.isEmpty())
         {
-            fare.setFlightSchedulePlan(flightSchedulePlan);
-            flightSchedulePlan.getFares().add(fare);
+            //flight
+            Flight flight = flightSessionBeanLocal.getFlightByFlightNum(flightNum);
+
+            //flight schedule plan - flight
+            flightSchedulePlan.setFlight(flight);
+            flight.getFlightSchedulePlans().add(flightSchedulePlan);
+
+            //flight schedule plan - fare
+            for(Fare fare: flightSchedulePlan.getFares())
+            {
+                fare.setFlightSchedulePlan(flightSchedulePlan);
+                flightSchedulePlan.getFares().add(fare);
+            }
+
+            //flight schedule plan - flight schedule
+            for(FlightSchedule flightSchedule: flightSchedulePlan.getFlightSchedules()){
+                flightSchedule.setFlightSchedulePlan(flightSchedulePlan);
+                flightSchedulePlan.getFlightSchedules().add(flightSchedule);
+            }
+
+            flightSchedulePlan.setReturnFlightSchedulePlan(flightSchedulePlan);
+
+            em.persist(flightSchedulePlan);
+            em.flush();
+
+            return flightSchedulePlan.getFlightSchedulePlanId();
         }
-        
-        //flight schedule plan - flight schedule
-        for(FlightSchedule flightSchedule: flightSchedulePlan.getFlightSchedules()){
-            flightSchedule.setFlightSchedulePlan(flightSchedulePlan);
-            flightSchedulePlan.getFlightSchedules().add(flightSchedule);
+        else
+        {
+            throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
         }
-        
-        flightSchedulePlan.setReturnFlightSchedulePlan(flightSchedulePlan);
-        
-        em.persist(flightSchedulePlan);
-        em.flush();
-        
-        return flightSchedulePlan.getFlightSchedulePlanId();
     }
     
      
     @Override
-    public Long createNewReturnFlightSchedulePlan(FlightSchedulePlan returnFlightSchedulePlan, Long flightSchedulePlanId) throws FlightNotFoundException
+    public Long createNewReturnFlightSchedulePlan(FlightSchedulePlan returnFlightSchedulePlan, Long flightSchedulePlanId) throws FlightNotFoundException, InputDataValidationException
     {
-        FlightSchedulePlan flightSchedulePlan = em.find(FlightSchedulePlan.class, flightSchedulePlanId);
+        Set<ConstraintViolation<FlightSchedulePlan>>constraintViolations = validator.validate(returnFlightSchedulePlan);
         
-        Flight returnFlight = flightSchedulePlan.getFlight().getReturnFlight();
-        
-        //return flight schedule plan - flight
-        returnFlightSchedulePlan.setFlight(returnFlight);
-        returnFlight.getFlightSchedulePlans().add(returnFlightSchedulePlan);
-        
-        //return flight schedule plan - fare
-        for(Fare fare: returnFlightSchedulePlan.getFares())
+        if(constraintViolations.isEmpty())
         {
-            fare.setFlightSchedulePlan(returnFlightSchedulePlan);
-            
-            em.persist(fare);
+            FlightSchedulePlan flightSchedulePlan = em.find(FlightSchedulePlan.class, flightSchedulePlanId);
+
+            Flight returnFlight = flightSchedulePlan.getFlight().getReturnFlight();
+
+            //return flight schedule plan - flight
+            returnFlightSchedulePlan.setFlight(returnFlight);
+            returnFlight.getFlightSchedulePlans().add(returnFlightSchedulePlan);
+
+            //return flight schedule plan - fare
+            for(Fare fare: returnFlightSchedulePlan.getFares())
+            {
+                fare.setFlightSchedulePlan(returnFlightSchedulePlan);
+
+                em.persist(fare);
+            }
+
+            //flight schedule plan - flight schedule
+            for(FlightSchedule flightSchedule: returnFlightSchedulePlan.getFlightSchedules())
+            {
+                flightSchedule.setFlightSchedulePlan(returnFlightSchedulePlan);
+
+                em.persist(flightSchedule);
+            }
+
+            //flight schedule plan - return flight schedule plan
+            flightSchedulePlan.setReturnFlightSchedulePlan(returnFlightSchedulePlan);
+            returnFlightSchedulePlan.setReturnFlightSchedulePlan(returnFlightSchedulePlan);
+
+            em.persist(returnFlightSchedulePlan);
+            em.flush();
+
+            return returnFlightSchedulePlan.getFlightSchedulePlanId();
         }
-        
-        //flight schedule plan - flight schedule
-        for(FlightSchedule flightSchedule: returnFlightSchedulePlan.getFlightSchedules())
+        else
         {
-            flightSchedule.setFlightSchedulePlan(returnFlightSchedulePlan);
-            
-            em.persist(flightSchedule);
+            throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
         }
-        
-        //flight schedule plan - return flight schedule plan
-        flightSchedulePlan.setReturnFlightSchedulePlan(returnFlightSchedulePlan);
-        returnFlightSchedulePlan.setReturnFlightSchedulePlan(returnFlightSchedulePlan);
-        
-        em.persist(returnFlightSchedulePlan);
-        em.flush();
-        
-        return returnFlightSchedulePlan.getFlightSchedulePlanId();
     }
     
     @Override
@@ -146,17 +180,26 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
     
  
     @Override
-    public void updateFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan) throws FlightSchedulePlanNotFoundException
+    public void updateFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan) throws FlightSchedulePlanNotFoundException, InputDataValidationException
     {
         if(flightSchedulePlan != null && flightSchedulePlan.getFlightSchedulePlanId() != null)
         {
-            FlightSchedulePlan flightSchedulePlanToUpdate = getFlightSchedulePlanById(flightSchedulePlan.getFlightSchedulePlanId());
+            Set<ConstraintViolation<FlightSchedulePlan>>constraintViolations = validator.validate(flightSchedulePlan);
             
-            flightSchedulePlanToUpdate.setFlightSchedules(flightSchedulePlan.getFlightSchedules());
-            flightSchedulePlanToUpdate.setFares(flightSchedulePlan.getFares());
-            flightSchedulePlanToUpdate.setEndDate(flightSchedulePlan.getEndDate());
-            flightSchedulePlanToUpdate.setStartDate(flightSchedulePlan.getStartDate());
-            flightSchedulePlanToUpdate.setIntervalDays(flightSchedulePlan.getIntervalDays());
+            if(constraintViolations.isEmpty())
+            {
+                FlightSchedulePlan flightSchedulePlanToUpdate = getFlightSchedulePlanById(flightSchedulePlan.getFlightSchedulePlanId());
+
+                flightSchedulePlanToUpdate.setFlightSchedules(flightSchedulePlan.getFlightSchedules());
+                flightSchedulePlanToUpdate.setFares(flightSchedulePlan.getFares());
+                flightSchedulePlanToUpdate.setEndDate(flightSchedulePlan.getEndDate());
+                flightSchedulePlanToUpdate.setStartDate(flightSchedulePlan.getStartDate());
+                flightSchedulePlanToUpdate.setIntervalDays(flightSchedulePlan.getIntervalDays());
+            }
+            else
+            {
+                throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
+            }
             
         }
         else
@@ -226,5 +269,17 @@ public class FlightSchedulePlanSessionBean implements FlightSchedulePlanSessionB
         {
             throw new FlightSchedulePlanNotFoundException("Flight Schedule Plan does not exist!");
         }
+    }
+    
+    private String prepareInputDataValidationErrorsMessage(Set<ConstraintViolation<FlightSchedulePlan>>constraintViolations)
+    {
+        String msg = "Input data validation error!:";
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            msg += "\n\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage();
+        }
+        
+        return msg;
     }
 }

@@ -6,6 +6,8 @@
 package ejb.session.stateless;
 
 import entity.CabinClass;
+import entity.Fare;
+import entity.SeatInventory;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -26,12 +28,38 @@ public class CabinClassSessionBean implements CabinClassSessionBeanRemote, Cabin
     @PersistenceContext(unitName = "FlightReservationSystem-ejbPU")
     private EntityManager em;
     
+    @Override
     public List<CabinClass> retrieveCabinClassesByAircraftConfigId(Long aircraftConfigId)
     {
         Query query = em.createQuery("SELECT cc FROM CabinClass cc WHERE cc.aircraftConfig.aircraftConfigId = :inAircraftConfigId");
         query.setParameter("inAircraftConfigId", aircraftConfigId);
         
         return query.getResultList();
+    }
+    
+    @Override
+    public List<CabinClass> retrieveCabinClassesByAircraftConfigIdUnmanaged(Long aircraftConfigId)
+    {
+        List<CabinClass> cabinClasses = retrieveCabinClassesByAircraftConfigId(aircraftConfigId);
+        
+        for (CabinClass cc: cabinClasses)
+        {
+            em.detach(cc);
+            
+            em.detach(cc.getAircraftConfig());
+            
+            for (Fare fare: cc.getFares())
+            {
+                em.detach(fare);
+            }
+            
+            for (SeatInventory si: cc.getSeatInventories())
+            {
+                em.detach(si);
+            }
+        }
+        
+        return cabinClasses;
     }
     
     @Override
@@ -47,15 +75,69 @@ public class CabinClassSessionBean implements CabinClassSessionBeanRemote, Cabin
         }
         catch(NoResultException | NonUniqueResultException ex)
         {
-            throw new CabinClassNotFoundException();
+            throw new CabinClassNotFoundException("Cabin Class cannot be found does not exist!\n");
         }
     }
     
     @Override
-    public CabinClass retrieveCabinClassById(Long cabinClassId)
+    public CabinClass retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged(Long aircraftConfigId, CabinClassEnum type) throws CabinClassNotFoundException
+    {
+        CabinClass cc = retrieveCabinClassByAircraftConfigIdAndType(aircraftConfigId, type);
+        
+        em.detach(cc);
+            
+        em.detach(cc.getAircraftConfig());
+
+        for (Fare fare: cc.getFares())
+        {
+            em.detach(fare);
+        }
+
+        for (SeatInventory si: cc.getSeatInventories())
+        {
+            em.detach(si);
+        }
+        
+        return cc;
+    }
+    
+    @Override
+    public CabinClass retrieveCabinClassById(Long cabinClassId) throws CabinClassNotFoundException
     {
         CabinClass cabinClass = em.find(CabinClass.class, cabinClassId);
         
-        return cabinClass;
+        if (cabinClass != null)
+        {
+            cabinClass.getFares().size();
+            cabinClass.getSeatInventories().size();
+            
+            return cabinClass;
+        }
+        else
+        {
+            throw new CabinClassNotFoundException("Cabin Class with ID " + cabinClassId + " does not exist!\n");
+        }
+    }
+    
+    @Override
+    public CabinClass retrieveCabinClassByIdUnmanaged(Long cabinClassId) throws CabinClassNotFoundException
+    {
+        CabinClass cc = retrieveCabinClassById(cabinClassId);
+        
+        em.detach(cc);
+            
+        em.detach(cc.getAircraftConfig());
+
+        for (Fare fare: cc.getFares())
+        {
+            em.detach(fare);
+        }
+
+        for (SeatInventory si: cc.getSeatInventories())
+        {
+            em.detach(si);
+        }
+        
+        return cc;
     }
 }

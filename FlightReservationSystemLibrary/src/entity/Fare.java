@@ -18,6 +18,7 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -39,10 +40,12 @@ public class Fare implements Serializable {
     @Digits(integer = 9, fraction = 2)
     private BigDecimal fareAmount;
     
+    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private CabinClass cabinClass;
     
+    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private FlightSchedulePlan flightSchedulePlan;

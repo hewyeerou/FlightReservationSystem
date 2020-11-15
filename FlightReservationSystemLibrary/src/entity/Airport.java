@@ -18,6 +18,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -52,9 +53,11 @@ public class Airport implements Serializable {
     @NotNull
     private Integer timeZoneDiff;
 
+    @XmlTransient
     @OneToMany(mappedBy = "origin", fetch=FetchType.LAZY)
     private List<FlightRoute> departureRoutes;
     
+    @XmlTransient
     @OneToMany(mappedBy = "destination", fetch=FetchType.LAZY)
     private List<FlightRoute> arrivalRoutes;
     

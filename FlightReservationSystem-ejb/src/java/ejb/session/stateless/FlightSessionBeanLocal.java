@@ -10,6 +10,7 @@ import java.util.List;
 import javax.ejb.Local;
 import util.exception.FlightNotFoundException;
 import util.exception.FlightNumExistException;
+import util.exception.InputDataValidationException;
 import util.exception.UnknownPersistenceException;
 import util.exception.UpdateStaffException;
 import util.exception.createOutboundReturnFlightCheckException;
@@ -21,23 +22,21 @@ import util.exception.createOutboundReturnFlightCheckException;
 @Local
 public interface FlightSessionBeanLocal {
 
-    public Long createFlight(Flight newFlight, Long flightRouteId, Long aircraftConfigId) throws FlightNumExistException, UnknownPersistenceException;
+    public Long createFlight(Flight newFlight, Long flightRouteId, Long aircraftConfigId) throws FlightNumExistException, UnknownPersistenceException, InputDataValidationException;
 
-    public Long createReturnFlight(Flight newReturnFlight, Long flightId) throws FlightNumExistException, UnknownPersistenceException;
+    public Long createReturnFlight(Flight newReturnFlight, Long flightId) throws FlightNumExistException, UnknownPersistenceException, InputDataValidationException;
 
     public List<Flight> getAllFlights();
 
     public Flight getFlightByFlightNum(String flightNum) throws FlightNotFoundException;
 
-    public void updateFlight(Flight flight) throws FlightNotFoundException, FlightNumExistException;
+    public void updateFlight(Flight flight) throws FlightNotFoundException, FlightNumExistException, InputDataValidationException;
 
     public Flight getFlightById(Long flightId) throws FlightNotFoundException;
 
-    public Long createOutboundReturnFlightCheck(Flight newFlight, Long flightRouteId, Long aircraftConfigId, Flight newReturnFlight) throws createOutboundReturnFlightCheckException;
+    public Long createOutboundReturnFlightCheck(Flight newFlight, Long flightRouteId, Long aircraftConfigId, Flight newReturnFlight) throws createOutboundReturnFlightCheckException, InputDataValidationException;
 
     public void removeFlight(Long flightId) throws FlightNotFoundException;
-
-//    public void removeReturnFlight(Long flightId) throws FlightNotFoundException;
 
     public void setFlightDisabled(Long flightId);
     

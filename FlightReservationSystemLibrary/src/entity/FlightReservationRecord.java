@@ -14,6 +14,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.Min;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -32,13 +33,16 @@ public class FlightReservationRecord implements Serializable {
     @Column(nullable = false, precision = 7, scale = 2)
     private BigDecimal totalAmount;
     
+    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private Person person;
     
+    @XmlTransient
     @OneToMany(mappedBy = "flightReservationRecord")
     private List<Passenger> passengers;
     
+    @XmlTransient
     @ManyToMany(mappedBy = "flightReservationRecords")
     private List<FlightSchedule> flightSchedules;
     

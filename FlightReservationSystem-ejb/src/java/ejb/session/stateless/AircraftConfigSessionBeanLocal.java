@@ -10,6 +10,7 @@ import java.util.List;
 import javax.ejb.Local;
 import util.exception.AircraftConfigNameExistException;
 import util.exception.AircraftConfigNotFoundException;
+import util.exception.InputDataValidationException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -19,7 +20,7 @@ import util.exception.UnknownPersistenceException;
 @Local
 public interface AircraftConfigSessionBeanLocal {
 
-    public Long createNewAircraftConfig(AircraftConfig newAircraftConfig, Long aircraftTypeId) throws AircraftConfigNameExistException, UnknownPersistenceException;
+    public Long createNewAircraftConfig(AircraftConfig newAircraftConfig, Long aircraftTypeId) throws AircraftConfigNameExistException, UnknownPersistenceException, InputDataValidationException;
 
     public List<AircraftConfig> retrieveAllAircraftConfigs();
 

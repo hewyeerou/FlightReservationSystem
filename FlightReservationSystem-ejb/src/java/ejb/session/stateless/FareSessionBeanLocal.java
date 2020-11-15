@@ -12,6 +12,7 @@ import javax.ejb.Local;
 import util.exception.FareBasisCodeExistException;
 import util.exception.FareNotFoundException;
 import util.exception.FlightSchedulePlanNotFoundException;
+import util.exception.InputDataValidationException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -21,14 +22,20 @@ import util.exception.UnknownPersistenceException;
 @Local
 public interface FareSessionBeanLocal {
 
-    public Long createNewFare(Fare newFare, Long flightSchedulePlanId, Long cabinClassId) throws FlightSchedulePlanNotFoundException;
+    public Long createNewFare(Fare newFare, Long flightSchedulePlanId, Long cabinClassId) throws FlightSchedulePlanNotFoundException, InputDataValidationException;
 
     public List<Fare> getFaresByFlightSchedulePlanId(Long flightSchedulePlanId);
 
-    public void updateFare(Fare fare) throws FareNotFoundException;
+    public void updateFare(Fare fare) throws FareNotFoundException, InputDataValidationException;
 
     public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId);
 
-    public BigDecimal getLowestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId);
+    public BigDecimal getLowestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException;
+
+    public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(Long flightSchedulePlanId, Long cabinClassId);
+
+    public BigDecimal getHighestFareByFlightSchedulePlanIdAndCabinClassId(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException;
+
+    public BigDecimal getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(Long flightSchedulePlanId, Long cabinClassId) throws FareNotFoundException;
     
 }

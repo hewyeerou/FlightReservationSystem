@@ -19,13 +19,19 @@ import entity.Employee;
 import entity.Flight;
 import entity.FlightRoute;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import util.enumeration.CabinClassEnum;
 import util.enumeration.UserRoleEnum;
 import util.exception.AircraftConfigNameExistException;
@@ -33,6 +39,7 @@ import util.exception.AircraftConfigNotFoundException;
 import util.exception.AirportNotFoundException;
 import util.exception.FlightRouteExistException;
 import util.exception.FlightRouteNotFoundException;
+import util.exception.InputDataValidationException;
 import util.exception.InvalidAccessRightsException;
 import util.exception.InvalidSeatNumberInputException;
 import util.exception.UnknownPersistenceException;
@@ -44,6 +51,9 @@ import util.exception.UnknownPersistenceException;
 public class FlightPlanningModule 
 {
 
+    private final ValidatorFactory validatorFactory;
+    private final Validator validator;
+    
     private PartnerSessionBeanRemote partnerSessionBeanRemote;
     private AirportSessionBeanRemote airportSessionBeanRemote;
     private AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote;
@@ -53,7 +63,10 @@ public class FlightPlanningModule
 
     private Employee currentEmployee;
     
-    public FlightPlanningModule() {
+    public FlightPlanningModule() 
+    {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
     }
     
     public FlightPlanningModule(AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote, AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote, AirportSessionBeanRemote airportSessionBeanRemote, FlightRouteSessionBeanRemote flightRouteSessionBeanRemote, Employee currentEmployee) 
@@ -88,41 +101,49 @@ public class FlightPlanningModule
             
             while(response < 1 || response > 2)
             {
-                System.out.print("> ");
-                
-                response = scanner.nextInt();
-                
-                if(response == 1)
+                try
                 {
-                    try
+                    System.out.print("> ");
+
+                    response = scanner.nextInt();
+
+                    if(response == 1)
                     {
-                        doAircraftConfig();
+                        try
+                        {
+                            doAircraftConfig();
+                        }
+                        catch(InvalidAccessRightsException ex)
+                        {
+                            System.out.println(ex.getMessage());
+                            break;
+                        }
                     }
-                    catch(InvalidAccessRightsException ex)
+                    else if(response == 2)
                     {
-                        System.out.println(ex.getMessage());
+                        try
+                        {
+                            doFlightRoute();
+                        }
+                        catch (InvalidAccessRightsException ex)
+                        {
+                            System.out.println(ex.getMessage());
+                            break;
+                        }
+                    }
+                    else if(response == 3)
+                    {
                         break;
                     }
-                }
-                else if(response == 2)
-                {
-                    try
+                    else
                     {
-                        doFlightRoute();
-                    }
-                    catch (InvalidAccessRightsException ex)
-                    {
-                        System.out.println(ex.getMessage());
-                        break;
+                        System.out.println("Invalid option, please try again!\n");
                     }
                 }
-                else if(response == 3)
+                catch(InputMismatchException ex)
                 {
-                    break;
-                }
-                else
-                {
-                    System.out.println("Invalid option, please try again!\n");
+                    System.out.println("Invalid input, select an option from 1-3!\n");
+                    scanner.next();
                 }
             }
             
@@ -155,29 +176,37 @@ public class FlightPlanningModule
             
             while(response < 1 || response > 3)
             {
-                System.out.print("> ");
-                
-                response = scanner.nextInt();
-                
-                if(response == 1)
+                try
                 {
-                    doCreateAircraftConfig();
+                    System.out.print("> ");
+
+                    response = scanner.nextInt();
+
+                    if(response == 1)
+                    {
+                        doCreateAircraftConfig();
+                    }
+                    else if(response == 2)
+                    {
+                        doViewAllAircraftConfig();
+                    }
+                    else if(response == 3)
+                    {
+                        doViewAircraftConfigDetails();
+                    }
+                    else if(response == 4)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        System.out.println("Invalid option, please try again!\n");
+                    }
                 }
-                else if(response == 2)
+                catch (InputMismatchException ex)
                 {
-                    doViewAllAircraftConfig();
-                }
-                else if(response == 3)
-                {
-                    doViewAircraftConfigDetails();
-                }
-                else if(response == 4)
-                {
-                    break;
-                }
-                else
-                {
-                    System.out.println("Invalid option, please try again!\n");
+                    System.out.println("Invalid input, select an option from 1-4!\n");
+                    scanner.next();
                 }
             }
             
@@ -211,29 +240,37 @@ public class FlightPlanningModule
             
             while(response < 1 || response > 3)
             {
-                System.out.print("> ");
-                
-                response = scanner.nextInt();
-                
-                if(response == 1)
+                try
                 {
-                   doCreateFlightRoute();
+                    System.out.print("> ");
+
+                    response = scanner.nextInt();
+
+                    if(response == 1)
+                    {
+                       doCreateFlightRoute();
+                    }
+                    else if(response == 2)
+                    {
+                        doViewAllFlightRoute();
+                    }
+                    else if(response == 3)
+                    {
+                        doDeleteFlightRoute();
+                    }
+                    else if(response == 4)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        System.out.println("Invalid option, please try again!\n");
+                    }
                 }
-                else if(response == 2)
+                catch (InputMismatchException ex)
                 {
-                    doViewAllFlightRoute();
-                }
-                else if(response == 3)
-                {
-                    doDeleteFlightRoute();
-                }
-                else if(response == 4)
-                {
-                    break;
-                }
-                else
-                {
-                    System.out.println("Invalid option, please try again!\n");
+                    System.out.println("Invalid input, select an option from 1-4!\n");
+                    scanner.next();
                 }
             }
             
@@ -267,39 +304,68 @@ public class FlightPlanningModule
                 System.out.println(option + ": " + aircraftType.getAircraftTypeName());
             }
             
-            System.out.println("");
-            System.out.print("Select Aircraft Type> ");
-            aircraftTypeInt = scanner.nextInt();
-            scanner.nextLine();
-            
-            if (aircraftTypeInt >= 1 && aircraftTypeInt <= option)
+            try
             {
-                aircraftTypeId = aircraftTypes.get(aircraftTypeInt-1).getAircraftTypeId();
-                break;
+                System.out.println("");
+                System.out.print("Select Aircraft Type> ");
+                aircraftTypeInt = scanner.nextInt();
+                scanner.nextLine();
+
+                if (aircraftTypeInt >= 1 && aircraftTypeInt <= option)
+                {
+                    aircraftTypeId = aircraftTypes.get(aircraftTypeInt-1).getAircraftTypeId();
+                    break;
+                }
+                else
+                {
+                    System.out.println("Invalid option, please try again!\n");
+                }
             }
-            else
+            catch (InputMismatchException ex)
             {
-                System.out.println("Invalid option, please try again!\n");
+                System.out.println("Invalid input, select an option from 1-" + option + "!\n");
+                scanner.next();
             }
         }
         
-        System.out.print("Enter Name> ");
-        newAircraftConfig.setName(scanner.nextLine().trim());
-        
-        while (true)
+        String name = "";
+        while (name.length() <= 0)
         {
-            System.out.print("Enter Number of Cabin Classes> ");
-            numOfCabinClasses = scanner.nextInt();
-            scanner.nextLine();
-            
-            if (numOfCabinClasses >= 1 && numOfCabinClasses <= 4)
+            try
             {
-                newAircraftConfig.setNumOfCabinClasses(numOfCabinClasses);
-                break;
+                System.out.print("Enter Name> ");
+                name = scanner.nextLine().trim();
+                newAircraftConfig.setName(name);
+
+                while (true)
+                {
+                    try
+                    {
+                        System.out.print("Enter Number of Cabin Classes> ");
+                        numOfCabinClasses = scanner.nextInt();
+                        scanner.nextLine();
+
+                        if (numOfCabinClasses >= 1 && numOfCabinClasses <= 4)
+                        {
+                            newAircraftConfig.setNumOfCabinClasses(numOfCabinClasses);
+                            break;
+                        }
+                        else
+                        {
+                            System.out.println("Invalid option, please try again!\n");
+                        }  
+                    }
+                    catch (InputMismatchException ex)
+                    {
+                        System.out.println("Invalid input, enter cabin class in number!\n");
+                        scanner.next();
+                    }
+                }
             }
-            else
+            catch (InputMismatchException ex)
             {
-                System.out.println("Invalid option, please try again!\n");
+                System.out.println("Invalid input, enter name in text!\n");
+                scanner.next();
             }
         }
         
@@ -331,18 +397,31 @@ public class FlightPlanningModule
             }
         }
         
-        try
+        Set<ConstraintViolation<AircraftConfig>>constraintViolations = validator.validate(newAircraftConfig);
+        
+        if(constraintViolations.isEmpty())
         {
-            Long aircraftConfigId = aircraftConfigSessionBeanRemote.createNewAircraftConfig(newAircraftConfig, aircraftTypeId);
-            System.out.println("New aircraft configuration created successfully!: " + aircraftConfigId + "\n");
+            try
+            {
+                Long aircraftConfigId = aircraftConfigSessionBeanRemote.createNewAircraftConfig(newAircraftConfig, aircraftTypeId);
+                System.out.println("New aircraft configuration created successfully!: " + aircraftConfigId + "\n");
+            }
+            catch (AircraftConfigNameExistException ex)
+            {
+                System.out.println("An error has occurred while creating the new aircraft configuration!: The aircraft configuration name already exists!\n");
+            }
+            catch (UnknownPersistenceException ex)
+            {
+                System.out.println("An unknown error has occurred while creating the new aircraft configuraton!: " + ex.getMessage() + "\n");
+            }
+            catch (InputDataValidationException ex)
+            {
+                System.out.println(ex.getMessage() + "\n");
+            }
         }
-        catch (AircraftConfigNameExistException ex)
+        else
         {
-            System.out.println("An error has occurred while creating the new aircraft configuration!: The aircraft configuration name already exists!\n");
-        }
-        catch (UnknownPersistenceException ex)
-        {
-            System.out.println("An unknown error has occurred while creating the new aircraft configuraton!: " + ex.getMessage() + "\n");
+            showInputDataValidationErrorsForAircraftConfig(constraintViolations);
         }
     }
     
@@ -353,141 +432,184 @@ public class FlightPlanningModule
             
         while (true)
         {
-            System.out.print("Enter Cabin Class Type (1: First Class, 2: Business Class, 3: Premium Economy Class, 4: Economy Class)> ");
-            Integer cabinClassTypeInt = scanner.nextInt();
-            scanner.nextLine();
+            try
+            {
+                System.out.print("Enter Cabin Class Type (1: First Class, 2: Business Class, 3: Premium Economy Class, 4: Economy Class)> ");
+                Integer cabinClassTypeInt = scanner.nextInt();
+                scanner.nextLine();
 
-            if (cabinClassTypeInt == 1)
-            {
-                newCabinClass.setCabinClassType(CabinClassEnum.FIRST_CLASS);
-                break;
-            }
-            else if (cabinClassTypeInt == 2)
-            {
-                newCabinClass.setCabinClassType(CabinClassEnum.BUSINESS_CLASS);
-                break;
-            }
-            else if (cabinClassTypeInt == 3)
-            {
-                newCabinClass.setCabinClassType(CabinClassEnum.PREMIUM_ECONOMY_CLASS);
-                break;
-            }
-            else if (cabinClassTypeInt == 4)
-            {
-                newCabinClass.setCabinClassType(CabinClassEnum.ECONOMY_CLASS);
-                break;
-            }
-            else
-            {
-                System.out.println("Invalid option, please try again!\n");
-            }
-        }
-            
-        while (true)
-        {
-            System.out.print("Enter Number of Aisles (0-2) > ");
-            Integer numOfAisles = scanner.nextInt();
-            scanner.nextLine();
-
-            if (numOfAisles >= 0 && numOfAisles <= 2)
-            {
-                newCabinClass.setNumOfAisle(numOfAisles);
-                break;
-            }
-            else
-            {
-                System.out.println("Invalid input, please try again!\n");
-            }
-        }
-            
-        while (true)
-        {
-            System.out.print("Enter Number of Rows> ");
-            Integer numOfRows = scanner.nextInt();
-            scanner.nextLine();
-
-            if (numOfRows >= 1)
-            {
-                newCabinClass.setNumOfRows(numOfRows);
-                break;
-            }
-            else
-            {
-                System.out.println("Invalid input, please try again!\n");
-            }
-        }
-            
-        while (true)
-        {
-            System.out.print("Enter Number of Seats Abreast> ");
-            Integer numOfSeatsAbreast = scanner.nextInt();
-            scanner.nextLine();
-
-            if (numOfSeatsAbreast >= 1 && numOfSeatsAbreast <= 10)
-            {
-                newCabinClass.setNumOfSeatsAbreast(numOfSeatsAbreast);
-                break;
-            }
-            else
-            {
-                System.out.println("Invalid input, please try again!\n");
-            }
-        }
-            
-        while (true)
-        {
-            Integer pos;
-            Integer aisleCount = 0;
-            Integer seatsCountPerRow = 0;
-            Boolean validInput = true;
-            System.out.print("Enter Actual Seating Configuration Per Column (e.g 3-4-3)> ");
-            String seatConfigPerColumnString = scanner.nextLine().trim();
-            System.out.println("");
-            String seatConfigPerColumn = seatConfigPerColumnString;
-
-            while ((pos = seatConfigPerColumnString.indexOf("-")) != -1)
-            {
-                try
+                if (cabinClassTypeInt == 1)
                 {
-                    Integer numOfSeatsInColumn = Integer.valueOf(seatConfigPerColumnString.substring(0, pos));
-                    
-                    if (numOfSeatsInColumn == 0)
-                    {
-                        throw new InvalidSeatNumberInputException();
-                    }
-                    
-                    seatConfigPerColumnString = seatConfigPerColumnString.substring(pos + 1);
-                    seatsCountPerRow = seatsCountPerRow + numOfSeatsInColumn;
-                    aisleCount++;
-                }
-                catch (NumberFormatException ex)
-                {
-                    System.out.println("Invalid input format, please try again!\n");
-                    validInput = false;
+                    newCabinClass.setCabinClassType(CabinClassEnum.FIRST_CLASS);
                     break;
                 }
-                catch (InvalidSeatNumberInputException ex)
+                else if (cabinClassTypeInt == 2)
                 {
-                    System.out.println("Seat number in each column must be more than zero, please try again!\n");
-                    validInput = false;
+                    newCabinClass.setCabinClassType(CabinClassEnum.BUSINESS_CLASS);
                     break;
                 }
+                else if (cabinClassTypeInt == 3)
+                {
+                    newCabinClass.setCabinClassType(CabinClassEnum.PREMIUM_ECONOMY_CLASS);
+                    break;
+                }
+                else if (cabinClassTypeInt == 4)
+                {
+                    newCabinClass.setCabinClassType(CabinClassEnum.ECONOMY_CLASS);
+                    break;
+                }
+                else
+                {
+                    System.out.println("Invalid option, please try again!\n");
+                }
+            }
+            catch (InputMismatchException ex)
+            {
+                System.out.println("Invalid input, enter cabin class type in number!\n");
+                scanner.next();
             }
             
-            Integer numOfSeatsInColumn = Integer.valueOf(seatConfigPerColumnString);
-            seatsCountPerRow = seatsCountPerRow + numOfSeatsInColumn;
-
-            if (validInput)
+        }
+            
+        while (true)
+        {
+            try
             {
-                if (newCabinClass.getNumOfAisle().equals(aisleCount) && newCabinClass.getNumOfSeatsAbreast().equals(seatsCountPerRow))
+                System.out.print("Enter Number of Aisles (0-2) > ");
+                Integer numOfAisles = scanner.nextInt();
+                scanner.nextLine();
+
+                if (numOfAisles >= 0 && numOfAisles <= 2)
                 {
-                    newCabinClass.setSeatConfigPerColumn(seatConfigPerColumn);
+                    newCabinClass.setNumOfAisle(numOfAisles);
+                    break;
+                }
+                else
+                {
+                    System.out.println("Invalid input, please try again!\n");
+                } 
+            }
+            catch (InputMismatchException ex)
+            {
+                System.out.println("Invalid input, enter number of aisles in number!\n");
+                scanner.next();
+            }
+            
+        }
+            
+        while (true)
+        {
+            try
+            {
+                System.out.print("Enter Number of Rows> ");
+                Integer numOfRows = scanner.nextInt();
+                scanner.nextLine();
+
+                if (numOfRows >= 1)
+                {
+                    newCabinClass.setNumOfRows(numOfRows);
                     break;
                 }
                 else
                 {
                     System.out.println("Invalid input, please try again!\n");
                 }
+            }
+            catch (InputMismatchException ex)
+            {
+                System.out.println("Invalid input, enter number of rows in number!\n");
+                scanner.next();
+            }
+            
+        }
+            
+        while (true)
+        {
+            try
+            {
+                System.out.print("Enter Number of Seats Abreast> ");
+                Integer numOfSeatsAbreast = scanner.nextInt();
+                scanner.nextLine();
+
+                if (numOfSeatsAbreast >= 1 && numOfSeatsAbreast <= 10)
+                {
+                    newCabinClass.setNumOfSeatsAbreast(numOfSeatsAbreast);
+                    break;
+                }
+                else
+                {
+                    System.out.println("Invalid input, please try again!\n");
+                }
+            }
+            catch (InputMismatchException ex)
+            {
+                System.out.println("Invalid input, enter number of seats abreast in number!\n");
+                scanner.next();
+            }
+        }
+            
+        while (true)
+        {
+            try
+            {
+                Integer pos;
+                Integer aisleCount = 0;
+                Integer seatsCountPerRow = 0;
+                Boolean validInput = true;
+                System.out.print("Enter Actual Seating Configuration Per Column (e.g 3-4-3)> ");
+                String seatConfigPerColumnString = scanner.nextLine().trim();
+                System.out.println("");
+                String seatConfigPerColumn = seatConfigPerColumnString;
+
+                while ((pos = seatConfigPerColumnString.indexOf("-")) != -1)
+                {
+                    try
+                    {
+                        Integer numOfSeatsInColumn = Integer.valueOf(seatConfigPerColumnString.substring(0, pos));
+
+                        if (numOfSeatsInColumn == 0)
+                        {
+                            throw new InvalidSeatNumberInputException();
+                        }
+
+                        seatConfigPerColumnString = seatConfigPerColumnString.substring(pos + 1);
+                        seatsCountPerRow = seatsCountPerRow + numOfSeatsInColumn;
+                        aisleCount++;
+                    }
+                    catch (NumberFormatException ex)
+                    {
+                        System.out.println("Invalid input format, please try again!\n");
+                        validInput = false;
+                        break;
+                    }
+                    catch (InvalidSeatNumberInputException ex)
+                    {
+                        System.out.println("Seat number in each column must be more than zero, please try again!\n");
+                        validInput = false;
+                        break;
+                    }
+                }
+
+                Integer numOfSeatsInColumn = Integer.valueOf(seatConfigPerColumnString);
+                seatsCountPerRow = seatsCountPerRow + numOfSeatsInColumn;
+
+                if (validInput)
+                {
+                    if (newCabinClass.getNumOfAisle().equals(aisleCount) && newCabinClass.getNumOfSeatsAbreast().equals(seatsCountPerRow))
+                    {
+                        newCabinClass.setSeatConfigPerColumn(seatConfigPerColumn);
+                        break;
+                    }
+                    else
+                    {
+                        System.out.println("Invalid input, please try again!\n");
+                    }
+                }
+            }
+            catch (InputMismatchException ex)
+            {
+                System.out.println("Invalid input, enter seat configuration in text!\n");
+                scanner.next();
             }
         }
         
@@ -503,11 +625,11 @@ public class FlightPlanningModule
         System.out.println("*** FRS Management :: Flight Planning :: Aircraft Configuration :: View All Aircraft Configurations ***\n");
         
         List<AircraftConfig> aircraftConfigs = aircraftConfigSessionBeanRemote.retrieveAllAircraftConfigs();
-        System.out.printf("%20s%30s\n", "Aircraft Type", "Aircraft Configuration Name");
+        System.out.printf("%30s%30s\n", "Aircraft Type", "Aircraft Configuration Name");
         
         for (AircraftConfig aircraftConfig: aircraftConfigs)
         {
-            System.out.printf("%20s%30s\n", aircraftConfig.getAircraftType().getAircraftTypeName(), aircraftConfig.getName());
+            System.out.printf("%30s%30s\n", aircraftConfig.getAircraftType().getAircraftTypeName(), aircraftConfig.getName());
         }
         
         System.out.print("Press any key to continue...> ");
@@ -517,19 +639,19 @@ public class FlightPlanningModule
     private void doViewAircraftConfigDetails()
     {
         Scanner scanner = new Scanner (System.in);
-        
-        System.out.println("*** FRS Management :: Flight Planning :: Aircraft Configuration :: View Aircraft Configuration Details ***\n");
-        System.out.print("Enter Aircraft Configuration Name> ");
-        String name = scanner.nextLine().trim();
-        
         try
         {
+            System.out.println("*** FRS Management :: Flight Planning :: Aircraft Configuration :: View Aircraft Configuration Details ***\n");
+            System.out.print("Enter Aircraft Configuration Name> ");
+            String name = scanner.nextLine().trim();
+        
             AircraftConfig aircraftConfig = aircraftConfigSessionBeanRemote.retrieveAircraftConfigByName(name);
             
+            System.out.println("");
             if (aircraftConfig.getFlight() != null)
             {
-                System.out.printf("%20s%30s%20s%15s%25s\n", "Aircraft Type", "Aircraft Configuration Name", "Max. Seat Capacity", "Flight No.", "No. of Cabin Classes");
-                System.out.printf("%20s%30s%20s%15s%25s\n", aircraftConfig.getAircraftType().getAircraftTypeName(), aircraftConfig.getName(), aircraftConfig.getMaxSeatCapacity(), aircraftConfig.getFlight().getFlightNumber(), aircraftConfig.getNumOfCabinClasses());
+                System.out.printf("%20s%30s%20s%25s\n", "Aircraft Type", "Aircraft Configuration Name", "Max. Seat Capacity", "No. of Cabin Classes");
+                System.out.printf("%20s%30s%20s%25s\n", aircraftConfig.getAircraftType().getAircraftTypeName(), aircraftConfig.getName(), aircraftConfig.getMaxSeatCapacity(), aircraftConfig.getNumOfCabinClasses());
             }
             else
             {
@@ -553,6 +675,12 @@ public class FlightPlanningModule
         {
             System.out.println("An error has occurred while retrieving aircraft configuration details: " + ex.getMessage() + "\n");
         }
+        catch (InputMismatchException ex)
+        {
+            System.out.println("Invalid input, enter aircraft configuration name in text!\n");
+            scanner.next();
+        }
+        
     }
     
     private void doCreateFlightRoute()
@@ -580,21 +708,29 @@ public class FlightPlanningModule
                 System.out.println(option + ": " + airport.getIataCode());
             }
             
-            System.out.println("");
-            System.out.print("Select Origin Airport> ");
-            originAirportInt = scanner.nextInt();
-            scanner.nextLine();
-            
-            if(originAirportInt >= 1 && originAirportInt <= option)
+            try
             {
-                originAirportId = airports.get(originAirportInt-1).getAirportId();
-                System.out.println("You have selected " + airports.get(originAirportInt-1).getIataCode());
-                break;
+                System.out.println("");
+                System.out.print("Select Origin Airport> ");
+                originAirportInt = scanner.nextInt();
+                scanner.nextLine();
+
+                if(originAirportInt >= 1 && originAirportInt <= option)
+                {
+                    originAirportId = airports.get(originAirportInt-1).getAirportId();
+                    System.out.println("You have selected " + airports.get(originAirportInt-1).getIataCode());
+                    break;
+                }
+                else
+                {
+                    System.out.println("Invalid option, please try again!");
+                }
             }
-            else
+            catch (InputMismatchException ex)
             {
-                System.out.println("Invalid option, please try again!");
-            }
+                System.out.println("Invalid input, enter origin airport in number!\n");
+                scanner.next();
+            }  
         }
         
         while(true)
@@ -607,28 +743,36 @@ public class FlightPlanningModule
                 System.out.println(option + ": " + airport.getIataCode());
             }
             
-            System.out.println("");
-            System.out.print("Select Destination Airport> ");
-            destinationAirportInt = scanner.nextInt();
-            scanner.nextLine();
-            
-            if(destinationAirportInt != originAirportInt)
+            try
             {
-                if(destinationAirportInt >= 1 && destinationAirportInt <= option)
+                System.out.println("");
+                System.out.print("Select Destination Airport> ");
+                destinationAirportInt = scanner.nextInt();
+                scanner.nextLine();
+
+                if(destinationAirportInt != originAirportInt)
                 {
-                    destinationAirportId = airports.get(destinationAirportInt-1).getAirportId();
-                    System.out.println("You have selected " + airports.get(destinationAirportInt-1).getIataCode());
-                    break;
+                    if(destinationAirportInt >= 1 && destinationAirportInt <= option)
+                    {
+                        destinationAirportId = airports.get(destinationAirportInt-1).getAirportId();
+                        System.out.println("You have selected " + airports.get(destinationAirportInt-1).getIataCode());
+                        break;
+                    }
+                    else
+                    {
+                        System.out.println("Invalid option, please try again!");
+                    }
                 }
                 else
                 {
-                    System.out.println("Invalid option, please try again!");
-                }
+                    System.out.println("You are not allowed to select the origin airport!");
+                } 
             }
-            else
+            catch (InputMismatchException ex)
             {
-                System.out.println("You are not allowed to select the origin airport!");
-            } 
+                System.out.println("Invalid input, enter destination airport in number!\n");
+                scanner.next();
+            }
         }
         
         try
@@ -667,18 +811,51 @@ public class FlightPlanningModule
                         newReturnFlightRoute.setEnabled(true);
                         newFlightRoute.setReturnFlightRoute(newReturnFlightRoute);
                         
-                        Long flightRouteId = flightRouteSessionBeanRemote.createNewFlightRoute(newFlightRoute, originAirportId, destinationAirportId);
-                        Long returnFlightRouteId = flightRouteSessionBeanRemote.createNewReturnFlightRoute(newReturnFlightRoute, flightRouteId);
+                        Set<ConstraintViolation<FlightRoute>>constraintViolations = validator.validate(newFlightRoute);
                         
-                        System.out.println("New flight route created successfully!: " + flightRouteId + "\n");
-                        System.out.println("Return flight route for " + flightRouteId +  " created successfully!: " + returnFlightRouteId + "\n"); 
-                        break;
+                        if(constraintViolations.isEmpty())
+                        {
+                            try{
+                                Long flightRouteId = flightRouteSessionBeanRemote.createNewFlightRoute(newFlightRoute, originAirportId, destinationAirportId);
+                                Long returnFlightRouteId = flightRouteSessionBeanRemote.createNewReturnFlightRoute(newReturnFlightRoute, flightRouteId);
+
+                                System.out.println("New flight route created successfully!: " + flightRouteId + "\n");
+                                System.out.println("Return flight route for " + flightRouteId + " created successfully!: " + returnFlightRouteId + "\n");
+
+                                break; 
+                            }
+                            catch (InputDataValidationException ex)
+                            {
+                                System.out.println(ex.getMessage() + "\n");
+                            }
+                        }
+                        else
+                        {
+                            showInputDataValidationErrorsForFlightRoute(constraintViolations);
+                        }
+                        
                     }
                     else if(option == 2)
                     {
-                        Long flightRouteId = flightRouteSessionBeanRemote.createNewFlightRoute(newFlightRoute, originAirportId, destinationAirportId);
-                        System.out.println("New flight route created successfully!: " + flightRouteId + "\n");
-                        break;
+                        Set<ConstraintViolation<FlightRoute>>constraintViolations = validator.validate(newFlightRoute);
+                        
+                        if(constraintViolations.isEmpty())
+                        {
+                            try
+                            {
+                                Long flightRouteId = flightRouteSessionBeanRemote.createNewFlightRoute(newFlightRoute, originAirportId, destinationAirportId);
+                                System.out.println("New flight route created successfully!: " + flightRouteId + "\n");
+                                break;
+                            }
+                            catch (InputDataValidationException ex)
+                            {
+                                System.out.println(ex.getMessage() + "\n");
+                            }
+                        }
+                        else
+                        {
+                            showInputDataValidationErrorsForFlightRoute(constraintViolations);
+                        }
                     }
                 }
                 else
@@ -760,83 +937,100 @@ public class FlightPlanningModule
             Long flightRouteIdAssociatedWithReturnFlightRoute = 0l;
 
             System.out.println("*** FRS Management :: Flight Planning :: Flight Route :: Delete Flight Route ***\n");
+ 
 
+            System.out.println("List of Main Flight Routes: ");
+
+            for (FlightRoute flightRoute : flightRoutes) 
+            {
+                if (flightRoute.getFlightRouteType().equals("OUTBOUND")) 
+                {
+                    outboundFlightRoutes.add(flightRoute);
+                }
+            }
+            
             while(true)
             {
                 Integer option = 0;
-
-                System.out.println("List of Main Flight Routes: ");
-                
-                for(FlightRoute flightRoute: flightRoutes)
+                try
                 {
-                    if(flightRoute.getFlightRouteType().equals("OUTBOUND"))
+                    for(FlightRoute outboundFlightRoute: outboundFlightRoutes)
                     {
-                        outboundFlightRoutes.add(flightRoute);
+                        option++;
+                        System.out.println(option + ": " + outboundFlightRoute.getOrigin().getIataCode() + " - " + outboundFlightRoute.getDestination().getIataCode());    
+                    }         
 
-                    }
-                }
                 
-                for(FlightRoute outboundFlightRoute: outboundFlightRoutes)
-                {
-                    option++;
-                    System.out.println(option + ": " + outboundFlightRoute.getOrigin().getIataCode() + " - " + outboundFlightRoute.getDestination().getIataCode());    
-                }         
+                    System.out.println("");
+                    System.out.print("Select a Flight Route to remove> ");
+                    flightRouteInt = scanner.nextInt();
+                    scanner.nextLine();
 
-                System.out.println("");
-                System.out.print("Select a Flight Route to remove> ");
-                flightRouteInt = scanner.nextInt();
-                scanner.nextLine();
-                
-                if(flightRouteInt >=1 && flightRouteInt <= option)
-                {
-                    flightRouteId = outboundFlightRoutes.get(flightRouteInt-1).getFlightRouteId();
-                    FlightRoute flightRoute = flightRouteSessionBeanRemote.getFlightRouteById(flightRouteId, true, true);
-                    
-                    if(flightRoute.getFlights().isEmpty())
+                    if(flightRouteInt >=1 && flightRouteInt <= option)
                     {
-                        if(flightRoute.getFlightRouteType().equals("OUTBOUND"))
+                        flightRouteId = outboundFlightRoutes.get(flightRouteInt-1).getFlightRouteId();
+                        FlightRoute flightRoute = flightRouteSessionBeanRemote.getFlightRouteById(flightRouteId, true, true);
+
+                        if(flightRoute.getFlights().isEmpty())
                         {
-                            flightRouteSessionBeanRemote.removeFlightRoute(flightRouteId);  
-                            
-                            System.out.println("Existing flight route removed successfully!\n");
+                            if(flightRoute.getFlightRouteType().equals("OUTBOUND"))
+                            {
+                                flightRouteSessionBeanRemote.removeFlightRoute(flightRouteId);  
+
+                                System.out.println("Existing flight route removed successfully!\n");
+                            }
+
                         }
-//                        else if(flightRoute.getFlightRouteType().equals("RETURN"))
-//                        {
-//                            for(FlightRoute flightRouteWithReturnFlightToRemove: outboundFlightRoutes)
-//                            {
-//                                //if return flight route and there is outbound flight route associated to the return flight route   
-//                                if(flightRouteWithReturnFlightToRemove.getFlightRouteType().equals("OUTBOUND") && flightRouteWithReturnFlightToRemove.getReturnFlightRoute().getFlightRouteId().equals(flightRouteId))
-//                                {
-//                                    flightRouteIdAssociatedWithReturnFlightRoute = flightRouteWithReturnFlightToRemove.getFlightRouteId();
-//                                }
-//                            }
-//                            
-//                            flightRouteSessionBeanRemote.removeReturnFlightRoute(flightRouteId, flightRouteIdAssociatedWithReturnFlightRoute);
-//                            System.out.println("Existing flight route removed successfully!\n");
-//                        }  
+                        else if(!flightRoute.getFlights().isEmpty())
+                        {
+                            flightRouteSessionBeanRemote.setFlightRouteDisabled(flightRouteId);
+                            System.out.println("Existing flight route has been set to disabled!\n");
+                        }
+
+                        break;
                     }
-                    else if(!flightRoute.getFlights().isEmpty())
+                    else
                     {
-                        flightRouteSessionBeanRemote.setFlightRouteDisabled(flightRouteId);
-                        System.out.println("Existing flight route has been set to disabled!\n");
-                    }
-       
-                    break;
+                        System.out.println("Invalid option, please try again! \n");
+                    } 
                 }
-                else
+                catch (InputMismatchException ex)
                 {
-                    System.out.println("Invalid option, please try again! \n");
+                    System.out.println("Invalid input, select an option from 1-" + option + "!\n");
+                    scanner.next();
                 }
-                
-                
             }
         }
         catch(FlightRouteNotFoundException ex)
         {
             System.out.println("An error has occurred while removing flight route record: " + ex.getMessage() + "!\n");
         }
-        
-
     }
+    
+    //data input validation
+    private void showInputDataValidationErrorsForAircraftConfig(Set<ConstraintViolation<AircraftConfig>>constraintViolations)
+    {
+        System.out.println("\nInput data validation error!:");
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            System.out.println("\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage());
+        }
+
+        System.out.println("\nPlease try again......\n");
+    }
+    
+    private void showInputDataValidationErrorsForFlightRoute (Set<ConstraintViolation<FlightRoute>>constraintViolations)
+    {
+        System.out.println("\nInput data validation error!:");
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            System.out.println("\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage());
+        }
+
+        System.out.println("\nPlease try again......\n");
+    }
+    
     
 }

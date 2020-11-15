@@ -23,6 +23,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlTransient;
 import util.enumeration.CabinClassEnum;
 
 /**
@@ -56,13 +57,16 @@ public class CabinClass implements Serializable {
     @Min(1)
     private Integer maxSeatCapacity;
     
+    @XmlTransient
     @ManyToOne(optional=false)
     @JoinColumn(nullable=false)
     private AircraftConfig aircraftConfig;
     
+    @XmlTransient
     @OneToMany(mappedBy = "cabinClass")
     private List<SeatInventory> seatInventories;
     
+    @XmlTransient
     @OneToMany(mappedBy = "cabinClass")
     private List<Fare> fares;
 

@@ -16,14 +16,20 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Set;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import util.enumeration.CabinClassEnum;
 import util.exception.FlightScheduleNotFoundException;
 import util.exception.FlightSchedulePlanNotFoundException;
+import util.exception.InputDataValidationException;
 
 /**
  *
@@ -38,58 +44,86 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     @EJB
     private FlightSchedulePlanSessionBeanLocal flightSchedulePlanSessionBeanLocal;
     
+    private final ValidatorFactory validatorFactory;
+    private final Validator validator;
+
+    public FlightScheduleSessionBean() 
+    {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
+    }
+    
 
     @Override
-    public Long createNewFlightSchedule(FlightSchedule flightSchedule, Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException 
+    public Long createNewFlightSchedule(FlightSchedule flightSchedule, Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException, InputDataValidationException
     {
-        FlightSchedulePlan flightSchedulePlan = flightSchedulePlanSessionBeanLocal.getFlightSchedulePlanById(flightSchedulePlanId);
-
-        flightSchedule.setFlightSchedulePlan(flightSchedulePlan);
-        flightSchedulePlan.getFlightSchedules().add(flightSchedule);
-
-        for (FlightReservationRecord flightReservationRecord : flightSchedule.getFlightReservationRecords()) {
-            flightReservationRecord.getFlightSchedules().add(flightSchedule);
-
-            for (FlightSchedule fs : flightReservationRecord.getFlightSchedules()) {
-                fs.getFlightReservationRecords().add(flightReservationRecord);
-            }
-        }
+        Set<ConstraintViolation<FlightSchedule>>constraintViolations = validator.validate(flightSchedule);
         
-        flightSchedule.setReturnFlightSchedule(flightSchedule);
+        if(constraintViolations.isEmpty())
+        {
+            FlightSchedulePlan flightSchedulePlan = flightSchedulePlanSessionBeanLocal.getFlightSchedulePlanById(flightSchedulePlanId);
 
-        em.persist(flightSchedule);
-        em.flush();
+            flightSchedule.setFlightSchedulePlan(flightSchedulePlan);
+            flightSchedulePlan.getFlightSchedules().add(flightSchedule);
 
-        return flightSchedule.getFlightScheduleId();
+            for (FlightReservationRecord flightReservationRecord : flightSchedule.getFlightReservationRecords())
+            {
+                flightReservationRecord.getFlightSchedules().add(flightSchedule);
+
+                for (FlightSchedule fs : flightReservationRecord.getFlightSchedules()) {
+                    fs.getFlightReservationRecords().add(flightReservationRecord);
+                }
+            }
+
+            flightSchedule.setReturnFlightSchedule(flightSchedule);
+
+            em.persist(flightSchedule);
+            em.flush();
+
+            return flightSchedule.getFlightScheduleId();
+        }
+        else
+        {
+            throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
+        }
     }
     
     @Override
-    public Long createNewReturnFlightSchedule(FlightSchedule returnFlightSchedule, Long flightScheduleId, Long returnFlightSchedulePlanId) throws FlightSchedulePlanNotFoundException, FlightScheduleNotFoundException
+    public Long createNewReturnFlightSchedule(FlightSchedule returnFlightSchedule, Long flightScheduleId, Long returnFlightSchedulePlanId) throws FlightSchedulePlanNotFoundException, FlightScheduleNotFoundException, InputDataValidationException
     {
-        FlightSchedulePlan returnFlightSchedulePlan = flightSchedulePlanSessionBeanLocal.getFlightSchedulePlanById(returnFlightSchedulePlanId);
+        Set<ConstraintViolation<FlightSchedule>>constraintViolations = validator.validate(returnFlightSchedule);
         
-        FlightSchedule flightSchedule = getFlightScheduleById(flightScheduleId);
-        
-        returnFlightSchedule.setFlightSchedulePlan(returnFlightSchedulePlan);
-        returnFlightSchedulePlan.getFlightSchedules().add(returnFlightSchedule);
-        
-        
-        for(FlightReservationRecord flightReservationRecord: returnFlightSchedule.getFlightReservationRecords())
+        if(constraintViolations.isEmpty())
         {
-            flightReservationRecord.getFlightSchedules().add(returnFlightSchedule);
-            
-            for(FlightSchedule rfs: flightReservationRecord.getFlightSchedules()){
-                rfs.getFlightReservationRecords().add(flightReservationRecord);
+            FlightSchedulePlan returnFlightSchedulePlan = flightSchedulePlanSessionBeanLocal.getFlightSchedulePlanById(returnFlightSchedulePlanId);
+
+            FlightSchedule flightSchedule = getFlightScheduleById(flightScheduleId);
+
+            returnFlightSchedule.setFlightSchedulePlan(returnFlightSchedulePlan);
+            returnFlightSchedulePlan.getFlightSchedules().add(returnFlightSchedule);
+
+
+            for(FlightReservationRecord flightReservationRecord: returnFlightSchedule.getFlightReservationRecords())
+            {
+                flightReservationRecord.getFlightSchedules().add(returnFlightSchedule);
+
+                for(FlightSchedule rfs: flightReservationRecord.getFlightSchedules()){
+                    rfs.getFlightReservationRecords().add(flightReservationRecord);
+                }
             }
+
+            flightSchedule.setReturnFlightSchedule(returnFlightSchedule);
+            returnFlightSchedule.setReturnFlightSchedule(returnFlightSchedule);
+
+            em.persist(returnFlightSchedule);
+            em.flush();
+
+            return returnFlightSchedule.getFlightScheduleId();
         }
-        
-        flightSchedule.setReturnFlightSchedule(returnFlightSchedule);
-        returnFlightSchedule.setReturnFlightSchedule(returnFlightSchedule);
-        
-        em.persist(returnFlightSchedule);
-        em.flush();
-        
-        return returnFlightSchedule.getFlightScheduleId();
+        else
+        {
+            throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
+        }
     }
     
     
@@ -113,6 +147,30 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     }
     
     @Override
+    public FlightSchedule getFlightScheduleByIdUnmanaged(Long flightScheduleId) throws FlightScheduleNotFoundException
+    {
+        FlightSchedule fs = getFlightScheduleById(flightScheduleId);
+        
+        em.detach(fs);
+        
+        em.detach(fs.getFlightSchedulePlan());
+        
+        em.detach(fs.getReturnFlightSchedule());
+        
+        for (SeatInventory si: fs.getSeatInventories())
+        {
+            em.detach(si);
+        }
+        
+        for (FlightReservationRecord record: fs.getFlightReservationRecords())
+        {
+            em.detach(record);
+        }
+        
+        return fs;
+    }
+    
+    @Override
     public List<FlightSchedule> getFlightScheduleByFlightSchedulePlanId(Long flightSchedulePlanId)
     {
         Query query = em.createQuery("SELECT fs FROM FlightSchedule fs WHERE fs.flightSchedulePlan.flightSchedulePlanId = :inId");
@@ -130,14 +188,23 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     }
     
     @Override
-    public void updateFlightSchedule(FlightSchedule flightSchedule) throws FlightScheduleNotFoundException
+    public void updateFlightSchedule(FlightSchedule flightSchedule) throws FlightScheduleNotFoundException, InputDataValidationException
     {
         if(flightSchedule != null)
         {
-            FlightSchedule flightScheduleToUpdate = getFlightScheduleById(flightSchedule.getFlightScheduleId());
-            flightScheduleToUpdate.setDepartureDateTime(flightSchedule.getDepartureDateTime());
-            flightScheduleToUpdate.setFlightHours(flightSchedule.getFlightHours());
-            flightScheduleToUpdate.setFlightMinutes(flightSchedule.getFlightMinutes());
+            Set<ConstraintViolation<FlightSchedule>>constraintViolations = validator.validate(flightSchedule);
+            
+            if(constraintViolations.isEmpty())
+            {
+                FlightSchedule flightScheduleToUpdate = getFlightScheduleById(flightSchedule.getFlightScheduleId());
+                flightScheduleToUpdate.setDepartureDateTime(flightSchedule.getDepartureDateTime());
+                flightScheduleToUpdate.setFlightHours(flightSchedule.getFlightHours());
+                flightScheduleToUpdate.setFlightMinutes(flightSchedule.getFlightMinutes());
+            }
+            else
+            {
+                throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
+            }
         }
         else
         {
@@ -187,21 +254,16 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         query.setParameter("inDestinationAirport", destinationAirport);
         
         List<FlightSchedule> flightSchedules = query.getResultList();
-        System.out.println(flightSchedules.size());
+        // System.out.println(flightSchedules.size());
         List<FlightSchedule> finalFlightSchedules = new ArrayList<>();
         for (FlightSchedule fs: flightSchedules)
         {
             fs.getSeatInventories().size();
         }
         
-        if (preferredCabinClass == null)
-        {
-            return flightSchedules;
-        }
-        
         for (FlightSchedule fs: flightSchedules)
         {
-            if (filterFlightSchedule(fs, preferredCabinClass, numPassengers) && fs.getEnabled())
+            if (filterFlightSchedule(fs, preferredCabinClass, numPassengers))
             {
                 finalFlightSchedules.add(fs);
             }
@@ -214,6 +276,32 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         }
       
         return finalFlightSchedules;
+    }
+    
+    @Override
+    public List<FlightSchedule> searchDirectFlightSchedulesUnmanaged(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, CabinClassEnum preferredCabinClass, Integer numPassengers)
+    {
+        List<FlightSchedule> flightSchedules = searchDirectFlightSchedules(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
+        
+        for (FlightSchedule fs: flightSchedules)
+        {
+            em.detach(fs);
+            
+            for (SeatInventory si: fs.getSeatInventories())
+            {
+                em.detach(si);
+            }
+            
+            for (FlightReservationRecord fr: fs.getFlightReservationRecords())
+            {
+                em.detach(fr);
+            }
+            
+            em.detach(fs.getFlightSchedulePlan());
+            em.detach(fs.getReturnFlightSchedule());
+        }
+        
+        return flightSchedules;
     }
     
     @Override
@@ -292,6 +380,32 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
             }
         }
         return connectingFlights;
+    }
+    
+    @Override
+    public List<FlightSchedule> searchSingleTransitConnectingFlightScheduleUnmanaged (Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, CabinClassEnum preferredCabinClass, Integer numPassengers)
+    {
+        List<FlightSchedule> flightSchedules = searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
+        
+        for (FlightSchedule fs: flightSchedules)
+        {
+            em.detach(fs);
+            
+            for (SeatInventory si: fs.getSeatInventories())
+            {
+                em.detach(si);
+            }
+            
+            for (FlightReservationRecord fr: fs.getFlightReservationRecords())
+            {
+                em.detach(fr);
+            }
+            
+            em.detach(fs.getFlightSchedulePlan());
+            em.detach(fs.getReturnFlightSchedule());
+        }
+        
+        return flightSchedules;
     }
     
     @Override
@@ -412,8 +526,39 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
     }
     
     @Override
+    public List<FlightSchedule> searchDoubleTransitConnectingFlightScheduleUnmanaged (Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, CabinClassEnum preferredCabinClass, Integer numPassengers)
+    {
+        List<FlightSchedule> flightSchedules = searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
+        
+        for (FlightSchedule fs: flightSchedules)
+        {
+            em.detach(fs);
+            
+            for (SeatInventory si: fs.getSeatInventories())
+            {
+                em.detach(si);
+            }
+            
+            for (FlightReservationRecord fr: fs.getFlightReservationRecords())
+            {
+                em.detach(fr);
+            }
+            
+            em.detach(fs.getFlightSchedulePlan());
+            em.detach(fs.getReturnFlightSchedule());
+        }
+        
+        return flightSchedules;
+    }
+    
+    @Override
     public Boolean filterFlightSchedule(FlightSchedule flightSchedule, CabinClassEnum preferredCabinClass, Integer numPassengers)
     {
+        if (!flightSchedule.getEnabled())
+        {
+            return false;
+        }
+        
         if (preferredCabinClass == null)
         {
             return true;
@@ -442,5 +587,17 @@ public class FlightScheduleSessionBean implements FlightScheduleSessionBeanRemot
         {
             return true;
         }
+    }
+    
+    private String prepareInputDataValidationErrorsMessage(Set<ConstraintViolation<FlightSchedule>>constraintViolations)
+    {
+        String msg = "Input data validation error!:";
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            msg += "\n\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage();
+        }
+        
+        return msg;
     }
 }
