@@ -44,7 +44,6 @@ public class Passenger implements Serializable {
     @Size(max = 9)
     private String passportNum;
     
-    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private FlightReservationRecord flightReservationRecord;
@@ -123,6 +122,7 @@ public class Passenger implements Serializable {
         this.passportNum = passportNum;
     }
 
+    @XmlTransient
     public FlightReservationRecord getFlightReservationRecord() {
         return flightReservationRecord;
     }

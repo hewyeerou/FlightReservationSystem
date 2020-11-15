@@ -33,5 +33,8 @@ public interface FlightRouteSessionBeanLocal
     public void setFlightRouteDisabled(Long flightRouteId);
 
 //    public void removeReturnFlightRoute(Long flightRouteId, Long flightRouteIdAssociatedWithReturnFlightRoute) throws FlightRouteNotFoundException;
+
+    public FlightRoute getFlightRouteByFlightId(Long frId) throws FlightRouteNotFoundException;
+
     
 }

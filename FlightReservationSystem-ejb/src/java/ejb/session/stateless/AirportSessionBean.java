@@ -67,29 +67,6 @@ public class AirportSessionBean implements AirportSessionBeanRemote, AirportSess
     }
     
     @Override
-    public List<Airport> getAllAirportsUnmanaged()
-    {
-        List<Airport> airports = getAllAirports();
-        
-        for (Airport airport: airports)
-        {
-            em.detach(airport);
-            
-            for (FlightRoute departureRoute: airport.getDepartureRoutes())
-            {
-                em.detach(departureRoute);
-            }
-            
-            for (FlightRoute arrivalRoute: airport.getArrivalRoutes())
-            {
-                em.detach(arrivalRoute);
-            }
-        }   
-        
-        return airports;
-    }
-    
-    @Override
     public Airport getAirportByAirportId(Long airportId) throws AirportNotFoundException
     {
         Airport airport = em.find(Airport.class, airportId);

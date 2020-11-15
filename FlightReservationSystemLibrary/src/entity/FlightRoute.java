@@ -36,12 +36,10 @@ public class FlightRoute implements Serializable {
     @OneToOne(optional = true)
     private FlightRoute returnFlightRoute;
     
-    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private Airport origin;
     
-    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private Airport destination;
@@ -54,7 +52,6 @@ public class FlightRoute implements Serializable {
     @NotNull
     private Boolean enabled;
     
-    @XmlTransient
     @OneToMany(mappedBy = "flightRoute", fetch = FetchType.LAZY)
     private List<Flight> flights;
 
@@ -75,7 +72,6 @@ public class FlightRoute implements Serializable {
         this.flightRouteType = flightRouteType;
         this.enabled = enabled;
     }
-    
     
    
     public Long getFlightRouteId() {
@@ -127,6 +123,7 @@ public class FlightRoute implements Serializable {
         this.destination = destination;
     }
 
+    @XmlTransient
     public List<Flight> getFlights() {
         return flights;
     }
@@ -135,6 +132,7 @@ public class FlightRoute implements Serializable {
         this.flights = flights;
     }
 
+    @XmlTransient
     public FlightRoute getReturnFlightRoute() {
         return returnFlightRoute;
     }

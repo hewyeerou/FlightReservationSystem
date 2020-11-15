@@ -10,7 +10,10 @@ import ejb.session.stateless.CabinClassSessionBeanLocal;
 import ejb.session.stateless.CabinSeatInventorySessionBeanLocal;
 import ejb.session.stateless.FareSessionBeanLocal;
 import ejb.session.stateless.FlightReservationRecordSessionBeanLocal;
+import ejb.session.stateless.FlightRouteSessionBeanLocal;
+import ejb.session.stateless.FlightSchedulePlanSessionBeanLocal;
 import ejb.session.stateless.FlightScheduleSessionBeanLocal;
+import ejb.session.stateless.FlightSessionBeanLocal;
 import ejb.session.stateless.PartnerSessionBeanLocal;
 import ejb.session.stateless.PassengerSessionBeanLocal;
 import ejb.session.stateless.SeatInventorySessionBeanLocal;
@@ -22,6 +25,7 @@ import entity.Flight;
 import entity.FlightReservationRecord;
 import entity.FlightRoute;
 import entity.FlightSchedule;
+import entity.FlightSchedulePlan;
 import entity.Partner;
 import entity.Passenger;
 import entity.SeatInventory;
@@ -37,8 +41,11 @@ import util.enumeration.CabinClassEnum;
 import util.exception.CabinClassNotFoundException;
 import util.exception.CabinSeatInventoryExistException;
 import util.exception.FareNotFoundException;
+import util.exception.FlightNotFoundException;
 import util.exception.FlightReservationRecordNotFoundException;
+import util.exception.FlightRouteNotFoundException;
 import util.exception.FlightScheduleNotFoundException;
+import util.exception.FlightSchedulePlanNotFoundException;
 import util.exception.InputDataValidationException;
 import util.exception.InvalidLoginCredentialException;
 import util.exception.PartnerNotFoundException;
@@ -53,6 +60,12 @@ import util.exception.SeatInventoryNotFoundException;
 @Stateless
 public class PartnerWebService {
 
+    @EJB
+    private FlightSchedulePlanSessionBeanLocal flightSchedulePlanSessionBeanLocal;
+    @EJB
+    private FlightRouteSessionBeanLocal flightRouteSessionBeanLocal;
+    @EJB
+    private FlightSessionBeanLocal flightSessionBeanLocal;
     @EJB
     private CabinSeatInventorySessionBeanLocal cabinSeatInventorySessionBeanLocal;
     @EJB
@@ -71,6 +84,7 @@ public class PartnerWebService {
     private PassengerSessionBeanLocal passengerSessionBeanLocal;
     @EJB
     private SeatInventorySessionBeanLocal seatInventorySessionBeanLocal;
+    
 
     
     
@@ -90,75 +104,36 @@ public class PartnerWebService {
         return partner;
     }
     
-    @WebMethod(operationName = "getAllAirportsUnmanaged") // cycle between aircraftType and AircraftConfig
-    public List<Airport> getAllAirportsUnmanaged () {
+    @WebMethod(operationName = "getAllAirports")
+    public List<Airport> getAllAirports () {
         
-        List<Airport> airports = airportSessionBeanLocal.getAllAirportsUnmanaged();
-        
-        for (Airport airport: airports)
-        {
-            airport.setDepartureRoutes(null);
-            airport.setArrivalRoutes(null);
-        }
-        
+        List<Airport> airports = airportSessionBeanLocal.getAllAirports();
+                
         return airports;
     }
     
-    @WebMethod(operationName = "retrieveCabinClassesByAircraftConfigIdUnmanaged") // cannot set cabin class in fare as null??
-    public List<CabinClass> retrieveCabinClassesByAircraftConfigIdUnmanaged(@WebParam(name = "aircraftConfigId") Long aircraftConfigId) {
+    @WebMethod(operationName = "retrieveCabinClassesByAircraftConfigId")
+    public List<CabinClass> retrieveCabinClassesByAircraftConfigId(@WebParam(name = "aircraftConfigId") Long aircraftConfigId) {
         
-        List<CabinClass> cabinClasses = cabinClassSessionBeanLocal.retrieveCabinClassesByAircraftConfigIdUnmanaged(aircraftConfigId);
-        
-        for (CabinClass cc: cabinClasses)
-        {
-            for (Fare fare: cc.getFares())
-            {
-                fare.setCabinClass(null);
-            }
-            
-            for (SeatInventory si: cc.getSeatInventories())
-            {
-                si.setCabinClass(null);
-            }
-        }
+        List<CabinClass> cabinClasses = cabinClassSessionBeanLocal.retrieveCabinClassesByAircraftConfigId(aircraftConfigId);
         
         return cabinClasses;
     }
     
-    @WebMethod(operationName = "retrieveCabinClassByIdUnmanaged")
-    public CabinClass retrieveCabinClassByIdUnmanaged(@WebParam(name = "cabinClassId") Long cabinClassId) throws CabinClassNotFoundException
+    @WebMethod(operationName = "retrieveCabinClassById")
+    public CabinClass retrieveCabinClassById(@WebParam(name = "cabinClassId") Long cabinClassId) throws CabinClassNotFoundException
     {
         CabinClass cc = cabinClassSessionBeanLocal.retrieveCabinClassById(cabinClassId);
-        
-        for (Fare fare: cc.getFares())
-        {
-            fare.setCabinClass(null);
-        }
-
-        for (SeatInventory si: cc.getSeatInventories())
-        {
-            si.setCabinClass(null);
-        }
         
         return cc;
     }
     
-    @WebMethod(operationName = "retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged")
-    public CabinClass retrieveCabinClassByAircraftConfigIdAndTypeUnmanaged(@WebParam(name = "aircraftConfigId") Long aircraftConfigId, 
-                                                                           @WebParam(name = "type") CabinClassEnum type) throws CabinClassNotFoundException
+    @WebMethod(operationName = "retrieveCabinClassByAircraftConfigIdAndType")
+    public CabinClass retrieveCabinClassByAircraftConfigIdAndType(@WebParam(name = "aircraftConfigId") Long aircraftConfigId, 
+                                                                  @WebParam(name = "type") CabinClassEnum type) throws CabinClassNotFoundException
     {
         CabinClass cc = cabinClassSessionBeanLocal.retrieveCabinClassByAircraftConfigIdAndType(aircraftConfigId, type);
 
-        for (Fare fare: cc.getFares())
-        {
-            fare.setCabinClass(null);
-        }
-
-        for (SeatInventory si: cc.getSeatInventories())
-        {
-            si.setCabinClass(null);
-        }
-        
         return cc;
     }
     
@@ -172,16 +147,11 @@ public class PartnerWebService {
         return csiId;
     }
     
-    @WebMethod(operationName = "retrieveCabinSeatInventoryInSeatInventoryUnmanaged")
-    public List<CabinSeatInventory> retrieveCabinSeatInventoryInSeatInventoryUnmanaged(@WebParam(name = "seatInventoryId") Long seatInventoryId)
+    @WebMethod(operationName = "retrieveCabinSeatInventoryInSeatInventory")
+    public List<CabinSeatInventory> retrieveCabinSeatInventoryInSeatInventory(@WebParam(name = "seatInventoryId") Long seatInventoryId)
     {
-        List<CabinSeatInventory> seats = cabinSeatInventorySessionBeanLocal.retrieveCabinSeatInventoryInSeatInventoryUnmanaged(seatInventoryId);
-        
-        for (CabinSeatInventory csi: seats)
-        {
-            csi.getSeatInventory().setCabinSeatInventories(null);
-        }
-        
+        List<CabinSeatInventory> seats = cabinSeatInventorySessionBeanLocal.retrieveCabinSeatInventoryInSeatInventory(seatInventoryId);
+                
         return seats;
     }
     
@@ -193,24 +163,7 @@ public class PartnerWebService {
                                                             @WebParam(name = "preferredCabinClass") CabinClassEnum preferredCabinClass,
                                                             @WebParam(name = "numPassengers") Integer numPassengers) 
     {
-        List<FlightSchedule> flightSchedules = flightScheduleSessionBeanLocal.searchDirectFlightSchedulesUnmanaged(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
-     
-        for (FlightSchedule fs: flightSchedules)
-        {
-            fs.getFlightSchedulePlan().setFlightSchedules(null);
-            
-            for (SeatInventory si: fs.getSeatInventories())
-            {
-                si.setFlightSchedule(null);
-            }
-            
-            for (FlightReservationRecord fr: fs.getFlightReservationRecords())
-            {
-                fr.setFlightSchedules(null);
-            }
-            
-            fs.setReturnFlightSchedule(null);
-        }
+        List<FlightSchedule > flightSchedules = flightScheduleSessionBeanLocal.searchDirectFlightSchedules(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
         
         return flightSchedules;
     }
@@ -224,24 +177,7 @@ public class PartnerWebService {
                                                             @WebParam(name = "numPassengers") Integer numPassengers)
     {
      
-        List<FlightSchedule> flightSchedules = flightScheduleSessionBeanLocal.searchSingleTransitConnectingFlightScheduleUnmanaged(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
-        
-        for (FlightSchedule fs: flightSchedules)
-        {
-            fs.getFlightSchedulePlan().setFlightSchedules(null);
-            
-            for (SeatInventory si: fs.getSeatInventories())
-            {
-                si.setFlightSchedule(null);
-            }
-            
-            for (FlightReservationRecord fr: fs.getFlightReservationRecords())
-            {
-                fr.setFlightSchedules(null);
-            }
-            
-            fs.setReturnFlightSchedule(null);
-        }
+        List<FlightSchedule> flightSchedules = flightScheduleSessionBeanLocal.searchSingleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
         
         return flightSchedules;
     }
@@ -255,70 +191,33 @@ public class PartnerWebService {
                                                             @WebParam(name = "preferredCabinClass") CabinClassEnum preferredCabinClass,
                                                             @WebParam(name = "numPassengers") Integer numPassengers)
     {
-        List<FlightSchedule> flightSchedules = flightScheduleSessionBeanLocal.searchDoubleTransitConnectingFlightScheduleUnmanaged(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
-        
-        for (FlightSchedule fs: flightSchedules)
-        {
-            fs.getFlightSchedulePlan().setFlightSchedules(null);
-            
-            for (SeatInventory si: fs.getSeatInventories())
-            {
-                si.setFlightSchedule(null);
-            }
-            
-            for (FlightReservationRecord fr: fs.getFlightReservationRecords())
-            {
-                fr.setFlightSchedules(null);
-            }
-            
-            fs.setReturnFlightSchedule(null);
-        }
+        List<FlightSchedule> flightSchedules = flightScheduleSessionBeanLocal.searchDoubleTransitConnectingFlightSchedule(departureAirportId, destinationAirportId, dateStart, dateEnd, preferredCabinClass, numPassengers);
         
         return flightSchedules;
     }
     
-    @WebMethod(operationName = "getFlightScheduleByIdUnmanaged")
-    public FlightSchedule getFlightScheduleByIdUnmanaged(@WebParam(name = "flightScheduleId") Long flightScheduleId) throws FlightScheduleNotFoundException
+    @WebMethod(operationName = "getFlightScheduleById")
+    public FlightSchedule getFlightScheduleById(@WebParam(name = "flightScheduleId") Long flightScheduleId) throws FlightScheduleNotFoundException
     {
-        FlightSchedule fs = flightScheduleSessionBeanLocal.getFlightScheduleByIdUnmanaged(flightScheduleId);
-        
-        for (SeatInventory si: fs.getSeatInventories())
-        {
-            si.setFlightSchedule(null);
-        }
-
-        for (FlightReservationRecord fr: fs.getFlightReservationRecords())
-        {
-            fr.setFlightSchedules(null);
-        }
-
-        fs.getFlightSchedulePlan().setFlightSchedules(null);
-        fs.getReturnFlightSchedule().setReturnFlightSchedule(null);
+        FlightSchedule fs = flightScheduleSessionBeanLocal.getFlightScheduleById(flightScheduleId); 
         
         return fs;
     }
     
-    @WebMethod(operationName = "getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged")
-    public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(@WebParam(name = "name") Long flightSchedulePlanId,
+    @WebMethod(operationName = "getFareByFlightSchedulePlanIdAndCabinClassId")
+    public List<Fare> getFareByFlightSchedulePlanIdAndCabinClassId(@WebParam(name = "name") Long flightSchedulePlanId,
                                                                             @WebParam(name = "cabinClassId") Long cabinClassId)
     {
-        List<Fare> fares = fareSessionBeanLocal.getFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(flightSchedulePlanId, cabinClassId);
-        
-        for (Fare fare: fares)
-        {
-            fare.getCabinClass().setFares(null);
-            
-            fare.getFlightSchedulePlan().setFares(null);
-        }
+        List<Fare> fares = fareSessionBeanLocal.getFareByFlightSchedulePlanIdAndCabinClassId(flightSchedulePlanId, cabinClassId);
         
         return fares;
     }
     
-    @WebMethod(operationName = "getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged")
-    public BigDecimal getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(@WebParam(name = "flightSchedulePlanId") Long flightSchedulePlanId, 
+    @WebMethod(operationName = "getHighestFareByFlightSchedulePlanIdAndCabinClassId")
+    public BigDecimal getHighestFareByFlightSchedulePlanIdAndCabinClassId(@WebParam(name = "flightSchedulePlanId") Long flightSchedulePlanId, 
                                                                                    @WebParam(name = "cabinClassId") Long cabinClassId) throws FareNotFoundException
     {
-        BigDecimal price = fareSessionBeanLocal.getHighestFareByFlightSchedulePlanIdAndCabinClassIdUnmanaged(flightSchedulePlanId, cabinClassId);
+        BigDecimal price = fareSessionBeanLocal.getHighestFareByFlightSchedulePlanIdAndCabinClassId(flightSchedulePlanId, cabinClassId);
         
         return price;
     }
@@ -334,22 +233,9 @@ public class PartnerWebService {
     }
     
     @WebMethod(operationName = "retrieveReservationRecordsByCustomerId")
-    public List<FlightReservationRecord> retrieveReservationRecordsByCustomerIdUnmanaged (@WebParam(name = "customerId") Long customerId)
+    public List<FlightReservationRecord> retrieveReservationRecordsByCustomerId (@WebParam(name = "customerId") Long customerId)
     {
         List<FlightReservationRecord> reservations = flightReservationRecordSessionBeanLocal.retrieveReservationRecordsByCustomerId(customerId);
-        
-        for (FlightReservationRecord reservation: reservations)
-        {
-            for (FlightSchedule fs: reservation.getFlightSchedules())
-            {
-                fs.setFlightReservationRecords(null);
-            }
-            
-            for (Passenger p: reservation.getPassengers())
-            {
-                p.setFlightReservationRecord(null);
-            }
-        }
         
         return reservations;
     }
@@ -360,25 +246,13 @@ public class PartnerWebService {
     {
         FlightReservationRecord reservation = flightReservationRecordSessionBeanLocal.retrieveReservationRecordById(recordId, personId);
         
-        for (FlightSchedule fs: reservation.getFlightSchedules())
-        {
-            fs.setFlightReservationRecords(null);
-        }
-
-        for (Passenger p: reservation.getPassengers())
-        {
-            p.setFlightReservationRecord(null);
-        }
-        
         return reservation;
     }
     
-    @WebMethod(operationName = "retrievePassengerByPassengerIdUnmanaged")
-    public Passenger retrievePassengerByPassengerIdUnmanaged(@WebParam(name = "passengerId") Long passengerId) throws PassengerNotFoundException
+    @WebMethod(operationName = "retrievePassengerByPassengerId")
+    public Passenger retrievePassengerByPassengerId(@WebParam(name = "passengerId") Long passengerId) throws PassengerNotFoundException
     {
-        Passenger p = passengerSessionBeanLocal.retrievePassengerByPassengerIdUnmanaged(passengerId);
-        
-        p.getFlightReservationRecord().setPassengers(null);
+        Passenger p = passengerSessionBeanLocal.retrievePassengerByPassengerId(passengerId);
         
         return p;
     }
@@ -392,21 +266,38 @@ public class PartnerWebService {
         return passengerId;
     }
     
-    @WebMethod(operationName = "retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged")
-    public SeatInventory retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged(@WebParam(name = "cabinClassId") Long cabinClassId, 
-                                                                                         @WebParam(name = "flightScheduleId") Long flightScheduleId) throws SeatInventoryNotFoundException
+    @WebMethod(operationName = "retrieveSeatInventoryByCabinClassIdAndFlightScheduleId")
+    public SeatInventory retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(@WebParam(name = "cabinClassId") Long cabinClassId, 
+                                                                                @WebParam(name = "flightScheduleId") Long flightScheduleId) throws SeatInventoryNotFoundException
     {
-        SeatInventory si = seatInventorySessionBeanLocal.retrieveSeatInventoryByCabinClassIdAndFlightScheduleIdUnmanaged(cabinClassId, flightScheduleId);
-        
-        si.getCabinClass().setSeatInventories(null);
-        
-        si.getFlightSchedule().setSeatInventories(null);
-        
-        for (CabinSeatInventory csi: si.getCabinSeatInventories())
-        {
-            csi.setSeatInventory(null);
-        }
+        SeatInventory si = seatInventorySessionBeanLocal.retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(cabinClassId, flightScheduleId);
         
         return si;
     }    
+    
+    @WebMethod(operationName = "getFlightSchedulePlanById")
+    public FlightSchedulePlan getFlightSchedulePlanById(@WebParam(name = "flightSchedulePlanId") Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException
+    {
+        FlightSchedulePlan fsp = flightSchedulePlanSessionBeanLocal.getFlightSchedulePlanById(flightSchedulePlanId);
+        
+        return fsp;
+    }
+    
+    @WebMethod(operationName = "getFlightById")
+    public Flight getFlightById(@WebParam(name = "flightSchedulePlanId") Long flightId) throws FlightNotFoundException
+    {
+        Flight f = flightSessionBeanLocal.getFlightById(flightId);
+
+        return f;
+    }
+    
+    @WebMethod(operationName = "getFlightRouteById")
+    public FlightRoute getFlightRouteById(@WebParam(name = "flightRouteId") Long flightRouteId, 
+                                          @WebParam(name = "fetchAirport")Boolean fetchAirport, 
+                                          @WebParam(name = "fetchFlights")Boolean fetchFlights) throws FlightRouteNotFoundException
+    {
+        FlightRoute fr = flightRouteSessionBeanLocal.getFlightRouteById(flightRouteId, fetchAirport, fetchFlights);
+  
+        return fr;
+    }
 }

@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
@@ -235,6 +237,19 @@ public class FlightRouteSessionBean implements FlightRouteSessionBeanRemote, Fli
         }       
     }
     
-    
-    
+    @Override
+    public FlightRoute getFlightRouteByFlightId (Long frId) throws FlightRouteNotFoundException
+    {
+        Query query = em.createQuery("SELECT fr FROM FlightRoute fr WHERE fr.flightRouteId = :inFlightRouteId");
+        query.setParameter("inFlightRouteId", frId);
+        
+        try
+        {
+            return (FlightRoute)query.getSingleResult();
+        }
+        catch (NonUniqueResultException | NoResultException ex)
+        {
+            throw new FlightRouteNotFoundException("Flight route for the specific flight cannot be found!\n");
+        }
+    }
 }

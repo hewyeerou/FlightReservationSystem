@@ -40,16 +40,13 @@ public class SeatInventory implements Serializable {
     @NotNull
     private Integer numOfBalanceSeats;
 
-    @XmlTransient
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     private FlightSchedule flightSchedule;
     
-    @XmlTransient
     @ManyToOne
     private CabinClass cabinClass;
     
-    @XmlTransient
     @OneToMany(mappedBy = "seatInventory")
     private List<CabinSeatInventory> cabinSeatInventories;
 
@@ -79,6 +76,7 @@ public class SeatInventory implements Serializable {
         this.cabinClass = cabinClass;
     }
 
+    @XmlTransient
     public List<CabinSeatInventory> getCabinSeatInventories() {
         return cabinSeatInventories;
     }

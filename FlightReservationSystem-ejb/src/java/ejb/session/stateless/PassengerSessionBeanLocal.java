@@ -21,6 +21,4 @@ public interface PassengerSessionBeanLocal {
 
     public Passenger retrievePassengerByPassengerId(Long passengerId) throws PassengerNotFoundException;
 
-    public Passenger retrievePassengerByPassengerIdUnmanaged(Long passengerId) throws PassengerNotFoundException;
-    
 }
