@@ -298,6 +298,7 @@ public class HolidayReservationSystem {
         Boolean reserveFlight = false;
         Boolean canReserveOutbound = false;
         Boolean canReserveReturn = false;
+        Boolean doSearchAgain = false;
         List<Integer> outboundOptions = new ArrayList<>();
         List<Integer> returnOptions = new ArrayList<>();
         
@@ -537,6 +538,7 @@ public class HolidayReservationSystem {
                     {
                         outboundCabinClass = CabinClassEnum.ECONOMY_CLASS;
                     }
+                    
                     break;
                 }
             }
@@ -680,7 +682,8 @@ public class HolidayReservationSystem {
 
                         if (response.equals("Y"))
                         {
-                            doPartnerSearchFlight();
+                            doSearchAgain = true;
+                            break;
                         }
                         else if (response.equals("N"))
                         {
@@ -691,11 +694,8 @@ public class HolidayReservationSystem {
                             System.out.println("Invalid input, please try again!\n");
                         }
                     }
-                    if (response.equals("N"))
-                    {
-                        break;
-                    }
                 }
+                break;
             }
             catch (InputMismatchException ex)
             {
@@ -724,6 +724,11 @@ public class HolidayReservationSystem {
             {
                 doPartnerReserveFlight(tripType, numPassengers, outboundFlightType, returnFlightType, outboundCabinClass, returnCabinClass, outboundOptions, returnOptions);
             }
+        }
+        
+        if (doSearchAgain)
+        {
+            doPartnerReserveFlight(tripType, numPassengers, outboundFlightType, returnFlightType, outboundCabinClass, returnCabinClass, outboundOptions, returnOptions);
         }
     }
     
@@ -1315,44 +1320,47 @@ public class HolidayReservationSystem {
             System.out.printf("%10s%18s%30s%30s%20s\n", "Flight No.", "Itinerary", "Departure Date and Time", "Arrival Date and Time", "Flight Duration");
             System.out.printf("%10s%18s%30s%30s%20s\n", f.getFlightNumber(), fr.getOrigin().getIataCode() + "-" + fr.getDestination().getIataCode(), dateTimeFormatter.format(asDate(flightSchedule.getDepartureDateTime())), dateTimeFormatter.format(arrivalDateTime), flightSchedule.getFlightHours().toString() + "h " + flightSchedule.getFlightMinutes().toString() + "min");
             List<CabinClass> cabinClasses = retrieveCabinClassesByAircraftConfigId(f.getAircraftConfig().getAircraftConfigId());
-            System.out.println(cabinClasses.size());
+            
             if (preferredCabinClass == null)
             {
                 System.out.println("Price of cabin class(es):\n");
-                System.out.printf("%40s%25s%25s%30s\n", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
+                System.out.printf("%40s%25s%30s\n", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
                 for (CabinClass cc: cabinClasses)
                 {
                     try
                     {
                         SeatInventory seatInventory = retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(cc.getCabinClassId(), flightSchedule.getFlightScheduleId());
-                        // if (seatInventory.getNumOfBalanceSeats() < numPassengers)
-                        // {
-                        //    continue;
-                        // }
-                        Integer seats = seatInventory.getNumOfBalanceSeats();
-
-                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fsp.getFlightSchedulePlanId(), cc.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
+                        if (seatInventory.getNumOfBalanceSeats() < numPassengers)
                         {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
-                            {
-                                lowestFare = fare.getFareAmount();
-                            }
+                            continue;
                         }
 
-                        System.out.printf("%40s%25s%25s%30s\n", cc.getCabinClassType().toString(), seats.toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
-                        printed.add(cc);
+                        List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fsp.getFlightSchedulePlanId(), cc.getCabinClassId());
+                        if (!fares.isEmpty())
+                        {
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
+                            {
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
+                            }
+                            
+                            System.out.printf("%40s%25s%30s\n", cc.getCabinClassType().toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
+                            printed.add(cc);
+                        }
                     }
                     catch (SeatInventoryNotFoundException_Exception ex)
                     {
+                        System.out.println("Seat Inventory Not Found!\n");
                         continue;
                     }
+                }
 
-                    if (printed.isEmpty())
-                    {
-                        System.out.println("\tThere are insufficient seats in the cabin classes for this reservation!\n");
-                    }
+                if (printed.isEmpty())
+                {
+                    System.out.println("\tThere are insufficient seats in the cabin classes for this reservation!\n");
                 }
             }
             else
@@ -1363,16 +1371,19 @@ public class HolidayReservationSystem {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
                         List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
+                        if (!fares.isEmpty())
                         {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
                             {
-                                lowestFare = fare.getFareAmount();
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
                             }
-                        }
 
-                        System.out.printf("\t%30s%25s%30s\n", cc.getCabinClassType().toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
+                            System.out.printf("%40s%25s%30s\n", cc.getCabinClassType().toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
+                        }
                     } 
                 }
             }
@@ -1442,17 +1453,20 @@ public class HolidayReservationSystem {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
                         List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
+                        if (!fares.isEmpty())
                         {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
                             {
-                                lowestFare = fare.getFareAmount();
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
                             }
-                        }
 
-                        pricePerPassenger = pricePerPassenger.add(lowestFare);
-                    } 
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
+                    }
                 }
                 
                 for (CabinClass cc: cabinClassesTwo)
@@ -1460,16 +1474,19 @@ public class HolidayReservationSystem {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
                         List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
+                        if (!fares.isEmpty())
                         {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
                             {
-                                lowestFare = fare.getFareAmount();
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
                             }
-                        }
 
-                        pricePerPassenger = pricePerPassenger.add(lowestFare);
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
                     } 
                 }
                 System.out.println("");
@@ -1563,17 +1580,20 @@ public class HolidayReservationSystem {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
                         List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
+                        if (fares.isEmpty())
                         {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
                             {
-                                lowestFare = fare.getFareAmount();
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
                             }
-                        }
 
-                        pricePerPassenger = pricePerPassenger.add(lowestFare);
-                    } 
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
+                    }
                 }
                 
                 for (CabinClass cc: cabinClassesTwo)
@@ -1581,16 +1601,19 @@ public class HolidayReservationSystem {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
                         List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
+                        if (!fares.isEmpty())
                         {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
                             {
-                                lowestFare = fare.getFareAmount();
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
                             }
-                        }
 
-                        pricePerPassenger = pricePerPassenger.add(lowestFare);
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
                     }
                 }
                 
@@ -1599,17 +1622,20 @@ public class HolidayReservationSystem {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
                         List<Fare> fares = getFareByFlightSchedulePlanIdAndCabinClassId(fs3.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        BigDecimal lowestFare = fares.get(0).getFareAmount();
-                        for (Fare fare: fares)
+                        if (!fares.isEmpty())
                         {
-                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                            BigDecimal lowestFare = fares.get(0).getFareAmount();
+                            for (Fare fare: fares)
                             {
-                                lowestFare = fare.getFareAmount();
+                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                {
+                                    lowestFare = fare.getFareAmount();
+                                }
                             }
-                        }
 
-                        pricePerPassenger = pricePerPassenger.add(lowestFare);
-                    } 
+                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                        }
+                    }
                 }
                 System.out.println("");
                 // Print out price per passenger and price for all passengers for the connecting flight

@@ -528,9 +528,9 @@ public class MainApp {
         Boolean reserveFlight = false;
         Boolean canReserveOutbound = false;
         Boolean canReserveReturn = false;
+        Boolean doSearchAgain = false;
         List<Integer> outboundOptions = new ArrayList<>();
         List<Integer> returnOptions = new ArrayList<>();
-        Boolean doSearchAgain = false;
         
         System.out.println("\n*** FRS Reservation :: Search Flights ***\n");
 
@@ -748,6 +748,7 @@ public class MainApp {
                 if (!cabinClassPreference.equals("F") && !cabinClassPreference.equals("J") && !cabinClassPreference.equals("W") && !cabinClassPreference.equals("Y") && !cabinClassPreference.equals("NA"))
                 {
                     System.out.println("Invalid option, please try again!\n");
+                    continue;
                 }
                 else
                 {
@@ -768,10 +769,7 @@ public class MainApp {
                         outboundCabinClass = CabinClassEnum.ECONOMY_CLASS;
                     }
 
-                    if (tripType == 1)
-                    {
-                        break;
-                    }
+                    break;
                 }
             }   
             catch (InputMismatchException ex)
@@ -779,41 +777,48 @@ public class MainApp {
                 System.out.println("Invalid input, enter 'F', 'J', 'W', 'Y' or 'NA' !\n");
                 scanner.next();
             }
-
-            try
+        }
+        
+        if (tripType == 2)
+        {
+            while (true)
             {
-                System.out.print("\nEnter you preference for (F: First Class, J: Business Class, W: Premiumn Economy Class, Y: Economy Class, NA: No Preference) for return flight> ");
-                String cabinClassPreference = scanner.nextLine().trim();
+                try
+                {
+                    System.out.print("\nEnter you preference for (F: First Class, J: Business Class, W: Premiumn Economy Class, Y: Economy Class, NA: No Preference) for return flight> ");
+                    String cabinClassPreference = scanner.nextLine().trim();
 
-                if (!cabinClassPreference.equals("F") && !cabinClassPreference.equals("J") && !cabinClassPreference.equals("W") && !cabinClassPreference.equals("Y") && !cabinClassPreference.equals("NA"))
-                {
-                    System.out.println("Invalid option, please try again!\n");
+                    if (!cabinClassPreference.equals("F") && !cabinClassPreference.equals("J") && !cabinClassPreference.equals("W") && !cabinClassPreference.equals("Y") && !cabinClassPreference.equals("NA"))
+                    {
+                        System.out.println("Invalid option, please try again!\n");
+                        continue;
+                    }
+                    else
+                    {
+                        if (cabinClassPreference.equals("F"))
+                        {
+                            returnCabinClass = CabinClassEnum.FIRST_CLASS;
+                        }
+                        else if (cabinClassPreference.equals("J"))
+                        {
+                            returnCabinClass = CabinClassEnum.BUSINESS_CLASS;
+                        }
+                        else if (cabinClassPreference.equals("W"))
+                        {
+                            returnCabinClass = CabinClassEnum.PREMIUM_ECONOMY_CLASS;
+                        }
+                        else if (cabinClassPreference.equals("Y"))
+                        {
+                            returnCabinClass = CabinClassEnum.ECONOMY_CLASS;
+                        }
+                        break;
+                    }
                 }
-                else
+                catch (InputMismatchException ex)
                 {
-                    if (cabinClassPreference.equals("F"))
-                    {
-                        returnCabinClass = CabinClassEnum.FIRST_CLASS;
-                    }
-                    else if (cabinClassPreference.equals("J"))
-                    {
-                        returnCabinClass = CabinClassEnum.BUSINESS_CLASS;
-                    }
-                    else if (cabinClassPreference.equals("W"))
-                    {
-                        returnCabinClass = CabinClassEnum.PREMIUM_ECONOMY_CLASS;
-                    }
-                    else if (cabinClassPreference.equals("Y"))
-                    {
-                        returnCabinClass = CabinClassEnum.ECONOMY_CLASS;
-                    }
-                    break;
+                    System.out.println("Invalid input, enter 'F', 'J', 'W', 'Y' or 'NA' !\n");
+                    scanner.next();
                 }
-            }
-            catch (InputMismatchException ex)
-            {
-                System.out.println("Invalid input, enter 'F', 'J', 'W', 'Y' or 'NA' !\n");
-                scanner.next();
             }
         }
         
@@ -1538,8 +1543,9 @@ public class MainApp {
         
         if (preferredCabinClass == null)
         {
+            // Only print out cabin classes in flight schedule that has sufficient seats for all passengers
             System.out.println("Price of cabin class(es):\n");
-            System.out.printf("%40s%20s%25s%30s\n", "Cabin Class Type", "No. of Seats Left", "Price Per Passenger", "Price for All Passengers");
+            System.out.printf("%40s%25s%30s\n", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
             for (CabinClass cc: cabinClasses)
             {
                 try
@@ -1547,7 +1553,7 @@ public class MainApp {
                     SeatInventory seatInventory = seatInventorySessionBeanRemote.retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(cc.getCabinClassId(), flightSchedule.getFlightScheduleId());
                     Integer numSeats = seatInventory.getNumOfAvailableSeats() ;
                     
-                    if (numSeats == 0)
+                    if (numSeats < numPassengers)
                     {
                        continue;
                     }
@@ -1564,52 +1570,43 @@ public class MainApp {
                             }
                         }
                         
-                        System.out.printf("%40s%20s%25s%30s\n", cc.getCabinClassType().toString(), numSeats.toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
+                        System.out.printf("%40s%25s%30s\n", cc.getCabinClassType().toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
                         printed.add(cc);
                     }
                 }
                 catch (SeatInventoryNotFoundException ex)
                 {
+                    System.out.println("Seat Inventory Not Found!\n");
                     continue;
                 }
             }
             
             if (printed.isEmpty())
             {
-                System.out.println("There are insufficient seats in the cabin classes for this reservation!\n");
+                System.out.println("\tThere are insufficient seats in the cabin classes for this reservation!\n");
             }
         }
         else
         {
-            System.out.printf("%40s%20s%25s%30s\n", "Cabin Class Type", "No. of Seats Left", "Price Per Passenger", "Price for All Passengers");
+            System.out.printf("%40s%25s%30s\n", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");
             for (CabinClass cc: cabinClasses)
             {
                 if (cc.getCabinClassType().equals(preferredCabinClass))
                 {
-                    try
+                    List<Fare> fares = fareSessionBeanRemote.getFareByFlightSchedulePlanIdAndCabinClassId(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
+
+                    if (!fares.isEmpty())
                     {
-                        SeatInventory seatInventory = seatInventorySessionBeanRemote.retrieveSeatInventoryByCabinClassIdAndFlightScheduleId(cc.getCabinClassId(), flightSchedule.getFlightScheduleId());
-                        Integer numSeats = seatInventory.getNumOfAvailableSeats();
-
-                        List<Fare> fares = fareSessionBeanRemote.getFareByFlightSchedulePlanIdAndCabinClassId(flightSchedule.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-
-                        if (!fares.isEmpty())
+                        BigDecimal lowestFare = fares.get(0).getFareAmount();
+                        for (Fare fare: fares)
                         {
-                            BigDecimal lowestFare = fares.get(0).getFareAmount();
-                            for (Fare fare: fares)
+                            if (fare.getFareAmount().compareTo(lowestFare) < 0)
                             {
-                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
-                                {
-                                    lowestFare = fare.getFareAmount();
-                                }
+                                lowestFare = fare.getFareAmount();
                             }
-
-                            System.out.printf("%40s%20s%25s%30s\n", cc.getCabinClassType().toString(), numSeats.toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
                         }
-                    }
-                    catch (SeatInventoryNotFoundException ex)
-                    {
-                        
+
+                        System.out.printf("%40s%25s%30s\n", cc.getCabinClassType().toString(), lowestFare.toString() , (lowestFare.multiply(new BigDecimal(numPassengers))).toString());
                     }
                 } 
             }
@@ -1673,7 +1670,7 @@ public class MainApp {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
                         List<Fare> fares = fareSessionBeanRemote.getFareByFlightSchedulePlanIdAndCabinClassId(fs1.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        
+
                         if (!fares.isEmpty())
                         {
                             BigDecimal lowestFare = fares.get(0).getFareAmount();
@@ -1686,7 +1683,7 @@ public class MainApp {
                             }
 
                             pricePerPassenger = pricePerPassenger.add(lowestFare);
-                        }                  
+                        }    
                     } 
                 }
                 
@@ -1695,21 +1692,21 @@ public class MainApp {
                     if (cc.getCabinClassType().equals(preferredCabinClass))
                     {
                         List<Fare> fares = fareSessionBeanRemote.getFareByFlightSchedulePlanIdAndCabinClassId(fs2.getFlightSchedulePlan().getFlightSchedulePlanId(), cc.getCabinClassId());
-                        if (!fares.isEmpty())
-                        {
-                            BigDecimal lowestFare = fares.get(0).getFareAmount();
-                            for (Fare fare: fares)
+                            if (!fares.isEmpty())
                             {
-                                if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                BigDecimal lowestFare = fares.get(0).getFareAmount();
+                                for (Fare fare: fares)
                                 {
-                                    lowestFare = fare.getFareAmount();
+                                    if (fare.getFareAmount().compareTo(lowestFare) < 0)
+                                    {
+                                        lowestFare = fare.getFareAmount();
+                                    }
                                 }
-                            }
 
-                            pricePerPassenger = pricePerPassenger.add(lowestFare);
+                                pricePerPassenger = pricePerPassenger.add(lowestFare);
+                            }
                         }
                     } 
-                }
                 System.out.println("");
                 // Print out price per passenger and price for all passengers for the connecting flight
                 System.out.printf("%40s%25s%30s\n", "Cabin Class Type", "Price Per Passenger", "Price for All Passengers");

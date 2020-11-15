@@ -11,6 +11,7 @@ import java.util.List;
 import javax.ejb.Remote;
 import util.exception.FlightNotFoundException;
 import util.exception.FlightSchedulePlanNotFoundException;
+import util.exception.InputDataValidationException;
 
 /**
  *
@@ -19,15 +20,15 @@ import util.exception.FlightSchedulePlanNotFoundException;
 @Remote
 public interface FlightSchedulePlanSessionBeanRemote {
     
-    public Long createNewFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan, String flightNum) throws FlightNotFoundException;
+    public Long createNewFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan, String flightNum) throws FlightNotFoundException, InputDataValidationException;
     
-    public Long createNewReturnFlightSchedulePlan(FlightSchedulePlan returnFlightSchedulePlan, Long flightSchedulePlanId) throws FlightNotFoundException;
+    public Long createNewReturnFlightSchedulePlan(FlightSchedulePlan returnFlightSchedulePlan, Long flightSchedulePlanId) throws FlightNotFoundException, InputDataValidationException;
 
     public FlightSchedulePlan getFlightSchedulePlanById(Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException;
     
     public List<FlightSchedulePlan> getAllFlightSchedulePlan();
     
-    public void updateFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan) throws FlightSchedulePlanNotFoundException;
+    public void updateFlightSchedulePlan(FlightSchedulePlan flightSchedulePlan) throws FlightSchedulePlanNotFoundException, InputDataValidationException;
 
     public void removeFlightSchedulePlan(Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException;
 

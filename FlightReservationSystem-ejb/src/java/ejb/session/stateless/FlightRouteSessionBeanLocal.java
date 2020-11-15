@@ -10,6 +10,7 @@ import java.util.List;
 import javax.ejb.Local;
 import util.exception.FlightRouteExistException;
 import util.exception.FlightRouteNotFoundException;
+import util.exception.InputDataValidationException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -20,9 +21,9 @@ import util.exception.UnknownPersistenceException;
 public interface FlightRouteSessionBeanLocal 
 {
 
-    public Long createNewFlightRoute(FlightRoute flightRoute, Long originAirportId, Long destinationAirportId) throws FlightRouteExistException, UnknownPersistenceException;
+    public Long createNewFlightRoute(FlightRoute flightRoute, Long originAirportId, Long destinationAirportId) throws FlightRouteExistException, UnknownPersistenceException, InputDataValidationException;
 
-    public Long createNewReturnFlightRoute(FlightRoute returnFlightRoute, Long flightRouteId) throws FlightRouteExistException, UnknownPersistenceException;
+    public Long createNewReturnFlightRoute(FlightRoute returnFlightRoute, Long flightRouteId) throws FlightRouteExistException, UnknownPersistenceException, InputDataValidationException;
 
     public List<FlightRoute> getAllFlightRoute();
 
@@ -35,6 +36,5 @@ public interface FlightRouteSessionBeanLocal
 //    public void removeReturnFlightRoute(Long flightRouteId, Long flightRouteIdAssociatedWithReturnFlightRoute) throws FlightRouteNotFoundException;
 
     public FlightRoute getFlightRouteByFlightId(Long frId) throws FlightRouteNotFoundException;
-
     
 }

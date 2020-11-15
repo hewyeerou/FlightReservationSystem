@@ -17,6 +17,7 @@ import entity.Passenger;
 import entity.SeatInventory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Resource;
@@ -30,10 +31,15 @@ import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import util.exception.AircraftConfigNameExistException;
 import util.exception.FlightNotFoundException;
 import util.exception.FlightNumExistException;
 import util.exception.FlightRouteExistException;
+import util.exception.InputDataValidationException;
 import util.exception.UnknownPersistenceException;
 import util.exception.UpdateStaffException;
 import util.exception.createOutboundReturnFlightCheckException;
@@ -50,115 +56,144 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
 
     @Resource
     private EJBContext eJBContext;
+    
+    private final ValidatorFactory validatorFactory;
+    private final Validator validator;
+
+    public FlightSessionBean() {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
+    }
+    
  
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     @Override
-    public Long createFlight(Flight newFlight, Long flightRouteId, Long aircraftConfigId) throws FlightNumExistException, UnknownPersistenceException 
+    public Long createFlight(Flight newFlight, Long flightRouteId, Long aircraftConfigId) throws FlightNumExistException, UnknownPersistenceException, InputDataValidationException
     {
-        try
+        Set<ConstraintViolation<Flight>>constraintViolations = validator.validate(newFlight);
+        
+        if(constraintViolations.isEmpty())
         {
-            FlightRoute flightRoute = em.find(FlightRoute.class, flightRouteId);
-            AircraftConfig aircraftConfig = em.find(AircraftConfig.class, aircraftConfigId);
-
-            //flight - flight route 
-            newFlight.setFlightRoute(flightRoute);
-            flightRoute.getFlights().add(newFlight);
-            
-            //flight - aircraft config
-            newFlight.setAircraftConfig(aircraftConfig);
-            aircraftConfig.setFlight(newFlight);
-            
-            //flight - return flight
-            newFlight.setReturnFlight(newFlight);
-
-            //flight - flightSchedulePlan
-            for(FlightSchedulePlan flightSchedulePlan: newFlight.getFlightSchedulePlans())
+            try
             {
-                flightSchedulePlan.setFlight(newFlight);
-                newFlight.getFlightSchedulePlans().add(flightSchedulePlan);
-            }
+                FlightRoute flightRoute = em.find(FlightRoute.class, flightRouteId);
+                AircraftConfig aircraftConfig = em.find(AircraftConfig.class, aircraftConfigId);
 
-            em.persist(newFlight);
-            em.flush();
+                //flight - flight route 
+                newFlight.setFlightRoute(flightRoute);
+                flightRoute.getFlights().add(newFlight);
 
-            return newFlight.getFlightId();
-        }
-        catch(PersistenceException ex)
-        {
-            if(ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException"))
-            {
-                if(ex.getCause().getCause() != null && ex.getCause().getCause().getClass().getName().equals("java.sql.SQLIntegrityConstraintViolationException"))
+                //flight - aircraft config
+                newFlight.setAircraftConfig(aircraftConfig);
+                aircraftConfig.setFlight(newFlight);
+
+                //flight - return flight
+                newFlight.setReturnFlight(newFlight);
+
+                //flight - flightSchedulePlan
+                for(FlightSchedulePlan flightSchedulePlan: newFlight.getFlightSchedulePlans())
                 {
-                    throw new FlightNumExistException();
+                    flightSchedulePlan.setFlight(newFlight);
+                    newFlight.getFlightSchedulePlans().add(flightSchedulePlan);
+                }
+
+                em.persist(newFlight);
+                em.flush();
+
+                return newFlight.getFlightId();
+            }
+            catch(PersistenceException ex)
+            {
+                if(ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException"))
+                {
+                    if(ex.getCause().getCause() != null && ex.getCause().getCause().getClass().getName().equals("java.sql.SQLIntegrityConstraintViolationException"))
+                    {
+                        throw new FlightNumExistException();
+                    }
+                    else
+                    {
+                        throw new UnknownPersistenceException(ex.getMessage());
+                    }
                 }
                 else
                 {
                     throw new UnknownPersistenceException(ex.getMessage());
                 }
-            }
-            else
-            {
-                throw new UnknownPersistenceException(ex.getMessage());
-            }
-        }    
+            } 
+        }
+        else
+        {
+            throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
+        }
+           
     }
     
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     @Override
-    public Long createReturnFlight(Flight newReturnFlight, Long flightId) throws FlightNumExistException, UnknownPersistenceException
+    public Long createReturnFlight(Flight newReturnFlight, Long flightId) throws FlightNumExistException, UnknownPersistenceException, InputDataValidationException
     {
-        try
-        {
-            Flight flight = em.find(Flight.class, flightId);
+        Set<ConstraintViolation<Flight>>constraintViolations = validator.validate(newReturnFlight);
         
-            FlightRoute returnFlightRoute = flight.getFlightRoute().getReturnFlightRoute();
-
-            //return flight - return flight route
-            newReturnFlight.setFlightRoute(returnFlightRoute);
-            returnFlightRoute.getFlights().add(newReturnFlight);
-            
-            //return flight - aircraftConfig
-            newReturnFlight.setAircraftConfig(flight.getAircraftConfig());
-            flight.getAircraftConfig().setFlight(newReturnFlight);
-            
-            //flight - return flight
-            flight.setReturnFlight(newReturnFlight);
-            newReturnFlight.setReturnFlight(newReturnFlight);
-
-            for(FlightSchedulePlan flightSchedulePlan: newReturnFlight.getFlightSchedulePlans())
-            {
-                flightSchedulePlan.setFlight(newReturnFlight);
-                newReturnFlight.getFlightSchedulePlans().add(flightSchedulePlan);
-            }   
-
-            em.persist(newReturnFlight);
-            em.flush();
-
-            return newReturnFlight.getFlightId();
-        }
-        catch(PersistenceException ex)
+        if(constraintViolations.isEmpty())
         {
-            if(ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException"))
+            try
             {
-                if(ex.getCause().getCause() != null && ex.getCause().getCause().getClass().getName().equals("java.sql.SQLIntegrityConstraintViolationException"))
+                Flight flight = em.find(Flight.class, flightId);
+
+                FlightRoute returnFlightRoute = flight.getFlightRoute().getReturnFlightRoute();
+
+                //return flight - return flight route
+                newReturnFlight.setFlightRoute(returnFlightRoute);
+                returnFlightRoute.getFlights().add(newReturnFlight);
+
+                //return flight - aircraftConfig
+                newReturnFlight.setAircraftConfig(flight.getAircraftConfig());
+                flight.getAircraftConfig().setFlight(newReturnFlight);
+
+                //flight - return flight
+                flight.setReturnFlight(newReturnFlight);
+                newReturnFlight.setReturnFlight(newReturnFlight);
+
+                for(FlightSchedulePlan flightSchedulePlan: newReturnFlight.getFlightSchedulePlans())
                 {
-                  
-                    throw new FlightNumExistException();
+                    flightSchedulePlan.setFlight(newReturnFlight);
+                    newReturnFlight.getFlightSchedulePlans().add(flightSchedulePlan);
+                }   
+
+                em.persist(newReturnFlight);
+                em.flush();
+
+                return newReturnFlight.getFlightId();
+            }
+            catch(PersistenceException ex)
+            {
+                if(ex.getCause() != null && ex.getCause().getClass().getName().equals("org.eclipse.persistence.exceptions.DatabaseException"))
+                {
+                    if(ex.getCause().getCause() != null && ex.getCause().getCause().getClass().getName().equals("java.sql.SQLIntegrityConstraintViolationException"))
+                    {
+
+                        throw new FlightNumExistException();
+                    }
+                    else
+                    {
+                        throw new UnknownPersistenceException(ex.getMessage());
+                    }
                 }
                 else
                 {
                     throw new UnknownPersistenceException(ex.getMessage());
                 }
             }
-            else
-            {
-                throw new UnknownPersistenceException(ex.getMessage());
-            }
         }
+        else
+        {
+            throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
+        }
+        
     }
     
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public Long createOutboundReturnFlightCheck(Flight newFlight, Long flightRouteId, Long aircraftConfigId, Flight newReturnFlight) throws createOutboundReturnFlightCheckException
+    public Long createOutboundReturnFlightCheck(Flight newFlight, Long flightRouteId, Long aircraftConfigId, Flight newReturnFlight) throws createOutboundReturnFlightCheckException, InputDataValidationException
     {
         try
         {
@@ -172,6 +207,7 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
             eJBContext.setRollbackOnly();
             throw new createOutboundReturnFlightCheckException(ex.getMessage());
         } 
+        
 
     }
     
@@ -245,17 +281,27 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
     }
     
     @Override
-    public void updateFlight(Flight flight) throws FlightNotFoundException, FlightNumExistException
+    public void updateFlight(Flight flight) throws FlightNotFoundException, FlightNumExistException, InputDataValidationException
     {
         if(flight != null && flight.getFlightId()!= null)
         {
-            Flight flightToUpdate = getFlightById(flight.getFlightId());
-            List<Flight> flights = getAllFlights();
-            List<String> flightNumList = new ArrayList<>();
+            Set<ConstraintViolation<Flight>>constraintViolations = validator.validate(flight);
             
+            if(constraintViolations.isEmpty())
+            {
+                Flight flightToUpdate = getFlightById(flight.getFlightId());
+                List<Flight> flights = getAllFlights();
+                List<String> flightNumList = new ArrayList<>();
+
                 flightToUpdate.setFlightNumber(flight.getFlightNumber());
                 flightToUpdate.setFlightRoute(flight.getFlightRoute());
                 flightToUpdate.setAircraftConfig(flight.getAircraftConfig());  
+            }
+            else
+            {
+                throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
+            }
+            
         }
         else
         {
@@ -303,5 +349,17 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
             flightToUpdate.setEnabled(false);
             flightToUpdate.getReturnFlight().setEnabled(false);
         } 
+    }
+    
+    private String prepareInputDataValidationErrorsMessage(Set<ConstraintViolation<Flight>>constraintViolations)
+    {
+        String msg = "Input data validation error!:";
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            msg += "\n\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage();
+        }
+        
+        return msg;
     }
 }

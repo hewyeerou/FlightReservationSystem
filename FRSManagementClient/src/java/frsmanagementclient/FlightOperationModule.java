@@ -47,7 +47,15 @@ import util.exception.InvalidAccessRightsException;
 import util.exception.UnknownPersistenceException;
 import util.exception.createOutboundReturnFlightCheckException;
 import ejb.session.stateless.SeatInventorySessionBeanRemote;
+import entity.Customer;
 import java.util.HashMap;
+import java.util.InputMismatchException;
+import java.util.Set;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import util.exception.InputDataValidationException;
 
 /**
  *
@@ -55,6 +63,9 @@ import java.util.HashMap;
  */
 public class FlightOperationModule 
 {
+    private final ValidatorFactory validatorFactory;
+    private final Validator validator;
+    
     private PartnerSessionBeanRemote partnerSessionBeanRemote;
     private AirportSessionBeanRemote airportSessionBeanRemote;
     private AircraftTypeSessionBeanRemote aircraftTypeSessionBeanRemote;
@@ -71,11 +82,14 @@ public class FlightOperationModule
 
     private Employee currentEmployee;
     
-    List<Boolean> isRecurrentOverlapped = new ArrayList<>();
+    private List<Boolean> isRecurrentOverlapped = new ArrayList<>();
 
+    private Boolean canFSProceed = true;
     
     public FlightOperationModule() 
     {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
     }
     
     public FlightOperationModule(Employee currentEmployee, FlightSessionBeanRemote flightSessionBean, FlightRouteSessionBeanRemote flightRouteSessionBeanRemote, AircraftConfigSessionBeanRemote aircraftConfigSessionBeanRemote, FlightSchedulePlanSessionBeanRemote flightSchedulePlanSessionBeanRemote, FlightScheduleSessionBeanRemote flightScheduleSessionBeanRemote, SeatInventorySessionBeanRemote seatinventorySessionBeanRemote, FareSessionBeanRemote fareSessionBeanRemote)
@@ -103,36 +117,44 @@ public class FlightOperationModule
         
         while(true)
         {
-            System.out.println("*** FRS Management :: Flight Operation ***\n");
-            System.out.println("1: Flight");
-            System.out.println("2: Flight Schedule Plan");
-            System.out.println("3: Back\n");
-            
-            response = 0;
-            
-            while(response < 1 || response > 2)
+            try
             {
-                System.out.print("> ");                
-                response = scanner.nextInt();
-                
-                if(response == 1)
+                System.out.println("*** FRS Management :: Flight Operation ***\n");
+                System.out.println("1: Flight");
+                System.out.println("2: Flight Schedule Plan");
+                System.out.println("3: Back\n");
+
+                response = 0;
+
+                while(response < 1 || response > 2)
                 {
-                    doFlight();
-                }
-                else if(response == 2)
-                {
-                    doFlightSchedulePlan();
-                }
-                else if(response == 3)
-                {
-                    break;
-                }
-                else
-                {
-                    System.out.println("Invalid option, please try again!\n");
+                    System.out.print("> ");                
+                    response = scanner.nextInt();
+
+                    if(response == 1)
+                    {
+                        doFlight();
+                    }
+                    else if(response == 2)
+                    {
+                        doFlightSchedulePlan();
+                    }
+                    else if(response == 3)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        System.out.println("Invalid option, please try again!\n");
+                    }
                 }
             }
-            
+            catch (InputMismatchException ex)
+            {
+                System.out.println("Invalid input, select an option from 1-3!\n");
+                scanner.next();
+            }
+             
             if(response == 3)
             {
                 break;
@@ -157,29 +179,37 @@ public class FlightOperationModule
             
             while(response < 1 || response > 3)
             {
-                System.out.print("> ");
-                
-                response = scanner.nextInt();
-                
-                if(response == 1)
+                try
                 {
-                    doCreateFlight();
+                    System.out.print("> ");
+
+                    response = scanner.nextInt();
+
+                    if(response == 1)
+                    {
+                        doCreateFlight();
+                    }
+                    else if(response == 2)
+                    {
+                        doViewAllFlights();
+                    }
+                    else if(response == 3)
+                    {
+                        doViewFlightDetails();
+                    }
+                    else if(response == 4)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        System.out.println("Invalid option, please try again!\n");
+                    }
                 }
-                else if(response == 2)
+                catch (InputMismatchException ex)
                 {
-                    doViewAllFlights();
-                }
-                else if(response == 3)
-                {
-                    doViewFlightDetails();
-                }
-                else if(response == 4)
-                {
-                    break;
-                }
-                else
-                {
-                    System.out.println("Invalid option, please try again!\n");
+                    System.out.println("Invalid input, select an option from 1-4!\n");
+                    scanner.next();
                 }
             }
             
@@ -206,29 +236,37 @@ public class FlightOperationModule
             
             while(response < 1 || response > 4)
             {
-                System.out.print("> ");
-                
-                response = scanner.nextInt();
-                
-                if(response == 1)
+                try
                 {
-                    doCreateFlightSchedulePlan();
+                    System.out.print("> ");
+
+                    response = scanner.nextInt();
+
+                    if(response == 1)
+                    {
+                        doCreateFlightSchedulePlan();
+                    }
+                    else if(response == 2)
+                    {
+                        doViewAllFlightSchedulePlans();
+                    }
+                    else if(response == 3)
+                    {
+                        doViewFlightSchedulePlanDetails();
+                    }
+                    else if(response == 4)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        System.out.println("Invalid option, please try again!\n");
+                    } 
                 }
-                else if(response == 2)
+                catch (InputMismatchException ex)
                 {
-                    doViewAllFlightSchedulePlans();
-                }
-                else if(response == 3)
-                {
-                    doViewFlightSchedulePlanDetails();
-                }
-                else if(response == 4)
-                {
-                    break;
-                }
-                else
-                {
-                    System.out.println("Invalid option, please try again!\n");
+                    System.out.println("Invalid input, select an option from 1-4!\n");
+                    scanner.next();
                 }
             }    
             if(response == 4)
@@ -251,40 +289,60 @@ public class FlightOperationModule
         Long flightRouteId;
         Integer aircraftConfigInt = 0;
         Integer flightRouteInt = 0;
+        String flightNumber = "";
         
         List<FlightRoute> outboundFlightRoutes = new ArrayList<>();
        
         System.out.println("*** FRS Management :: Flight Operation :: Flight :: Create New Flight ***\n");
         
-        System.out.print("Enter Flight Number (eg. ML001)> ");
-        String flightNumber = scanner.nextLine().trim();
-        
+        while(true)
+        {
+            try
+            {
+                System.out.print("Enter Flight Number (eg. ML001)> ");
+                flightNumber = scanner.nextLine().trim();
+                break;
+            }
+            catch (InputMismatchException ex)
+            {
+                System.out.println("Invalid input, enter flight number in text!\n");
+                scanner.next();
+            }
+        }
+
         //prompt user a list of aircraft config
         while(true)
         {
             Integer option = 0;
-            
-            System.out.println("List of aircraft configurations: ");
-            for(AircraftConfig aircraftConfig: aircraftConfigs)
+            try
             {
-                option++;
-                System.out.println(option + ": " + aircraftConfig.getName());
+                System.out.println("List of aircraft configurations: ");
+                for(AircraftConfig aircraftConfig: aircraftConfigs)
+                {
+                    option++;
+                    System.out.println(option + ": " + aircraftConfig.getName());
+                }
+
+                System.out.println("");
+                System.out.print("Select Aicraft Configuration> ");
+                aircraftConfigInt = scanner.nextInt();
+                scanner.nextLine();
+
+                if(aircraftConfigInt >= 1 && aircraftConfigInt <= option)
+                {
+                    aircraftConfigId = aircraftConfigs.get(aircraftConfigInt-1).getAircraftConfigId();
+                    break;
+                }
+                else
+                {
+                    System.out.println("Invalid option, please try again!\n");
+                }  
             }
-            
-            System.out.println("");
-            System.out.print("Select Aicraft Configuration> ");
-            aircraftConfigInt = scanner.nextInt();
-            scanner.nextLine();
-            
-            if(aircraftConfigInt >= 1 && aircraftConfigInt <= option)
+            catch (InputMismatchException ex)
             {
-                aircraftConfigId = aircraftConfigs.get(aircraftConfigInt-1).getAircraftConfigId();
-                break;
+                System.out.println("Invalid input, select an option from 1-" + option + "!\n");
+                scanner.next();
             }
-            else
-            {
-                System.out.println("Invalid option, please try again!\n");
-            }  
         }           
         
         //prompt user a list of flight routes
@@ -292,35 +350,43 @@ public class FlightOperationModule
         {
             Integer option = 0;
             
-            System.out.println("List of main flight routes: ");
-            
-            for(FlightRoute flightRoute: flightRoutes)
+            try
             {
-                if(flightRoute.getFlightRouteType().equals("OUTBOUND") && flightRoute.getEnabled() == true)
+                System.out.println("List of main flight routes: ");
+
+                for(FlightRoute flightRoute: flightRoutes)
                 {
-                    outboundFlightRoutes.add(flightRoute);
+                    if(flightRoute.getFlightRouteType().equals("OUTBOUND") && flightRoute.getEnabled() == true)
+                    {
+                        outboundFlightRoutes.add(flightRoute);
+                    }
+                }
+
+                for(FlightRoute flightRoute: outboundFlightRoutes)
+                {
+                    option++;
+                    System.out.println(option + ": " + flightRoute.getOrigin().getIataCode() + " - " + flightRoute.getDestination().getIataCode());
+                }
+
+                System.out.println("");
+                System.out.print("Select Flight Route> ");
+                flightRouteInt = scanner.nextInt();
+                scanner.nextLine();
+
+                if(flightRouteInt >= 1 && flightRouteInt <= option)
+                {
+                    flightRouteId = outboundFlightRoutes.get(flightRouteInt-1).getFlightRouteId();
+                    break;
+                }
+                else
+                {
+                    System.out.println("Invalid option, please try again!\n");
                 }
             }
-
-            for(FlightRoute flightRoute: outboundFlightRoutes)
+            catch (InputMismatchException ex)
             {
-                option++;
-                System.out.println(option + ": " + flightRoute.getOrigin().getIataCode() + " - " + flightRoute.getDestination().getIataCode());
-            }
-            
-            System.out.println("");
-            System.out.print("Select Flight Route> ");
-            flightRouteInt = scanner.nextInt();
-            scanner.nextLine();
-            
-            if(flightRouteInt >= 1 && flightRouteInt <= option)
-            {
-                flightRouteId = outboundFlightRoutes.get(flightRouteInt-1).getFlightRouteId();
-                break;
-            }
-            else
-            {
-                System.out.println("Invalid option, please try again!\n");
+                System.out.println("Invalid input, select an option from 1-" + option + "!\n");
+                scanner.next();
             }
         }
         
@@ -336,23 +402,37 @@ public class FlightOperationModule
                    newReturnFlight.setEnabled(true);
                    newReturnFlight.setFlightType("RETURN");
                    
-                    try
-                    {
-                         Long flightId = flightSessionBeanRemote.createFlight(newReturnFlight, flightRouteId, aircraftConfigId);
-                         System.out.println("New flight created successfully!: " + flightId + "\n");
-                    }
-                   catch(FlightNumExistException ex)
-                    {
-                        System.out.println("Duplicate flight record: The flight already exists!\n");
-                    } 
-  
+                   Set<ConstraintViolation<Flight>>constraintViolations = validator.validate(newReturnFlight);
+                   
+                   if(constraintViolations.isEmpty())
+                   {
+                        try
+                        {
+                             Long flightId = flightSessionBeanRemote.createFlight(newReturnFlight, flightRouteId, aircraftConfigId);
+                             System.out.println("New flight created successfully!: " + flightId + "\n");
+
+                        }
+                        catch(FlightNumExistException ex)
+                        {
+                            System.out.println("Duplicate flight record: The flight already exists!\n");
+                        } 
+                        catch (InputDataValidationException ex)
+                        {
+                            System.out.println(ex.getMessage() + "\n");
+                        }  
+                   }
+                   else
+                   {
+                       showInputDataValidationErrorsForFlight(constraintViolations);
+                   }
+
                 }
                 else if(flightRoute.getFlightRouteType().equals("OUTBOUND") && flightRoute.getReturnFlightRoute().getFlightRouteId() != flightRoute.getFlightRouteId())         //this flight route has complimentary flight route 
-                {
+                {   
                     newFlight.setFlightNumber(flightNumber);
                     newFlight.setEnabled(true);
                     newFlight.setFlightType("OUTBOUND");
-                    
+
                     System.out.println("Do you want to create a complementary return flight?");
                     while(true)
                     {
@@ -371,43 +451,72 @@ public class FlightOperationModule
                                 System.out.print("Enter Return Flight Number> ");
                                 String returnFlightNumber = scanner.nextLine().trim();
 
-                                
+
                                 if(returnFlightNumber.substring(0,2).equals("ML"))
                                 {
                                     newReturnFlight.setFlightNumber(returnFlightNumber);
                                     newReturnFlight.setEnabled(true);
                                     newReturnFlight.setFlightType("RETURN");
-                                    
-                                    //create both outbound and return in the same transaction
-                                    Long flightId = flightSessionBeanRemote.createOutboundReturnFlightCheck(newFlight, flightRouteId, aircraftConfigId, newReturnFlight);
-                                  
-                                    System.out.println("New flight created successfully!: " + flightId + "\n");
-                                    
-                                    Flight flight = flightSessionBeanRemote.getFlightById(flightId);
-                                    
-                                    System.out.println("New return flight created successfully!: " + flight.getReturnFlight().getFlightId() + "\n");
-                                    break;
+
+                                    Set<ConstraintViolation<Flight>>constraintViolations = validator.validate(newReturnFlight);
+                                    if(constraintViolations.isEmpty())
+                                    {
+                                        try
+                                        {
+                                            //create both outbound and return in the same transaction
+                                            Long flightId = flightSessionBeanRemote.createOutboundReturnFlightCheck(newFlight, flightRouteId, aircraftConfigId, newReturnFlight);
+
+                                            System.out.println("New flight created successfully!: " + flightId + "\n");
+
+                                            Flight flight = flightSessionBeanRemote.getFlightById(flightId);
+
+                                            System.out.println("New return flight created successfully!: " + flight.getReturnFlight().getFlightId() + "\n");
+                                            break;
+                                        }
+                                        catch (InputDataValidationException ex)
+                                        {
+                                            System.out.println(ex.getMessage() + "\n");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        showInputDataValidationErrorsForFlight(constraintViolations);
+                                    }
+
                                 }
                                 else
                                 {
                                     System.out.println("Flight number should start with ML");
                                 }
-
+                                break;
                             }
                             else if(option == 2)
                             {
-                                try
+                                Set<ConstraintViolation<Flight>>constraintViolations = validator.validate(newFlight);
+                                if(constraintViolations.isEmpty())
                                 {
-                                    Long flightId = flightSessionBeanRemote.createFlight(newFlight, flightRouteId, aircraftConfigId);
-                                    System.out.println("New flight created successfully!: " + flightId + "\n");
-                                    break;
+                                    try
+                                    {
+                                        Long flightId = flightSessionBeanRemote.createFlight(newFlight, flightRouteId, aircraftConfigId);
+                                        System.out.println("New flight created successfully!: " + flightId + "\n");
+                                        break;
+                                    }
+                                    catch(FlightNumExistException ex)
+                                    {
+                                        System.out.println("Duplicate flight record: The flight already exists!\n");
+                                    } 
+                                    catch (InputDataValidationException ex)
+                                    {
+                                        System.out.println(ex.getMessage() + "\n");
+                                    }
                                 }
-                                catch(FlightNumExistException ex)
+                                else
                                 {
-                                    System.out.println("Duplicate flight record: The flight already exists!\n");
-                                } 
+                                    showInputDataValidationErrorsForFlight(constraintViolations);
+                                }
                             }
                         }
+                        break;
                     }
                 }
                 else
@@ -415,17 +524,30 @@ public class FlightOperationModule
                     newFlight.setFlightNumber(flightNumber);
                     newFlight.setEnabled(true);
                     newFlight.setFlightType("OUTBOUND");
-                    
-                    try
-                    {
-                        Long flightId = flightSessionBeanRemote.createFlight(newFlight, flightRouteId, aircraftConfigId);
 
-                        System.out.println("New flight created successfully!: " + flightId + "\n");
-                    }
-                    catch(FlightNumExistException ex)
+                    Set<ConstraintViolation<Flight>>constraintViolations = validator.validate(newFlight);
+                    if(constraintViolations.isEmpty())
                     {
-                        System.out.println("Duplicate flight record: The flight already exists!\n");
-                    } 
+                        try
+                        {
+                            Long flightId = flightSessionBeanRemote.createFlight(newFlight, flightRouteId, aircraftConfigId);
+
+                            System.out.println("New flight created successfully!: " + flightId + "\n");
+                        }
+                        catch(FlightNumExistException ex)
+                        {
+                            System.out.println("Duplicate flight record: The flight already exists!\n");
+                        } 
+                        catch (InputDataValidationException ex)
+                        {
+                            System.out.println(ex.getMessage() + "\n");
+                        }
+                    }
+                    else
+                    {
+                        showInputDataValidationErrorsForFlight(constraintViolations);
+                    }
+                      
                 }
             }
             else
@@ -450,7 +572,6 @@ public class FlightOperationModule
         {
             System.out.println("Flight does not exist!\n");
         } 
-       
     }
   
     private void doViewAllFlights()
@@ -501,9 +622,23 @@ public class FlightOperationModule
     {
         Scanner scanner = new Scanner(System.in);
         System.out.println("*** FRS Management :: Flight Operation :: Flight :: View Flight Details ***\n");
-        System.out.print("Enter Flight Number> ");
-        String flightNum = scanner.nextLine().trim();
+        String flightNum = "";
         
+        while(true)
+        {
+            try
+            {
+                System.out.print("Enter Flight Number> ");
+                flightNum = scanner.nextLine().trim();
+                break; 
+            }
+            catch (InputMismatchException ex)
+            {
+                System.out.println("Invalid input, enter flight number in text!\n");
+                scanner.next();
+            }
+        }
+
         Integer response = 0;
         
         try
@@ -580,10 +715,26 @@ public class FlightOperationModule
                         System.out.print("Enter Flight Number(eg.ML001)> ");
                         String flightNum = scanner.nextLine();
                         flight.setFlightNumber(flightNum);
-                        flightSessionBeanRemote.updateFlight(flight);
                         
-                        System.out.println("Flight updated successfully! \n");
-                        break;
+                        Set<ConstraintViolation<Flight>>constraintViolations = validator.validate(flight);
+                        
+                        if(constraintViolations.isEmpty())
+                        {
+                            try
+                            {
+                                flightSessionBeanRemote.updateFlight(flight);
+                                System.out.println("Flight updated successfully! \n");
+                                break;
+                            }
+                            catch (InputDataValidationException ex)
+                            {
+                                System.out.println(ex.getMessage() + "\n");
+                            }
+                        }
+                        else
+                        {
+                            showInputDataValidationErrorsForFlight(constraintViolations);
+                        }         
                     }
                     if(option == 2)
                     {
@@ -591,10 +742,26 @@ public class FlightOperationModule
                         flightRouteId = updateFlightRoute(flightRoutes);
                         FlightRoute flightRoute = flightRouteSessionBeanRemote.getFlightRouteById(flightRouteId, true, true);
                         flight.setFlightRoute(flightRoute);
-                        flightSessionBeanRemote.updateFlight(flight);
                         
-                        System.out.println("Flight updated successfully! \n");
-                        break;
+                        Set<ConstraintViolation<Flight>>constraintViolations = validator.validate(flight);
+                        if(constraintViolations.isEmpty())
+                        {
+                            try
+                            {
+                                flightSessionBeanRemote.updateFlight(flight);
+                        
+                                System.out.println("Flight updated successfully! \n");
+                                break;
+                            }
+                            catch (InputDataValidationException ex)
+                            {
+                                System.out.println(ex.getMessage() + "\n");
+                            }
+                        }
+                        else
+                        {
+                            showInputDataValidationErrorsForFlight(constraintViolations);
+                        }
                     }
                     else if(option == 3)
                     {
@@ -603,9 +770,25 @@ public class FlightOperationModule
                         aircraftConfigId = updateAircraftConfig(aircraftConfigs);
                         AircraftConfig aircraftConfig = aircraftConfigSessionBeanRemote.retrieveAircraftConfigById(aircraftConfigId);
                         flight.setAircraftConfig(aircraftConfig);
-                        flightSessionBeanRemote.updateFlight(flight);
-                        System.out.println("Flight updated successfully! \n");
-                        break;
+                        
+                        Set<ConstraintViolation<Flight>>constraintViolations = validator.validate(flight);
+                        if(constraintViolations.isEmpty())
+                        {
+                            try
+                            {
+                                flightSessionBeanRemote.updateFlight(flight);
+                                System.out.println("Flight updated successfully! \n");
+                                break;
+                            }
+                            catch (InputDataValidationException ex)
+                            {
+                                System.out.println(ex.getMessage() + "\n");
+                            }
+                        }
+                        else
+                        {
+                            showInputDataValidationErrorsForFlight(constraintViolations);
+                        }
                     }
                     else if(option == 4)
                     {
@@ -788,124 +971,163 @@ public class FlightOperationModule
                                 flightSchedulePlan.setFlightSchedulePlanType("OUTBOUND");
                                 flightSchedulePlan.setStartDate(null);
                                 flightSchedulePlan.setEnabled(true);
-
-                                flightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewFlightSchedulePlan(flightSchedulePlan, flightNum);
-                                System.out.println("Flight Schedule Plan created successfully: " + flightSchedulePlanId);
+                                
+                                Set<ConstraintViolation<FlightSchedulePlan>>constraintViolations = validator.validate(flightSchedulePlan);
+                                if(constraintViolations.isEmpty())
+                                {
+                                    try
+                                    {
+                                        flightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewFlightSchedulePlan(flightSchedulePlan, flightNum);
+                                        System.out.println("Flight Schedule Plan created successfully: " + flightSchedulePlanId);
+                                        
+                                        System.out.println("\n*** FRS Management :: Flight Operation :: Flight Schedule Plan :: Create Single Schedule ***");
+                                        canFSProceed = true;
+                                        flightScheduleId = doCreateEveryFlightSchedules(flightSchedulePlanId, flight, "SINGLE"); 
+                                    }
+                                    catch (InputDataValidationException ex)
+                                    {
+                                        System.out.println(ex.getMessage() + "\n");
+                                    }
+                                }
+                                else
+                                {
+                                    showInputDataValidationErrorsForFlightSchedulePlan(constraintViolations);
+                                }
 
                                 //create fare for each cabin class that flight has 
                                 Fare newFare = new Fare();
                                 List<Fare> createFareList = new ArrayList<>();
-                                
-                                String command = "";
 
-                                System.out.println("\n*** FRS Management :: Flight Operation :: Flight Schedule Plan :: Create Single Schedule ***");
-                                flightScheduleId = doCreateEveryFlightSchedules(flightSchedulePlanId, flight, "SINGLE"); 
-                                System.out.println("\nSingle Main Flight Schedule created successfully!\n");
+                                String command = "";
 
                                 List<FlightSchedule> flightSchedules = new ArrayList<>();
                                 FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
 
-                                //if flight has return flight
-                                if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
+                                if(canFSProceed == true)
                                 {
-                                    System.out.println("Do you want to create a complementary return flight schedule plan?");
-                                    while (true) 
+                                    //if flight has return flight
+                                    if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
                                     {
-                                        Integer choice = 0;
-
-                                        System.out.println("1. Yes");
-                                        System.out.println("2. No");
-                                        System.out.print("> ");
-                                        choice = scanner.nextInt();
-                                        scanner.nextLine();
-
-
-                                        if (choice == 1) 
+                                        System.out.println("Do you want to create a complementary return flight schedule plan?");
+                                        while (true) 
                                         {
-                                            try
+                                            Integer choice = 0;
+
+                                            System.out.println("1. Yes");
+                                            System.out.println("2. No");
+                                            System.out.print("> ");
+                                            choice = scanner.nextInt();
+                                            scanner.nextLine();
+
+
+                                            if (choice == 1) 
                                             {
-                                                System.out.print("Enter Layover Duration(hrs)> ");
-                                                Double layoverDuration = scanner.nextDouble();
-                                                scanner.nextLine();
-
-                                                flightSchedulePlanForReturnFlight.setFlightScheduleType("SINGLE");
-                                                flightSchedulePlanForReturnFlight.setEndDate(null);
-                                                flightSchedulePlanForReturnFlight.setIntervalDays(0);
-                                                flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
-                                                flightSchedulePlanForReturnFlight.setStartDate(null);
-                                                flightSchedulePlanForReturnFlight.setEnabled(true);
-
-                                                returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
-  
-                                                FlightSchedule flightSchedule = doCreateEveryReturnFlightSchedules(flightScheduleId, flight, layoverDuration, "SINGLE");
-                                                
-                                                
-                                                Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightSchedule, flightScheduleId, returnFlightSchedulePlanId);
-                                                System.out.println("\n Single Return Flight Schedule created successfully!\n");
-
-                                                //create seat inventory 
-                                                SeatInventory seatInventory = new SeatInventory();
-                                                Long seatInventoryId = 0l;
-                                                //get max seat capacity from the flight's cabin classes
-                                                for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
+                                                try
                                                 {
-                                                    Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
-                                                    seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
-                                                    seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
-                                                    seatInventory.setNumOfReservedSeats(0);
+                                                    System.out.print("Enter Layover Duration(hrs)> ");
+                                                    Double layoverDuration = scanner.nextDouble();
+                                                    scanner.nextLine();
 
-                                                    seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, returnFlightScheduleId, cabinClass.getCabinClassId());
+                                                    flightSchedulePlanForReturnFlight.setFlightScheduleType("SINGLE");
+                                                    flightSchedulePlanForReturnFlight.setEndDate(null);
+                                                    flightSchedulePlanForReturnFlight.setIntervalDays(0);
+                                                    flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
+                                                    flightSchedulePlanForReturnFlight.setStartDate(null);
+                                                    flightSchedulePlanForReturnFlight.setEnabled(true);
+
+
+                                                    returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
+
+                                                    FlightSchedule flightSchedule = doCreateEveryReturnFlightSchedules(flightScheduleId, flight, layoverDuration, "SINGLE");
+
+                                                    Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightSchedule, flightScheduleId, returnFlightSchedulePlanId);
+                                                    System.out.println("\nSingle Return Flight Schedule created successfully!\n");
+
+                                                    //create seat inventory 
+                                                    SeatInventory seatInventory = new SeatInventory();
+                                                    Long seatInventoryId = 0l;
+                                                    //get max seat capacity from the flight's cabin classes
+                                                    for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
+                                                    {
+                                                        Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
+                                                        seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
+                                                        seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
+                                                        seatInventory.setNumOfReservedSeats(0);
+
+                                                        seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, returnFlightScheduleId, cabinClass.getCabinClassId());
+                                                    }
+                                                    break;
                                                 }
+                                                catch (FlightSchedulePlanNotFoundException ex) 
+                                                {
+                                                   System.out.println("An error has occurred while retrieving flight schedule plan: " + ex.getMessage() + "\n");
+                                                } 
+                                                catch (FlightScheduleNotFoundException ex) 
+                                                {
+                                                    System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
+                                                }
+                                                catch (InputDataValidationException ex)
+                                                {
+                                                    System.out.println(ex.getMessage() + "\n");
+                                                }
+                                            }
+                                            else if(choice == 2)
+                                            {
                                                 break;
                                             }
-                                            catch (FlightSchedulePlanNotFoundException ex) 
+                                            else 
                                             {
-                                               System.out.println("An error has occurred while retrieving flight schedule plan: " + ex.getMessage() + "\n");
-                                            } 
-                                            catch (FlightScheduleNotFoundException ex) 
-                                            {
-                                                System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
+                                                System.out.println("Invalid option, please try again!\n");
                                             }
                                         }
-                                        else if(choice == 2)
-                                        {
-                                            break;
-                                        }
-                                        else 
-                                        {
-                                            System.out.println("Invalid option, please try again!\n");
-                                        }
-                                    }
-                                } 
-                                
-                                //create fare for flight schedule plan
-                                for (CabinClass cabinClass : flight.getAircraftConfig().getCabinClasses()) 
-                                {
-                                    do
-                                    {   
-                                        System.out.println("\nFares for Flight Schedule Plan " + " :: " + cabinClass.getCabinClassType().toString());
-                                        System.out.print("Enter Fare Basis Code> ");
-                                        String fareBasisCode = scanner.nextLine().trim();
-                                        System.out.print("Enter Fare Amount> ");
-                                        BigDecimal fareAmount = scanner.nextBigDecimal();
-                                        scanner.nextLine();
+                                    } 
 
-                                        newFare.setFareBasisCode(fareBasisCode);
-                                        newFare.setFareAmount(fareAmount);
+                                    //create fare for flight schedule plan
+                                    for (CabinClass cabinClass : flight.getAircraftConfig().getCabinClasses()) 
+                                    {
+                                        do
+                                        {   
 
-                                        Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());
-                                        
-                                        FlightSchedulePlan flightSchedulePlan1 = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
-                                        
-                                        if(flightSchedulePlan1.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan1.getFlightSchedulePlanId())
-                                        {
-                                            fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
-                                        }
+                                            System.out.println("\nFares for Flight Schedule Plan " + " :: " + cabinClass.getCabinClassType().toString());
+                                            System.out.print("Enter Fare Basis Code> ");
+                                            String fareBasisCode = scanner.nextLine().trim();
+                                            System.out.print("Enter Fare Amount> ");
+                                            BigDecimal fareAmount = scanner.nextBigDecimal();
+                                            scanner.nextLine();
 
-                                        System.out.print("More? (Enter 'Q' to complete adding fares)>");
-                                        command = scanner.nextLine().trim();
-                                    }while(!command.equals("Q"));
-                                }  
+                                            newFare.setFareBasisCode(fareBasisCode);
+                                            newFare.setFareAmount(fareAmount);
+                                            Set<ConstraintViolation<Fare>>fareConstraintViolations = validator.validate(newFare);
+
+                                            if(constraintViolations.isEmpty())
+                                            {
+                                                try
+                                                {
+                                                    Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());
+
+                                                    FlightSchedulePlan flightSchedulePlan1 = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
+
+                                                    if(flightSchedulePlan1.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan1.getFlightSchedulePlanId())
+                                                    {
+                                                        fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
+                                                    }
+                                                }
+                                                catch (InputDataValidationException ex)
+                                                {
+                                                    System.out.println(ex.getMessage() + "\n");
+                                                }
+
+
+                                                System.out.print("More? (Enter 'Q' to complete adding fares)>");
+                                                command = scanner.nextLine().trim();
+                                            }
+                                            else
+                                            {
+                                                showInputDataValidationErrorsForFare(fareConstraintViolations);
+                                            }
+                                        }while(!command.equals("Q"));
+                                    } 
+                                }
                                 break;
                             } 
                             catch (FlightSchedulePlanNotFoundException ex) 
@@ -925,174 +1147,205 @@ public class FlightOperationModule
                         flightSchedulePlan.setStartDate(null);
                         flightSchedulePlan.setEnabled(true);
                         
-                        //create main flight schedule plan
-                        flightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewFlightSchedulePlan(flightSchedulePlan, flightNum);
-                        System.out.println("Flight Schedule Plan created successfully!: " + flightSchedulePlanId);
-
-                        Fare newFare = new Fare();
-                        //create fare for each flightscheduleplan
-                        
-                        String command = "";
-                        
-//                        HashMap<Long, FlightSchedule> flightScheduleMap = new HashMap<>();
-                        List<FlightSchedule> flightSchedules = new ArrayList<>();
-                        List<Long> flightScheduleIdList = new ArrayList<>();
-                        List<Fare> fares = new ArrayList<>();
-                        FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
-
-                        do
+                        Set<ConstraintViolation<FlightSchedulePlan>>constraintViolations = validator.validate(flightSchedulePlan);
+                        Boolean canProceed = true;
+                        if(constraintViolations.isEmpty())
                         {
-                            flightScheduleId = doCreateEveryFlightSchedules(flightSchedulePlanId, flight, "MULTIPLE");
-                            flightScheduleIdList.add(flightScheduleId);
-
-                            if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
+                            try
                             {
-                                System.out.println("Do you want to create a complementary return flight schedule plan?");
-                                while (true) 
+                                //create main flight schedule plan
+                                flightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewFlightSchedulePlan(flightSchedulePlan, flightNum);
+                                System.out.println("Flight Schedule Plan created successfully!: " + flightSchedulePlanId);
+                            }
+                            catch (InputDataValidationException ex)
+                            {
+                                canProceed = false;
+                                System.out.println(ex.getMessage() + "\n");
+                            }
+                        }
+                        else
+                        {
+                            canProceed = false;
+                            showInputDataValidationErrorsForFlightSchedulePlan(constraintViolations);
+                        }
+                        
+                        if(canProceed == true)
+                        {
+                            Fare newFare = new Fare();
+                            //create fare for each flightscheduleplan
+
+                            String command = "";
+
+                            List<FlightSchedule> flightSchedules = new ArrayList<>();
+                            List<Long> flightScheduleIdList = new ArrayList<>();
+                            List<Fare> fares = new ArrayList<>();
+                            FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
+
+                            do
+                            {
+                                canFSProceed = true;
+                                flightScheduleId = doCreateEveryFlightSchedules(flightSchedulePlanId, flight, "MULTIPLE");
+                                flightScheduleIdList.add(flightScheduleId);
+
+                                if(canFSProceed == true)
                                 {
-                                    Integer choice = 0;
-
-                                    System.out.println("1. Yes");
-                                    System.out.println("2. No");
-                                    System.out.print("> ");
-                                    choice = scanner.nextInt();
-                                    scanner.nextLine();
-
-                                    if (choice == 1) 
+                                    if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
                                     {
-                                        System.out.print("Enter Layover Duration(hrs)> ");
-                                        Double layoverDuration = scanner.nextDouble();
-                                        scanner.nextLine();
+                                        System.out.println("Do you want to create a complementary return flight schedule plan?");
+                                        while (true) 
+                                        {
+                                            Integer choice = 0;
 
-                                        flightSchedulePlanForReturnFlight.setFlightScheduleType("MULTIPLE");
-                                        flightSchedulePlanForReturnFlight.setEndDate(null);
-                                        flightSchedulePlanForReturnFlight.setIntervalDays(0);
-                                        flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
-                                        flightSchedulePlanForReturnFlight.setStartDate(null);
-                                        flightSchedulePlanForReturnFlight.setEnabled(true);
+                                            System.out.println("1. Yes");
+                                            System.out.println("2. No");
+                                            System.out.print("> ");
+                                            choice = scanner.nextInt();
+                                            scanner.nextLine();
 
-//                                        flightScheduleMap.put(flightScheduleId, doCreateEveryReturnFlightSchedules(flightScheduleId, flight, layoverDuration, "MULTIPLE"));
-                                        flightSchedules.add(doCreateEveryReturnFlightSchedules(flightScheduleId, flight, layoverDuration, "MULTIPLE"));
-                                        System.out.println("Flight schedule has been captured successfully!\n");
+                                            if (choice == 1) 
+                                            {
+                                                System.out.print("Enter Layover Duration(hrs)> ");
+                                                Double layoverDuration = scanner.nextDouble();
+                                                scanner.nextLine();
 
-                                        break;
+                                                flightSchedulePlanForReturnFlight.setFlightScheduleType("MULTIPLE");
+                                                flightSchedulePlanForReturnFlight.setEndDate(null);
+                                                flightSchedulePlanForReturnFlight.setIntervalDays(0);
+                                                flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
+                                                flightSchedulePlanForReturnFlight.setStartDate(null);
+                                                flightSchedulePlanForReturnFlight.setEnabled(true);
+
+        //                                        flightScheduleMap.put(flightScheduleId, doCreateEveryReturnFlightSchedules(flightScheduleId, flight, layoverDuration, "MULTIPLE"));
+                                                flightSchedules.add(doCreateEveryReturnFlightSchedules(flightScheduleId, flight, layoverDuration, "MULTIPLE"));
+                                                System.out.println("Flight schedule has been captured successfully!\n");
+
+                                                break;
+                                            }
+                                            else if(choice == 2)
+                                            {
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                System.out.println("Invalid option, please try again! \n");
+                                            } 
+                                        }
                                     }
-                                    else if(choice == 2)
+                                }
+                                System.out.print("More? (Enter 'Q' to complete adding flight schedules)>");
+                                    command = scanner.nextLine().trim();
+                            } while(!command.equals("Q"));
+
+                            if(canFSProceed == true)
+                            {
+                                if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
+                                {
+                                    if(constraintViolations.isEmpty())
                                     {
-                                        break;
+                                        try
+                                        {
+                                            returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
+
+                                            for(int i = 0; i < flightScheduleIdList.size(); i++)
+                                            {
+                                                for(int j = i; j < i + 1; j++)
+                                                {
+                                                    try
+                                                    {
+                                                        Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightSchedules.get(i), flightScheduleIdList.get(i), returnFlightSchedulePlanId);
+
+                                                        //create seat inventory 
+                                                        SeatInventory seatInventory = new SeatInventory();
+                                                        Long seatInventoryId = 0l;
+                                                        //get max seat capacity from the flight's cabin classes
+                                                        for (CabinClass cabinClass : flight.getAircraftConfig().getCabinClasses()) {
+                                                            Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
+                                                            seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
+                                                            seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
+                                                            seatInventory.setNumOfReservedSeats(0);
+
+                                                            seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, returnFlightScheduleId, cabinClass.getCabinClassId());
+                                                        }
+                                                        break;
+                                                    } 
+                                                    catch (FlightSchedulePlanNotFoundException ex) 
+                                                    {
+                                                       System.out.println("An error has occurred while retrieving flight schedule plan: " + ex.getMessage() + "\n");
+                                                    } 
+                                                    catch (FlightScheduleNotFoundException ex) 
+                                                    {
+                                                        System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        catch (InputDataValidationException ex)
+                                        {
+                                            System.out.println(ex.getMessage() + "\n");
+                                        }
                                     }
                                     else
                                     {
-                                        System.out.println("Invalid option, please try again! \n");
-                                    } 
-                                }
-                            }
-                            System.out.print("More? (Enter 'Q' to complete adding flight schedules)>");
-                            command = scanner.nextLine().trim();
-                        } while(!command.equals("Q"));
+                                        showInputDataValidationErrorsForFlightSchedulePlan(constraintViolations);
+                                    }
 
-                        if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
-                        {
-                            returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
-                           
-//                           for (HashMap.Entry<Long, FlightSchedule> entry : flightScheduleMap.entrySet())
-//                           {
-//                               try{
-//                                   Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(entry.getValue(), entry.getKey(), returnFlightSchedulePlanId);
-//                                   //create seat inventory 
-//                                   SeatInventory seatInventory = new SeatInventory();
-//                                   Long seatInventoryId = 0l;
-//                                   //get max seat capacity from the flight's cabin classes
-//                                   for (CabinClass cabinClass : flight.getAircraftConfig().getCabinClasses()) {
-//                                       Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
-//                                       seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
-//                                       seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
-//                                       seatInventory.setNumOfReservedSeats(0);
-//
-//                                       seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, returnFlightScheduleId, cabinClass.getCabinClassId());
-//                                   }
-//                                   break;
-//                               }
-//                               catch (FlightSchedulePlanNotFoundException ex) 
-//                                {
-//                                   System.out.println("An error has occurred while retrieving flight schedule plan: " + ex.getMessage() + "\n");
-//                                } 
-//                                catch (FlightScheduleNotFoundException ex) 
-//                                {
-//                                    System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
-//                                }
-//                           }
-                        
-                            for(int i = 0; i < flightScheduleIdList.size(); i++)
-                            {
-                                for(int j = i; j < i + 1; j++)
-                                {
-                                    try
-                                    {
-                                        Long returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightSchedules.get(i), flightScheduleIdList.get(i), returnFlightSchedulePlanId);
 
-                                        //create seat inventory 
-                                        SeatInventory seatInventory = new SeatInventory();
-                                        Long seatInventoryId = 0l;
-                                        //get max seat capacity from the flight's cabin classes
-                                        for (CabinClass cabinClass : flight.getAircraftConfig().getCabinClasses()) {
-                                            Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
-                                            seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
-                                            seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
-                                            seatInventory.setNumOfReservedSeats(0);
+                                    //create fare for each flightscheduleplan
+                                   for (CabinClass cabinClass : flight.getReturnFlight().getAircraftConfig().getCabinClasses()) 
+                                   {
+                                        do{
+                                            while (true) 
+                                            {
+                                                try 
+                                                {
+                                                    System.out.println("\nFares for Flight Schedule Plan :: " + cabinClass.getCabinClassType().toString());
+                                                    System.out.print("Enter Fare Basis Code> ");
+                                                    String fareBasisCode = scanner.nextLine().trim();
+                                                    System.out.print("Enter Fare Amount> ");
+                                                    BigDecimal fareAmount = scanner.nextBigDecimal();
+                                                    scanner.nextLine();
 
-                                            seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, returnFlightScheduleId, cabinClass.getCabinClassId());
-                                        }
-                                        break;
-                                    } 
-                                    catch (FlightSchedulePlanNotFoundException ex) 
-                                    {
-                                       System.out.println("An error has occurred while retrieving flight schedule plan: " + ex.getMessage() + "\n");
-                                    } 
-                                    catch (FlightScheduleNotFoundException ex) 
-                                    {
-                                        System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
+                                                    newFare.setFareBasisCode(fareBasisCode);
+                                                    newFare.setFareAmount(fareAmount);
+
+                                                    Set<ConstraintViolation<Fare>>fareConstraintViolations = validator.validate(newFare);
+
+                                                    if(constraintViolations.isEmpty())
+                                                    {
+                                                        try
+                                                        {
+                                                            Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());
+
+                                                            FlightSchedulePlan flightSchedulePlan1 = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
+
+                                                            if(flightSchedulePlan1.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan1.getFlightSchedulePlanId())
+                                                            {
+                                                                fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
+                                                            }
+                                                            break;
+                                                        }
+                                                        catch (InputDataValidationException ex)
+                                                        {
+                                                            System.out.println(ex.getMessage() + "\n");
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        showInputDataValidationErrorsForFare(fareConstraintViolations);
+                                                    }
+                                                } 
+                                                catch (FlightSchedulePlanNotFoundException ex) 
+                                                {
+                                                    System.out.println("An error has occurred while creating flight schedule: The flight schedule plan does not exist! \n");
+                                                }                                         
+                                            }
+                                            System.out.print("More? (Enter 'Q' to complete adding fares)>");
+                                            command = scanner.nextLine().trim();
+                                        }while(!command.equals("Q"));
                                     }
                                 }
                             }
                             
-                            //create fare for each flightscheduleplan
-                           for (CabinClass cabinClass : flight.getReturnFlight().getAircraftConfig().getCabinClasses()) 
-                           {
-                                do{
-                                    while (true) 
-                                    {
-                                        try 
-                                        {
-                                            System.out.println("\nFares for Flight Schedule Plan :: " + cabinClass.getCabinClassType().toString());
-                                            System.out.print("Enter Fare Basis Code> ");
-                                            String fareBasisCode = scanner.nextLine().trim();
-                                            System.out.print("Enter Fare Amount> ");
-                                            BigDecimal fareAmount = scanner.nextBigDecimal();
-                                            scanner.nextLine();
-
-                                            newFare.setFareBasisCode(fareBasisCode);
-                                            newFare.setFareAmount(fareAmount);
-                                            Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());
-                                            
-                                            FlightSchedulePlan flightSchedulePlan1 = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
-                                        
-                                            if(flightSchedulePlan1.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan1.getFlightSchedulePlanId())
-                                            {
-                                                fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
-                                            }
-                                            break;
-                                        } 
-                                        catch (FlightSchedulePlanNotFoundException ex) 
-                                        {
-                                            System.out.println("An error has occurred while creating flight schedule: The flight schedule plan does not exist! \n");
-                                        }                                         
-                                    }
-                                    System.out.print("More? (Enter 'Q' to complete adding fares)>");
-                                    command = scanner.nextLine().trim();
-                                }while(!command.equals("Q"));
-                            }
-                        
                         }
                         break;
                     } 
@@ -1161,114 +1414,171 @@ public class FlightOperationModule
                                         flightSchedulePlan.setFlightSchedulePlanType("OUTBOUND");
                                         flightSchedulePlan.setStartDate(formattedDateTime);
                                         flightSchedulePlan.setEnabled(true);
-
-                                        //create flight schedule plan
-                                        flightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewFlightSchedulePlan(flightSchedulePlan, flightNum);    
-
                                         
-                                        Fare newFare = new Fare();
+                                        Boolean canProceed = true;
 
-                                        Long difference_In_Time = formattedEndDate.getTime() - formattedStartDate.getTime();
-                                        Long days = TimeUnit.MILLISECONDS.toDays(difference_In_Time) % 365;
-                                        Integer numOfTimes = days.intValue()/dayInterval;
-
-                                        int interval = 0;
-
-                                        //create recurrent schedules for the plan
-                                        for(int i = 0; i < numOfTimes; i++)
-                                        {
-                                            createRecurrentFlightSchedule(flightSchedulePlanId, flight, startDate, startTime, flightDuration, interval);
-                                            interval += dayInterval;
-                                        }
+                                        Set<ConstraintViolation<FlightSchedulePlan>>constraintViolations = validator.validate(flightSchedulePlan);
                                         
-                                         if(isRecurrentOverlapped.contains(true))
+                                        if(constraintViolations.isEmpty())
                                         {
-                                            System.out.println("An error has occurred while creating flight schedule: flight schedule overlaps with other flight schedule!\n");
-                                            flightSchedulePlanSessionBeanRemote.removeFlightSchedulePlan(flightSchedulePlanId);
-                                            isRecurrentOverlapped.removeAll(isRecurrentOverlapped);
-                                            break outer;
-                                        }
-
-
-                                        System.out.println("Recurrent Flight Schedules created successfully!\n");
-
-                                        //create recurrent schedules plan
-                                        if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
-                                        {
-                                            System.out.println("Do you want to create a complementary return flight schedule plan for recurrent flight schedules?");
-                                            while (true) 
+                                            try
                                             {
-                                                Integer response = 0;
+                                               //create flight schedule plan
+                                                flightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewFlightSchedulePlan(flightSchedulePlan, flightNum);    
+                                            }
+                                            catch (InputDataValidationException ex)
+                                            {
+                                                canProceed = false;
+                                                System.out.println(ex.getMessage() + "\n");
+                                            }
+                                        } 
+                                        else
+                                        {
+                                            canProceed = false;
+                                            showInputDataValidationErrorsForFlightSchedulePlan(constraintViolations);
+                                        }
+                                        
+                                        if(canProceed == true)
+                                        {
+                                            Fare newFare = new Fare();
 
-                                                System.out.println("1. Yes");
-                                                System.out.println("2. No");
-                                                System.out.print("> ");
-                                                response = scanner.nextInt();
-                                                scanner.nextLine();
+                                            Long difference_In_Time = formattedEndDate.getTime() - formattedStartDate.getTime();
+                                            Long days = TimeUnit.MILLISECONDS.toDays(difference_In_Time) % 365;
+                                            Integer numOfTimes = days.intValue()/dayInterval;
 
-                                                if (response == 1) 
+                                            int interval = 0;
+
+                                            //create recurrent schedules for the plan
+                                            for(int i = 0; i < numOfTimes; i++)
+                                            {
+                                                createRecurrentFlightSchedule(flightSchedulePlanId, flight, startDate, startTime, flightDuration, interval);
+                                                interval += dayInterval;
+                                            }
+
+                                             if(isRecurrentOverlapped.contains(true))
+                                            {
+                                                System.out.println("An error has occurred while creating flight schedule: flight schedule overlaps with other flight schedule!\n");
+                                                flightSchedulePlanSessionBeanRemote.removeFlightSchedulePlan(flightSchedulePlanId);
+                                                isRecurrentOverlapped.removeAll(isRecurrentOverlapped);
+                                                break outer;
+                                            }
+
+
+                                            System.out.println("Recurrent Flight Schedules created successfully!\n");
+
+                                            //create recurrent schedules plan
+                                            if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
+                                            {
+                                                System.out.println("Do you want to create a complementary return flight schedule plan for recurrent flight schedules?");
+                                                while (true) 
                                                 {
-                                                    System.out.print("Enter Layover Duration(hrs)> ");
-                                                    Double layoverDuration = scanner.nextDouble();
+                                                    Integer response = 0;
+
+                                                    System.out.println("1. Yes");
+                                                    System.out.println("2. No");
+                                                    System.out.print("> ");
+                                                    response = scanner.nextInt();
                                                     scanner.nextLine();
 
-                                                    //retrieve the main schedule plan 
-                                                    FlightSchedulePlan flightSchedulePlanMain = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
-
-                                                    //create a return schedule plan
-                                                    FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
-                                                    flightSchedulePlanForReturnFlight.setFlightScheduleType("RECURRENT_DAY");
-                                                    flightSchedulePlanForReturnFlight.setEndDate(flightSchedulePlanMain.getEndDate());
-                                                    flightSchedulePlanForReturnFlight.setIntervalDays(flightSchedulePlanMain.getIntervalDays());
-                                                    flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
-                                                    flightSchedulePlanForReturnFlight.setStartDate(flightSchedulePlanMain.getStartDate());
-                                                    flightSchedulePlanForReturnFlight.setEnabled(true);
-                                                    returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
-
-                                                    //loop through the main flight schedules to associate with every return flight schedules
-                                                    for(FlightSchedule flightSchedule: flightSchedulePlanMain.getFlightSchedules())
+                                                    if (response == 1) 
                                                     {
-                                                        Long returnFlightScheduleId = createRecurrentReturnFlightSchedule(flightSchedule, flight, layoverDuration, returnFlightSchedulePlanId);
+                                                        System.out.print("Enter Layover Duration(hrs)> ");
+                                                        Double layoverDuration = scanner.nextDouble();
+                                                        scanner.nextLine();
+
+                                                        //retrieve the main schedule plan 
+                                                        FlightSchedulePlan flightSchedulePlanMain = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
+
+                                                        //create a return schedule plan
+                                                        FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
+                                                        flightSchedulePlanForReturnFlight.setFlightScheduleType("RECURRENT_DAY");
+                                                        flightSchedulePlanForReturnFlight.setEndDate(flightSchedulePlanMain.getEndDate());
+                                                        flightSchedulePlanForReturnFlight.setIntervalDays(flightSchedulePlanMain.getIntervalDays());
+                                                        flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
+                                                        flightSchedulePlanForReturnFlight.setStartDate(flightSchedulePlanMain.getStartDate());
+                                                        flightSchedulePlanForReturnFlight.setEnabled(true);
+
+                                                        if(constraintViolations.isEmpty())
+                                                        {
+                                                            try
+                                                            {
+                                                                returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
+
+                                                                //loop through the main flight schedules to associate with every return flight schedules
+                                                                for(FlightSchedule flightSchedule: flightSchedulePlanMain.getFlightSchedules())
+                                                                {
+                                                                    Long returnFlightScheduleId = createRecurrentReturnFlightSchedule(flightSchedule, flight, layoverDuration, returnFlightSchedulePlanId);
+                                                                }
+                                                                System.out.println("Return Recurrent Flight Schedules created successfully!\n");
+                                                                break;
+                                                            }
+                                                            catch (InputDataValidationException ex)
+                                                            {
+                                                                canProceed = false;
+                                                                System.out.println(ex.getMessage() + "\n");
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            canProceed = false;
+                                                            showInputDataValidationErrorsForFlightSchedulePlan(constraintViolations);
+                                                        }
                                                     }
-                                                    System.out.println("Return Recurrent Flight Schedules created successfully!\n");
-                                                    break;
-                                                }
-                                                else if(response == 2)
+                                                    else if(response == 2)
+                                                    {
+                                                        break;
+                                                    }
+                                                }   
+                                            }
+                                            
+                                            if(canProceed == true)
+                                            {
+                                                String command = "";
+                                                //create fare for each flightscheduleplan
+                                                for(CabinClass cabinClass: flight.getReturnFlight().getAircraftConfig().getCabinClasses())
                                                 {
-                                                    break;
-                                                }
-                                            }   
+                                                    do{ 
+                                                        System.out.println("\nFares for Flight Schedule Plan  :: " + cabinClass.getCabinClassType().toString());
+                                                        System.out.print("Enter Fare Basis Code> ");
+                                                        String fareBasisCode = scanner.nextLine().trim();
+                                                        System.out.print("Enter Fare Amount> ");
+                                                        BigDecimal fareAmount = scanner.nextBigDecimal();
+                                                        scanner.nextLine();
+
+                                                        newFare.setFareBasisCode(fareBasisCode);
+                                                        newFare.setFareAmount(fareAmount);
+
+                                                        Set<ConstraintViolation<Fare>>fareConstraintViolations = validator.validate(newFare);
+
+                                                        if(constraintViolations.isEmpty())
+                                                        {
+                                                            try
+                                                            {
+                                                                Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());  
+
+                                                                FlightSchedulePlan flightSchedulePlan1 = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
+
+                                                                if(flightSchedulePlan1.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan1.getFlightSchedulePlanId())
+                                                                {
+                                                                    fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
+                                                                }
+
+                                                                System.out.print("More? (Enter 'Q' to complete adding fares)>");
+                                                                command = scanner.nextLine().trim();
+                                                            }
+                                                            catch (InputDataValidationException ex)
+                                                            {
+                                                                System.out.println(ex.getMessage() + "\n");
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            showInputDataValidationErrorsForFare(fareConstraintViolations);
+                                                        }     
+                                                    }while(!command.equals("Q"));
+                                                } 
+                                            }
                                         }
-                                        
-                                        String command = "";
-                                        //create fare for each flightscheduleplan
-                                        for(CabinClass cabinClass: flight.getReturnFlight().getAircraftConfig().getCabinClasses())
-                                        {
-                                            do{ 
-                                                System.out.println("\nFares for Flight Schedule Plan  :: " + cabinClass.getCabinClassType().toString());
-                                                System.out.print("Enter Fare Basis Code> ");
-                                                String fareBasisCode = scanner.nextLine().trim();
-                                                System.out.print("Enter Fare Amount> ");
-                                                BigDecimal fareAmount = scanner.nextBigDecimal();
-                                                scanner.nextLine();
-
-                                                newFare.setFareBasisCode(fareBasisCode);
-                                                newFare.setFareAmount(fareAmount);
-
-                                                Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());  
-                                                
-                                                FlightSchedulePlan flightSchedulePlan1 = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
-                                        
-                                                if(flightSchedulePlan1.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan1.getFlightSchedulePlanId())
-                                                {
-                                                    fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
-                                                }
-                                                
-                                                System.out.print("More? (Enter 'Q' to complete adding fares)>");
-                                                command = scanner.nextLine().trim();
-                                            }while(!command.equals("Q"));
-                                        } 
-                                        
                                         break;
                                     } 
                                     catch (ParseException ex) 
@@ -1376,108 +1686,168 @@ public class FlightOperationModule
                                         flightSchedulePlan.setFlightSchedulePlanType("OUTBOUND");
                                         flightSchedulePlan.setStartDate(finalStartDay);
                                         flightSchedulePlan.setEnabled(true);
-
-                                        //create flight schedule plan
-                                        flightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewFlightSchedulePlan(flightSchedulePlan, flightNum);                                         
-
-                                        Fare newFare = new Fare();
-                                        String command = "";
                                         
-                                        Long difference_In_Time = formattedEndDate.getTime() - formatter.parse(finalStartDate).getTime();
-                                        Long days = TimeUnit.MILLISECONDS.toDays(difference_In_Time) % 365;
-                                        Integer numOfTimes = days.intValue()/7;
-                                        
+                                        Boolean canProceed = true;
 
-                                        if(numOfTimes > 0)
+                                        Set<ConstraintViolation<FlightSchedulePlan>>constraintViolations = validator.validate(flightSchedulePlan);
+                                        
+                                        if(constraintViolations.isEmpty())
                                         {
-                                            int interval = 0;
-
-                                            //create recurrent schedules for the plan
-                                            for(int i = 0; i < numOfTimes; i++)
+                                            try
                                             {
-                                                createRecurrentFlightSchedule(flightSchedulePlanId, flight, finalStartDate,  startTime, flightDuration, interval);
-                                                interval += 7;
+                                                //create flight schedule plan
+                                                flightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewFlightSchedulePlan(flightSchedulePlan, flightNum);                                         
                                             }
-                                                                                      
-                                            System.out.println("Recurrent Flight Schedules created successfully!\n");
-
-                                            //create recurrent schedules plan
-                                            if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
+                                            catch (InputDataValidationException ex)
                                             {
-                                                System.out.println("Do you want to create a complementary return flight schedule plan for recurrent flight schedule?");
-                                                while (true) 
+                                                canProceed = false;
+                                                System.out.println(ex.getMessage() + "\n");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            canProceed = false;
+                                            showInputDataValidationErrorsForFlightSchedulePlan(constraintViolations);
+                                        }
+                                        
+                                        if(canProceed == true)
+                                        {
+                                            Fare newFare = new Fare();
+                                            String command = "";
+
+                                            Long difference_In_Time = formattedEndDate.getTime() - formatter.parse(finalStartDate).getTime();
+                                            Long days = TimeUnit.MILLISECONDS.toDays(difference_In_Time) % 365;
+                                            Integer numOfTimes = days.intValue()/7;
+
+
+                                            if(numOfTimes > 0)
+                                            {
+                                                int interval = 0;
+
+                                                //create recurrent schedules for the plan
+                                                for(int i = 0; i < numOfTimes; i++)
                                                 {
-                                                    Integer response = 0;
+                                                    createRecurrentFlightSchedule(flightSchedulePlanId, flight, finalStartDate,  startTime, flightDuration, interval);
+                                                    interval += 7;
+                                                }
 
-                                                    System.out.println("1. Yes");
-                                                    System.out.println("2. No");
-                                                    System.out.print("> ");
-                                                    response = scanner.nextInt();
-                                                    scanner.nextLine();
+                                                System.out.println("Recurrent Flight Schedules created successfully!\n");
 
-
-                                                    if (response == 1) 
+                                                //create recurrent schedules plan
+                                                if (flight.getReturnFlight().getFlightId() != flight.getFlightId()) 
+                                                {
+                                                    System.out.println("Do you want to create a complementary return flight schedule plan for recurrent flight schedule?");
+                                                    while (true) 
                                                     {
-                                                        System.out.print("Enter Layover Duration(hrs)> ");
-                                                        Double layoverDuration = scanner.nextDouble();
+                                                        Integer response = 0;
+
+                                                        System.out.println("1. Yes");
+                                                        System.out.println("2. No");
+                                                        System.out.print("> ");
+                                                        response = scanner.nextInt();
                                                         scanner.nextLine();
 
-                                                        //retrieve the main schedule plan 
-                                                        FlightSchedulePlan flightSchedulePlanMain = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
 
-                                                        //create a return schedule plan
-                                                        FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
-                                                        flightSchedulePlanForReturnFlight.setFlightScheduleType("RECURRENT_WEEKLY");
-                                                        flightSchedulePlanForReturnFlight.setEndDate(flightSchedulePlanMain.getEndDate());
-                                                        flightSchedulePlanForReturnFlight.setIntervalDays(flightSchedulePlanMain.getIntervalDays());
-                                                        flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
-                                                        flightSchedulePlanForReturnFlight.setStartDate(flightSchedulePlanMain.getStartDate());
-                                                        flightSchedulePlanForReturnFlight.setEnabled(true);
-                                                        returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
-                                                        
-
-                                                        //loop through the main flight schedules to associate with every return flight schedules
-                                                        for(FlightSchedule flightSchedule: flightSchedulePlanMain.getFlightSchedules())
+                                                        if (response == 1) 
                                                         {
-                                                            Long returnFlightScheduleId = createRecurrentReturnFlightSchedule(flightSchedule, flight, layoverDuration, returnFlightSchedulePlanId);
+                                                            System.out.print("Enter Layover Duration(hrs)> ");
+                                                            Double layoverDuration = scanner.nextDouble();
+                                                            scanner.nextLine();
+
+                                                            //retrieve the main schedule plan 
+                                                            FlightSchedulePlan flightSchedulePlanMain = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
+
+                                                            //create a return schedule plan
+                                                            FlightSchedulePlan flightSchedulePlanForReturnFlight = new FlightSchedulePlan();
+                                                            flightSchedulePlanForReturnFlight.setFlightScheduleType("RECURRENT_WEEKLY");
+                                                            flightSchedulePlanForReturnFlight.setEndDate(flightSchedulePlanMain.getEndDate());
+                                                            flightSchedulePlanForReturnFlight.setIntervalDays(flightSchedulePlanMain.getIntervalDays());
+                                                            flightSchedulePlanForReturnFlight.setFlightSchedulePlanType("RETURN");
+                                                            flightSchedulePlanForReturnFlight.setStartDate(flightSchedulePlanMain.getStartDate());
+                                                            flightSchedulePlanForReturnFlight.setEnabled(true);
+
+                                                            if(constraintViolations.isEmpty())
+                                                            {
+                                                                try
+                                                                {
+                                                                    returnFlightSchedulePlanId = flightSchedulePlanSessionBeanRemote.createNewReturnFlightSchedulePlan(flightSchedulePlanForReturnFlight, flightSchedulePlanId);
+                                                                }
+                                                                catch (InputDataValidationException ex)
+                                                                {
+                                                                    canProceed = false;
+                                                                    System.out.println(ex.getMessage() + "\n");
+                                                                }    
+                                                            }
+                                                            else
+                                                            {
+                                                                canProceed = false;
+                                                                showInputDataValidationErrorsForFlightSchedulePlan(constraintViolations);
+                                                            }
+                                                            
+                                                            if(canProceed == true)
+                                                            {
+                                                                //loop through the main flight schedules to associate with every return flight schedules
+                                                                for(FlightSchedule flightSchedule: flightSchedulePlanMain.getFlightSchedules())
+                                                                {
+                                                                    Long returnFlightScheduleId = createRecurrentReturnFlightSchedule(flightSchedule, flight, layoverDuration, returnFlightSchedulePlanId);
+                                                                }
+                                                                System.out.println("Return Recurrent Flight Schedules created successfully!\n");
+                                                                break;
+                                                            }
                                                         }
-                                                        System.out.println("Return Recurrent Flight Schedules created successfully!\n");
-                                                        break;
-                                                    }
-                                                    else if(response == 2)
-                                                    {
-                                                        break;
+                                                        else if(response == 2)
+                                                        {
+                                                            break;
+                                                        }
                                                     }
                                                 }
-                                            }
-                                            
-                                            
-                                            //create fare for each flightscheduleplan
-                                            for(CabinClass cabinClass: flight.getReturnFlight().getAircraftConfig().getCabinClasses())
-                                            {
-                                                do{ 
-                                                    System.out.println("\nFares for Flight Schedule Plan :: " + cabinClass.getCabinClassType().toString());
-                                                    System.out.print("Enter Fare Basis Code> ");
-                                                    String fareBasisCode = scanner.nextLine().trim();
-                                                    System.out.print("Enter Fare Amount> ");
-                                                    BigDecimal fareAmount = scanner.nextBigDecimal();
-                                                    scanner.nextLine();
 
-                                                    newFare.setFareBasisCode(fareBasisCode);
-                                                    newFare.setFareAmount(fareAmount);
-
-                                                    Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());  
-                                                    FlightSchedulePlan flightSchedulePlan1 = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
-                                        
-                                                    if(flightSchedulePlan1.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan1.getFlightSchedulePlanId())
+                                                if(canProceed == true)
+                                                {
+                                                    //create fare for each flightscheduleplan
+                                                    for(CabinClass cabinClass: flight.getReturnFlight().getAircraftConfig().getCabinClasses())
                                                     {
-                                                        fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
-                                                    }
-                                                    
-                                                    System.out.print("More? (Enter 'Q' to complete adding fares)>");
-                                                    command = scanner.nextLine().trim();
-                                                }while(!command.equals("Q"));
-                                            } 
+                                                        do{ 
+                                                            System.out.println("\nFares for Flight Schedule Plan :: " + cabinClass.getCabinClassType().toString());
+                                                            System.out.print("Enter Fare Basis Code> ");
+                                                            String fareBasisCode = scanner.nextLine().trim();
+                                                            System.out.print("Enter Fare Amount> ");
+                                                            BigDecimal fareAmount = scanner.nextBigDecimal();
+                                                            scanner.nextLine();
+
+                                                            newFare.setFareBasisCode(fareBasisCode);
+                                                            newFare.setFareAmount(fareAmount);
+
+                                                            Set<ConstraintViolation<Fare>>fareConstraintViolations = validator.validate(newFare);
+
+                                                            if(constraintViolations.isEmpty())
+                                                            {   
+                                                                try{
+                                                                    Long fareId = fareSessionBeanRemote.createNewFare(newFare, flightSchedulePlanId, cabinClass.getCabinClassId());  
+                                                                    FlightSchedulePlan flightSchedulePlan1 = flightSchedulePlanSessionBeanRemote.getFlightSchedulePlanById(flightSchedulePlanId);
+
+                                                                    if(flightSchedulePlan1.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan1.getFlightSchedulePlanId())
+                                                                    {
+                                                                        fareSessionBeanRemote.createNewFare(newFare, returnFlightSchedulePlanId, cabinClass.getCabinClassId());
+                                                                    }
+
+                                                                    System.out.print("More? (Enter 'Q' to complete adding fares)>");
+                                                                    command = scanner.nextLine().trim();
+                                                                }
+                                                                catch (InputDataValidationException ex)
+                                                                {
+                                                                    System.out.println(ex.getMessage() + "\n");
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                showInputDataValidationErrorsForFare(fareConstraintViolations);
+                                                            }
+                                                        }while(!command.equals("Q"));
+                                                    } 
+                                                }
+                                                
+                                            }
                                         }
                                         else
                                         {
@@ -1583,21 +1953,53 @@ public class FlightOperationModule
                     flightSchedule.setFlightScheduleType("OUTBOUND");
                     flightSchedule.setEnabled(true);
 
-                    flightScheduleId = flightScheduleSessionBeanRemote.createNewFlightSchedule(flightSchedule, flightSchedulePlanId);
-
-                    //create seat inventory 
-                    SeatInventory seatInventory = new SeatInventory();
-                    Long seatInventoryId = 0l;
-                    //get max seat capacity from the flight's cabin classes
-                    for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
+                    Set<ConstraintViolation<FlightSchedule>>constraintViolations = validator.validate(flightSchedule);
+                    
+                    if(constraintViolations.isEmpty())
                     {
-                        Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
-                        seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
-                        seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
-                        seatInventory.setNumOfReservedSeats(0);
+                        try
+                        {
+                            flightScheduleId = flightScheduleSessionBeanRemote.createNewFlightSchedule(flightSchedule, flightSchedulePlanId);
+                            //create seat inventory 
+                            SeatInventory seatInventory = new SeatInventory();
+                            Long seatInventoryId = 0l;
+                            //get max seat capacity from the flight's cabin classes
+                            for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
+                            {
+                                Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
+                                seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
+                                seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
+                                seatInventory.setNumOfReservedSeats(0);
 
-                        seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, flightScheduleId, cabinClass.getCabinClassId());
+                                Set<ConstraintViolation<SeatInventory>>seatConstraintViolations = validator.validate(seatInventory);
+                                if(constraintViolations.isEmpty())
+                                {
+                                    try{
+                                        seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, flightScheduleId, cabinClass.getCabinClassId());
+                                    }
+                                    catch (InputDataValidationException ex)
+                                    {
+                                        System.out.println(ex.getMessage() + "\n");
+                                    }
+                                }
+                                else
+                                {
+                                     showInputDataValidationErrorsForSeatInventory(seatConstraintViolations);
+                                }
+                            }
+                        }
+                        catch (InputDataValidationException ex)
+                        {
+                            canFSProceed = false;
+                            System.out.println(ex.getMessage() + "\n");
+                        }     
                     }
+                    else
+                    {
+                        canFSProceed = false;
+                        showInputDataValidationErrorsForFlightSchedule(constraintViolations);
+                    }
+                    
                     break;
                 }
                 else
@@ -1633,23 +2035,56 @@ public class FlightOperationModule
                     flightSchedule.setFlightMinutes(flightDurationMins);
                     flightSchedule.setFlightScheduleType("OUTBOUND");
                     flightSchedule.setEnabled(true);
+                    
+                    Set<ConstraintViolation<FlightSchedule>>constraintViolations = validator.validate(flightSchedule);
 
-                    flightScheduleId = flightScheduleSessionBeanRemote.createNewFlightSchedule(flightSchedule, flightSchedulePlanId);
-
-                    //create seat inventory 
-                    SeatInventory seatInventory = new SeatInventory();
-                    Long seatInventoryId = 0l;
-                    //get max seat capacity from the flight's cabin classes
-                    for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
+                    
+                    if(constraintViolations.isEmpty())
                     {
-                        Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
-                        seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
-                        seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
-                        seatInventory.setNumOfReservedSeats(0);
+                        try
+                        {
+                            flightScheduleId = flightScheduleSessionBeanRemote.createNewFlightSchedule(flightSchedule, flightSchedulePlanId);
+                            //create seat inventory 
+                            SeatInventory seatInventory = new SeatInventory();
+                            Long seatInventoryId = 0l;
+                            //get max seat capacity from the flight's cabin classes
+                            for(CabinClass cabinClass: flight.getAircraftConfig().getCabinClasses())
+                            {
+                                Integer totalMaxSeatCapacityForEachCabinClass = cabinClass.getMaxSeatCapacity();
+                                seatInventory.setNumOfAvailableSeats(totalMaxSeatCapacityForEachCabinClass);
+                                seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
+                                seatInventory.setNumOfReservedSeats(0);
 
-                        seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, flightScheduleId, cabinClass.getCabinClassId());
+                                Set<ConstraintViolation<SeatInventory>>seatConstraintViolations = validator.validate(seatInventory);
+
+                                if(constraintViolations.isEmpty())
+                                {
+                                    try
+                                    {
+                                        seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, flightScheduleId, cabinClass.getCabinClassId());
+                                    }
+                                    catch (InputDataValidationException ex)
+                                    {
+                                        System.out.println(ex.getMessage() + "\n");
+                                    }
+                                }
+                                else
+                                {
+                                    showInputDataValidationErrorsForSeatInventory(seatConstraintViolations);
+                                }
+                            }
+                        }
+                        catch (InputDataValidationException ex)
+                        {
+                            canFSProceed = false;
+                            System.out.println(ex.getMessage() + "\n");
+                        }
                     }
-                           
+                    else
+                    {
+                        canFSProceed = false;
+                        showInputDataValidationErrorsForFlightSchedule(constraintViolations);
+                    }    
                     break;
                 }
             } 
@@ -1666,7 +2101,6 @@ public class FlightOperationModule
                 System.out.println("An error has occurred while retrieving flight schedule: flight schedule does not exist!\n");
             } 
         }
-        
         
         return flightScheduleId;
     }
@@ -1827,8 +2261,24 @@ public class FlightOperationModule
                 flightSchedule.setFlightScheduleType("OUTBOUND");
                 flightSchedule.setEnabled(true);
             
-                //create one new recurrent flight schedule
-                flightScheduleId = flightScheduleSessionBeanRemote.createNewFlightSchedule(flightSchedule, flightSchedulePlanId);
+                Set<ConstraintViolation<FlightSchedule>>constraintViolations = validator.validate(flightSchedule);
+                
+                if(constraintViolations.isEmpty())
+                {
+                    try
+                    {
+                        //create one new recurrent flight schedule
+                        flightScheduleId = flightScheduleSessionBeanRemote.createNewFlightSchedule(flightSchedule, flightSchedulePlanId);
+                    }
+                    catch (InputDataValidationException ex)
+                    {
+                        System.out.println(ex.getMessage() + "\n");
+                    }   
+                }
+                else
+                {
+                    showInputDataValidationErrorsForFlightSchedule(constraintViolations);
+                }
 
                 //create seat inventory 
                 SeatInventory seatInventory = new SeatInventory();
@@ -1841,8 +2291,24 @@ public class FlightOperationModule
                     seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
                     seatInventory.setNumOfReservedSeats(0);
 
-                    seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, flightScheduleId, cabinClass.getCabinClassId());
-                }  
+                    Set<ConstraintViolation<SeatInventory>>seatConstraintViolations = validator.validate(seatInventory);
+                    if(constraintViolations.isEmpty())
+                    {
+                        try
+                        {
+                            seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, flightScheduleId, cabinClass.getCabinClassId());
+                            
+                        }
+                        catch (InputDataValidationException ex)
+                        {
+                            System.out.println(ex.getMessage() + "\n");
+                        }
+                    }
+                    else
+                    {
+                        showInputDataValidationErrorsForSeatInventory(seatConstraintViolations);
+                    }
+                }
             }
  
         } 
@@ -1895,8 +2361,22 @@ public class FlightOperationModule
             flightScheduleForReturnFlight.setFlightScheduleType("RETURN");
             flightScheduleForReturnFlight.setEnabled(true);
 
-            returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightScheduleForReturnFlight, flightSchedule.getFlightScheduleId(), returnFlightSchedulePlanId);
-
+            Set<ConstraintViolation<FlightSchedule>>constraintViolations = validator.validate(flightScheduleForReturnFlight);
+            if(constraintViolations.isEmpty())
+            {
+                try
+                {
+                    returnFlightScheduleId = flightScheduleSessionBeanRemote.createNewReturnFlightSchedule(flightScheduleForReturnFlight, flightSchedule.getFlightScheduleId(), returnFlightSchedulePlanId);
+                }
+                catch (InputDataValidationException ex)
+                {
+                    System.out.println(ex.getMessage() + "\n");
+                }
+            }
+            else
+            {
+                showInputDataValidationErrorsForFlightSchedule(constraintViolations);
+            }
             //create seat inventory 
             SeatInventory seatInventory = new SeatInventory();
             Long seatInventoryId = 0l;
@@ -1908,8 +2388,25 @@ public class FlightOperationModule
                 seatInventory.setNumOfBalanceSeats(totalMaxSeatCapacityForEachCabinClass);
                 seatInventory.setNumOfReservedSeats(0);
 
-                seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, returnFlightScheduleId, cabinClass.getCabinClassId());
-            }  
+                Set<ConstraintViolation<SeatInventory>>seatConstraintViolations = validator.validate(seatInventory);
+                        
+                if(constraintViolations.isEmpty())
+                {
+                    try
+                    {
+                        seatInventoryId = seatinventorySessionBeanRemote.createSeatInventory(seatInventory, returnFlightScheduleId, cabinClass.getCabinClassId());
+                    }  
+                    catch (InputDataValidationException ex)
+                    {
+                        System.out.println(ex.getMessage() + "\n");
+                    }
+                }
+                else
+                {
+                    showInputDataValidationErrorsForSeatInventory(seatConstraintViolations);
+                }
+                          
+            }
             
         } catch (FlightScheduleNotFoundException | FlightSchedulePlanNotFoundException ex) {
             System.out.println("An error has occurred while retrieving flight schedule: " + ex.getMessage() + "\n");
@@ -2148,12 +2645,28 @@ public class FlightOperationModule
                 storeFlightSchedules.add(flightSchedule);
             }
             
+            
             //do the final storage
             for (Fare fare : storeFares) 
             {
                 try 
                 {
-                    fareSessionBeanRemote.updateFare(fare);
+                    Set<ConstraintViolation<Fare>>fareConstraintViolations = validator.validate(fare);
+                    if(fareConstraintViolations.isEmpty())
+                    {
+                        try
+                        {
+                            fareSessionBeanRemote.updateFare(fare);
+                        }
+                        catch (InputDataValidationException ex)
+                        {
+                            System.out.println(ex.getMessage() + "\n");
+                        }
+                    }
+                    else
+                    {
+                        showInputDataValidationErrorsForFare(fareConstraintViolations);
+                    }
                 } 
                 catch (FareNotFoundException ex) 
                 {
@@ -2164,7 +2677,22 @@ public class FlightOperationModule
             {
                 try
                 {
-                    flightScheduleSessionBeanRemote.updateFlightSchedule(flightSchedule);
+                    Set<ConstraintViolation<FlightSchedule>>constraintViolations = validator.validate(flightSchedule);
+                    if(constraintViolations.isEmpty())
+                    {
+                        try
+                        {
+                            flightScheduleSessionBeanRemote.updateFlightSchedule(flightSchedule);
+                        }
+                        catch (InputDataValidationException ex)
+                        {
+                            System.out.println(ex.getMessage() + "\n");
+                        }
+                    }
+                    else
+                    {
+                        showInputDataValidationErrorsForFlightSchedule(constraintViolations);
+                    }
                 } 
                 catch (FlightScheduleNotFoundException ex) 
                 {
@@ -2176,8 +2704,23 @@ public class FlightOperationModule
             
             try 
             {
-                flightSchedulePlanSessionBeanRemote.updateFlightSchedulePlan(flightSchedulePlan);
-                System.out.println("Flight Schedule Plan updated successfully!\n");
+                Set<ConstraintViolation<FlightSchedulePlan>>constraintViolations = validator.validate(flightSchedulePlan);
+                if(constraintViolations.isEmpty())
+                {
+                    try
+                    {
+                        flightSchedulePlanSessionBeanRemote.updateFlightSchedulePlan(flightSchedulePlan);
+                        System.out.println("Flight Schedule Plan updated successfully!\n");
+                    }
+                    catch (InputDataValidationException ex)
+                    {
+                        System.out.println(ex.getMessage() + "\n");
+                    }
+                }
+                else
+                {
+                    showInputDataValidationErrorsForFlightSchedulePlan(constraintViolations);
+                }
             } 
             catch (FlightSchedulePlanNotFoundException ex) 
             {
@@ -2307,7 +2850,22 @@ public class FlightOperationModule
                     {
                         try 
                         {
-                            fareSessionBeanRemote.updateFare(fare);
+                            Set<ConstraintViolation<Fare>>fareConstraintViolations = validator.validate(fare);
+                            if(fareConstraintViolations.isEmpty())
+                            {
+                                try
+                                {
+                                    fareSessionBeanRemote.updateFare(fare);
+                                }
+                                catch (InputDataValidationException ex)
+                                {
+                                    System.out.println(ex.getMessage() + "\n");
+                                }
+                            }
+                            else
+                            {
+                                showInputDataValidationErrorsForFare(fareConstraintViolations);
+                            }
                         } 
                         catch (FareNotFoundException ex) 
                         {
@@ -2325,8 +2883,25 @@ public class FlightOperationModule
                     
                     try 
                     {
-                        flightSchedulePlanSessionBeanRemote.updateFlightSchedulePlan(flightSchedulePlan);
-                        System.out.println("Flight Schedule Plan updated successfully!\n");
+                        Set<ConstraintViolation<FlightSchedulePlan>>constraintViolations = validator.validate(flightSchedulePlan);
+                        
+                        if(constraintViolations.isEmpty())
+                        {
+                            try
+                            {
+                               flightSchedulePlanSessionBeanRemote.updateFlightSchedulePlan(flightSchedulePlan);
+                                System.out.println("Flight Schedule Plan updated successfully!\n"); 
+                            }
+                            catch (InputDataValidationException ex)
+                            {
+                                System.out.println(ex.getMessage() + "\n");
+                            }
+                        }
+                        else
+                        {
+                            showInputDataValidationErrorsForFlightSchedulePlan(constraintViolations);
+                        }
+                        
                     } 
                     catch (FlightSchedulePlanNotFoundException ex) 
                     {
@@ -2435,8 +3010,66 @@ public class FlightOperationModule
         catch (FlightSchedulePlanNotFoundException ex) 
         {
             System.out.println("An error has occurred while removing flight schedule plan: flight schedule plan does not exist!\n");
+        } 
+    }
+    
+    private void showInputDataValidationErrorsForFlight (Set<ConstraintViolation<Flight>>constraintViolations)
+    {
+        System.out.println("\nInput data validation error!:");
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            System.out.println("\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage());
         }
-        
-        
+
+        System.out.println("\nPlease try again......\n");
+    }
+    
+    private void showInputDataValidationErrorsForFlightSchedulePlan (Set<ConstraintViolation<FlightSchedulePlan>>constraintViolations)
+    {
+        System.out.println("\nInput data validation error!:");
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            System.out.println("\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage());
+        }
+
+        System.out.println("\nPlease try again......\n");
+    }
+    
+    private void showInputDataValidationErrorsForFare (Set<ConstraintViolation<Fare>>constraintViolations)
+    {
+        System.out.println("\nInput data validation error!:");
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            System.out.println("\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage());
+        }
+
+        System.out.println("\nPlease try again......\n");
+    }
+    
+    private void showInputDataValidationErrorsForFlightSchedule (Set<ConstraintViolation<FlightSchedule>>constraintViolations)
+    {
+        System.out.println("\nInput data validation error!:");
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            System.out.println("\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage());
+        }
+
+        System.out.println("\nPlease try again......\n");
+    }
+    
+    private void showInputDataValidationErrorsForSeatInventory (Set<ConstraintViolation<SeatInventory>>constraintViolations)
+    {
+        System.out.println("\nInput data validation error!:");
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            System.out.println("\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage());
+        }
+
+        System.out.println("\nPlease try again......\n");
     }
 }

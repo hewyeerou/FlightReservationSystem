@@ -10,6 +10,7 @@ import entity.Fare;
 import entity.FlightSchedulePlan;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -18,9 +19,14 @@ import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import util.exception.FareBasisCodeExistException;
 import util.exception.FareNotFoundException;
 import util.exception.FlightSchedulePlanNotFoundException;
+import util.exception.InputDataValidationException;
 import util.exception.UnknownPersistenceException;
 
 /**
@@ -35,24 +41,39 @@ public class FareSessionBean implements FareSessionBeanRemote, FareSessionBeanLo
 
     @EJB(name = "FlightSchedulePlanSessionBeanLocal")
     private FlightSchedulePlanSessionBeanLocal flightSchedulePlanSessionBeanLocal;
+    
+    private final ValidatorFactory validatorFactory;
+    private final Validator validator;
+
+    public FareSessionBean() {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
+    }
 
     @Override
-    public Long createNewFare(Fare newFare, Long flightSchedulePlanId, Long cabinClassId) throws FlightSchedulePlanNotFoundException
+    public Long createNewFare(Fare newFare, Long flightSchedulePlanId, Long cabinClassId) throws FlightSchedulePlanNotFoundException, InputDataValidationException
     {
-        FlightSchedulePlan flightSchedulePlan = flightSchedulePlanSessionBeanLocal.getFlightSchedulePlanById(flightSchedulePlanId);
-        CabinClass cabinClass = em.find(CabinClass.class, cabinClassId);
-
-        //set cabinclass
-        newFare.setCabinClass(cabinClass);
-        //set flightscheduleplan
-        newFare.setFlightSchedulePlan(flightSchedulePlan);
-
-        em.persist(newFare);
-        em.flush();
-
-        return newFare.getFareId();
+        Set<ConstraintViolation<Fare>>constraintViolations = validator.validate(newFare);
         
-        
+        if(constraintViolations.isEmpty())
+        {
+            FlightSchedulePlan flightSchedulePlan = flightSchedulePlanSessionBeanLocal.getFlightSchedulePlanById(flightSchedulePlanId);
+            CabinClass cabinClass = em.find(CabinClass.class, cabinClassId);
+
+            //set cabinclass
+            newFare.setCabinClass(cabinClass);
+            //set flightscheduleplan
+            newFare.setFlightSchedulePlan(flightSchedulePlan);
+
+            em.persist(newFare);
+            em.flush();
+
+            return newFare.getFareId();
+        }
+        else
+        {
+            throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
+        }
     }
     
     @Override
@@ -109,16 +130,37 @@ public class FareSessionBean implements FareSessionBeanRemote, FareSessionBeanLo
     }
  
     @Override
-    public void updateFare(Fare fare) throws FareNotFoundException
+    public void updateFare(Fare fare) throws FareNotFoundException, InputDataValidationException
     {
         if(fare != null)
         {
-            Fare fareToUpdate = em.find(Fare.class, fare.getFareId());
-            fareToUpdate.setFareAmount(fare.getFareAmount());
+            Set<ConstraintViolation<Fare>>constraintViolations = validator.validate(fare);
+            
+            if(constraintViolations.isEmpty())
+            {
+                Fare fareToUpdate = em.find(Fare.class, fare.getFareId());
+                fareToUpdate.setFareAmount(fare.getFareAmount());
+            }
+            else
+            {
+                throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
+            }
         }
         else
         {
             throw new FareNotFoundException("Fare ID not provided for fare to be updated");
         }
+    }
+    
+    private String prepareInputDataValidationErrorsMessage(Set<ConstraintViolation<Fare>>constraintViolations)
+    {
+        String msg = "Input data validation error!:";
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            msg += "\n\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage();
+        }
+        
+        return msg;
     }
 }

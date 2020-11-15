@@ -9,6 +9,7 @@ import entity.CabinClass;
 import entity.CabinSeatInventory;
 import entity.FlightSchedule;
 import entity.SeatInventory;
+import java.util.Set;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -16,7 +17,12 @@ import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import util.exception.FlightScheduleNotFoundException;
+import util.exception.InputDataValidationException;
 import util.exception.SeatInventoryNotFoundException;
 
 /**
@@ -32,24 +38,41 @@ public class SeatInventorySessionBean implements SeatInventorySessionBeanRemote,
     @PersistenceContext(unitName = "FlightReservationSystem-ejbPU")
     private EntityManager em;
     
+    private final ValidatorFactory validatorFactory;
+    private final Validator validator;
+
+ 
+    public SeatInventorySessionBean() {
+        validatorFactory = Validation.buildDefaultValidatorFactory();
+        validator = validatorFactory.getValidator();
+    }
     
     @Override
-    public Long createSeatInventory(SeatInventory seatInventory, Long flightScheduleId, Long cabinClassId) throws FlightScheduleNotFoundException
+    public Long createSeatInventory(SeatInventory seatInventory, Long flightScheduleId, Long cabinClassId) throws FlightScheduleNotFoundException, InputDataValidationException
     {   
-        FlightSchedule flightSchedule = flightScheduleSessionBeanLocal.getFlightScheduleById(flightScheduleId);
-        CabinClass cabinClass = em.find(CabinClass.class, cabinClassId);
+        Set<ConstraintViolation<SeatInventory>>constraintViolations = validator.validate(seatInventory);
         
-        seatInventory.setFlightSchedule(flightSchedule);
-        flightSchedule.getSeatInventories().add(seatInventory);
-        
-        seatInventory.setCabinClass(cabinClass);
-        cabinClass.getSeatInventories().add(seatInventory);
-        
-                
-        em.persist(seatInventory);
-        em.flush();
-        
-        return seatInventory.getSeatInventoryId();
+        if(constraintViolations.isEmpty())
+        {
+            FlightSchedule flightSchedule = flightScheduleSessionBeanLocal.getFlightScheduleById(flightScheduleId);
+            CabinClass cabinClass = em.find(CabinClass.class, cabinClassId);
+
+            seatInventory.setFlightSchedule(flightSchedule);
+            flightSchedule.getSeatInventories().add(seatInventory);
+
+            seatInventory.setCabinClass(cabinClass);
+            cabinClass.getSeatInventories().add(seatInventory);
+
+
+            em.persist(seatInventory);
+            em.flush();
+
+            return seatInventory.getSeatInventoryId();
+        }
+        else
+        {
+            throw new InputDataValidationException(prepareInputDataValidationErrorsMessage(constraintViolations));
+        }
     }
     
     @Override
@@ -69,6 +92,18 @@ public class SeatInventorySessionBean implements SeatInventorySessionBeanRemote,
         {
             throw new SeatInventoryNotFoundException();
         }
+    }
+    
+    private String prepareInputDataValidationErrorsMessage(Set<ConstraintViolation<SeatInventory>>constraintViolations)
+    {
+        String msg = "Input data validation error!:";
+            
+        for(ConstraintViolation constraintViolation:constraintViolations)
+        {
+            msg += "\n\t" + constraintViolation.getPropertyPath() + " - " + constraintViolation.getInvalidValue() + "; " + constraintViolation.getMessage();
+        }
+        
+        return msg;
     }
 }
 

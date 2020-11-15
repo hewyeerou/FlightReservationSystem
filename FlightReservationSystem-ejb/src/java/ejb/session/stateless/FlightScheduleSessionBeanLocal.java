@@ -13,6 +13,7 @@ import javax.ejb.Local;
 import util.enumeration.CabinClassEnum;
 import util.exception.FlightScheduleNotFoundException;
 import util.exception.FlightSchedulePlanNotFoundException;
+import util.exception.InputDataValidationException;
 import util.exception.InvalidDateTimeException;
 
 /**
@@ -22,7 +23,7 @@ import util.exception.InvalidDateTimeException;
 @Local
 public interface FlightScheduleSessionBeanLocal {
 
-    public Long createNewFlightSchedule(FlightSchedule flightSchedule, Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException;
+    public Long createNewFlightSchedule(FlightSchedule flightSchedule, Long flightSchedulePlanId) throws FlightSchedulePlanNotFoundException, InputDataValidationException;
 
     public FlightSchedule getFlightScheduleById(Long flightScheduleId) throws FlightScheduleNotFoundException;
 
@@ -32,13 +33,11 @@ public interface FlightScheduleSessionBeanLocal {
 
     public List<FlightSchedule> searchDoubleTransitConnectingFlightSchedule(Long departureAirportId, Long destinationAirportId, Date dateStart, Date dateEnd, CabinClassEnum preferredCabinClass, Integer numPassengers);
 
-    public Long createNewReturnFlightSchedule(FlightSchedule returnFlightSchedule, Long flightScheduleId, Long returnFlightSchedulePlanId) throws FlightSchedulePlanNotFoundException, FlightScheduleNotFoundException;   
+    public Long createNewReturnFlightSchedule(FlightSchedule returnFlightSchedule, Long flightScheduleId, Long returnFlightSchedulePlanId) throws FlightSchedulePlanNotFoundException, FlightScheduleNotFoundException, InputDataValidationException;
 
     public List<FlightSchedule> getFlightScheduleByFlightSchedulePlanId(Long flightSchedulePlanId);
 
-    public void updateFlightSchedule(FlightSchedule flightSchedule) throws FlightScheduleNotFoundException;
-
-//    public void removeFlightSchedule(Long flightScheduleId, SeatInventory seatInventory) throws FlightScheduleNotFoundException;
+    public void updateFlightSchedule(FlightSchedule flightSchedule) throws FlightScheduleNotFoundException, InputDataValidationException;
     
     public void removeFlightSchedule(Long flightScheduleId) throws FlightScheduleNotFoundException;
 
