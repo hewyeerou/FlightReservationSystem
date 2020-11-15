@@ -510,9 +510,9 @@ public class FlightOperationModule
         {
             Flight flight = flightSessionBeanRemote.getFlightByFlightNum(flightNum);
             
-            System.out.printf("%40s%40s\n", "Flight Number", "Flight Route");
+            System.out.printf("%30s%30s%30s\n", "Flight Number", "Flight Route", "AirCraft Configurations");
             
-            System.out.printf("%40s%40s\n", flight.getFlightNumber(), flight.getFlightRoute().getOrigin().getIataCode() + " - " + flight.getFlightRoute().getDestination().getIataCode());
+            System.out.printf("%30s%30s%30s\n", flight.getFlightNumber(), flight.getFlightRoute().getOrigin().getIataCode() + " - " + flight.getFlightRoute().getDestination().getIataCode(), flight.getAircraftConfig().getName());
             
             System.out.println("\n" + flight.getAircraftConfig().getNumOfCabinClasses() + " Available Cabin Classes in " + flightNum + ":\n");
             System.out.printf("%40s%40s\n", "Cabin Class", "Max. Seat Capacity");
@@ -598,7 +598,7 @@ public class FlightOperationModule
                     }
                     else if(option == 3)
                     {
-                        System.out.println("Current Aircraft Configuration: " + flight.getAircraftConfig()+ "\n");
+                        System.out.println("Current Aircraft Configuration: " + flight.getAircraftConfig().getName()+ "\n");
                         
                         aircraftConfigId = updateAircraftConfig(aircraftConfigs);
                         AircraftConfig aircraftConfig = aircraftConfigSessionBeanRemote.retrieveAircraftConfigById(aircraftConfigId);
@@ -632,7 +632,7 @@ public class FlightOperationModule
         } 
         catch (FlightNumExistException ex) 
         {
-            System.out.println("An error has occurred while updating flight route details: " + ex.getMessage() + "\n");
+            System.out.println("An error has occurred while updating flight details: " + ex.getMessage() + "\n");
         }
     }
     
@@ -719,7 +719,6 @@ public class FlightOperationModule
             {
                 if(flight.getFlightSchedulePlans().isEmpty())
                 {
-   
                     flightSessionBeanRemote.removeFlight(flight.getFlightId());
                     System.out.println("Flight deleted successfully!\n");
                     
@@ -1291,17 +1290,19 @@ public class FlightOperationModule
                                     {
                                         flightSchedulePlan.setFlightScheduleType("RECURRENT_WEEKLY");
                                         
-                                        System.out.print("Enter Start(Departure) Date (dd-mm-yyyy)> ");
+                                        System.out.print("Enter Day of the Week for Recurrent Flight(eg. Wednesday)> ");
+                                        String dayOfWeek = scanner.nextLine();
+                                        System.out.print("Enter Start Date (dd-mm-yyyy)> ");
                                         String startDate = scanner.nextLine();
-                                        System.out.print("Enter Start(Departure) Time (HH:mm)> ");
+                                        System.out.print("Enter Start Time (HH:mm)> ");
                                         String startTime = scanner.nextLine();
                                         System.out.print("Enter Flight Duration(hrs)> ");
                                         Double flightDuration = scanner.nextDouble();
                                         scanner.nextLine();
                                         System.out.print("Enter End Date(dd-mm-yyyy)> ");
                                         String endDate = scanner.nextLine();
-
-                                        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+                                        
+                                        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");                 
                                         Date formattedEndDate = formatter.parse(endDate);
                                         Date formattedStartDate = formatter.parse(startDate);
                                         
@@ -1309,7 +1310,60 @@ public class FlightOperationModule
                                         String dateTime = startDate + " " + startTime;
                                         Date formattedDateTime = formatterDateTime.parse(dateTime);
                                         
-                                        Long difference = formattedEndDate.getTime() - formattedStartDate.getTime();
+                                        //get the day of the week in integer (eg. 3 = Tuesday)
+                                        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+                                        gregorianCalendar.setTime(formattedDateTime);
+                                        Integer dayOfWeekRecurrent = gregorianCalendar.get(GregorianCalendar.DAY_OF_WEEK);
+                                        
+                                        Integer dayInt = 0;
+                                        //get the day of the week in String (eg Wednesday)
+                                        SimpleDateFormat simpleDateformat = new SimpleDateFormat("EEEE");
+                                        String dateOfWeekString = simpleDateformat.format(formattedDateTime);
+                                        
+                                        //to check if the day chose == start date
+                                        if(dayOfWeek.equals(dateOfWeekString))
+                                        {
+                                            dayInt = dayOfWeekRecurrent;
+                                        } 
+                                        else
+                                        {
+                                            switch(dayOfWeek) 
+                                            {
+                                                case "Sunday":
+                                                    dayInt = 1;
+                                                    break;
+                                                case "Monday":
+                                                    dayInt = 2;
+                                                    break;
+                                                case "Tuesday":
+                                                    dayInt = 3;
+                                                    break;
+                                                case "Wednesday":
+                                                    dayInt = 4;
+                                                    break;
+                                                case "Thursday":
+                                                    dayInt = 5;
+                                                    break;
+                                                case "Friday":
+                                                    dayInt = 6;
+                                                    break;   
+                                                case "Sat":
+                                                    dayInt = 7;
+                                                    break;
+                                            }
+                                        }
+                                        
+                                        //to get the difference between start date and start day of week
+                                        Integer daysOfWeekDiff = dayInt - dayOfWeekRecurrent;
+                                        gregorianCalendar.setTime(formattedDateTime);
+                                        gregorianCalendar.add(GregorianCalendar.DATE, daysOfWeekDiff);
+                                        Date finalStartDay = gregorianCalendar.getTime();
+                                        
+                                        String[] finalStartDaySplit = formatterDateTime.format(finalStartDay).split(" ");
+                                        String finalStartDate = finalStartDaySplit[0];
+                                        String finalStartTime = finalStartDaySplit[1];
+                                        
+                                        Long difference = formattedEndDate.getTime() - formatter.parse(finalStartDate).getTime();
                                         Long daysDifference = TimeUnit.MILLISECONDS.toDays(difference) % 365;
 
                                         if(daysDifference.intValue() < 7)
@@ -1320,7 +1374,7 @@ public class FlightOperationModule
                                         flightSchedulePlan.setIntervalDays(7);
                                         flightSchedulePlan.setEndDate(formattedEndDate);
                                         flightSchedulePlan.setFlightSchedulePlanType("OUTBOUND");
-                                        flightSchedulePlan.setStartDate(formattedDateTime);
+                                        flightSchedulePlan.setStartDate(finalStartDay);
                                         flightSchedulePlan.setEnabled(true);
 
                                         //create flight schedule plan
@@ -1328,10 +1382,8 @@ public class FlightOperationModule
 
                                         Fare newFare = new Fare();
                                         String command = "";
-
-                                        //create fare for each flightscheduleplan
-
-                                        Long difference_In_Time = formattedEndDate.getTime() - formattedStartDate.getTime();
+                                        
+                                        Long difference_In_Time = formattedEndDate.getTime() - formatter.parse(finalStartDate).getTime();
                                         Long days = TimeUnit.MILLISECONDS.toDays(difference_In_Time) % 365;
                                         Integer numOfTimes = days.intValue()/7;
                                         
@@ -1343,7 +1395,7 @@ public class FlightOperationModule
                                             //create recurrent schedules for the plan
                                             for(int i = 0; i < numOfTimes; i++)
                                             {
-                                                createRecurrentFlightSchedule(flightSchedulePlanId, flight, startDate,  startTime, flightDuration, interval);
+                                                createRecurrentFlightSchedule(flightSchedulePlanId, flight, finalStartDate,  startTime, flightDuration, interval);
                                                 interval += 7;
                                             }
                                                                                       
@@ -1398,6 +1450,7 @@ public class FlightOperationModule
                                                     }
                                                 }
                                             }
+                                            
                                             
                                             //create fare for each flightscheduleplan
                                             for(CabinClass cabinClass: flight.getReturnFlight().getAircraftConfig().getCabinClasses())
@@ -1509,8 +1562,7 @@ public class FlightOperationModule
 
                 GregorianCalendar calendar = new GregorianCalendar();
                 calendar.setTime(formattedDT);
-                //to add timediff to departure time 
-//                calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedulePlanFromDb.getFlight().getFlightRoute().getOrigin().getTimeZoneDiff());
+
                 Date departureDT = formatter.parse(formatter.format(calendar.getTime()));
                 calendar.setTime(departureDT);
                 //to add flight duration to the departure time = arrival time
@@ -1518,7 +1570,7 @@ public class FlightOperationModule
                 calendar.add(GregorianCalendar.MINUTE, flightDurationMins);
                 //to add timezone to arrival date time
                 Date arrivalDT = calendar.getTime();
-                calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff() - flight.getFlightRoute().getOrigin().getTimeZoneDiff());
                 Date arrivalDTTimeZone = calendar.getTime();
                 
                 
@@ -1555,7 +1607,7 @@ public class FlightOperationModule
                         calendar.setTime(flightSchedule1.getDepartureDateTime());
                         calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedule1.getFlightHours());
                         calendar.add(GregorianCalendar.MINUTE, flightSchedule1.getFlightMinutes());
-                        calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+                        calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff() - flight.getFlightRoute().getOrigin().getTimeZoneDiff());
                         Date arrivalDateTimeZone = calendar.getTime();
 
                         //to check if departure date entered overlap with other flight schedules
@@ -1637,7 +1689,7 @@ public class FlightOperationModule
             calendar.add(GregorianCalendar.MINUTE, flightSchedule.getFlightMinutes());
             Date arrivalDatetime = calendar.getTime();
             //to add in time diff (arrival time zone)
-            calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff() - flight.getFlightRoute().getOrigin().getTimeZoneDiff());
             Date arrivalDatetimeTimezone = calendar.getTime();
             //to add in layover duration
             calendar.add(GregorianCalendar.HOUR_OF_DAY, layoverDurationHours);
@@ -1700,8 +1752,7 @@ public class FlightOperationModule
             //add it to calendar so that it can be incremented
             GregorianCalendar calendar = new GregorianCalendar();
             calendar.setTime(formattedDepartureDT);
-            //to add timediff to departure time 
-//            calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedulePlanFromDb.getFlight().getFlightRoute().getOrigin().getTimeZoneDiff());
+
             //to add the recurrent interval day to the departure date every loop
             calendar.add(GregorianCalendar.DATE, interval);
             Date departureDT = formatterDeparture.parse(formatterDeparture.format(calendar.getTime()));
@@ -1743,13 +1794,13 @@ public class FlightOperationModule
                 calendar.setTime(flightSchedule1.getDepartureDateTime());
                 calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedule1.getFlightHours());
                 calendar.add(GregorianCalendar.MINUTE, flightSchedule1.getFlightMinutes());
-                calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff() - flight.getFlightRoute().getOrigin().getTimeZoneDiff());
                 Date arrivalDateTimeZone = calendar.getTime();
 
                 calendar.setTime(departureDT);
                 calendar.add(GregorianCalendar.HOUR_OF_DAY, flightDurationHours);
                 calendar.add(GregorianCalendar.MINUTE, flightDurationMins);
-                calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff() - flight.getFlightRoute().getOrigin().getTimeZoneDiff());
                 Date inputArrivalDateTimeZone = calendar.getTime();
 
                 if(flightSchedule1.getDepartureDateTime().compareTo(departureDT) * departureDT.compareTo(arrivalDateTimeZone) >= 0 || flightSchedule1.getDepartureDateTime().compareTo(inputArrivalDateTimeZone) * inputArrivalDateTimeZone.compareTo(arrivalDateTimeZone) >= 0)
@@ -1830,7 +1881,7 @@ public class FlightOperationModule
             calendar.add(GregorianCalendar.MINUTE, flightSchedule.getFlightMinutes());
             Date arrivalDateTimeReturn = calendar.getTime();
             //to add in time diff (arrival timezone)
-            calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff());
+            calendar.add(GregorianCalendar.HOUR_OF_DAY, flight.getFlightRoute().getDestination().getTimeZoneDiff() - flight.getFlightRoute().getOrigin().getTimeZoneDiff());
             Date arrivalDateTimeReturnTimezone = calendar.getTime();
             //to add in layover duration
             calendar.add(GregorianCalendar.HOUR_OF_DAY, layoverDurationHours);
@@ -1881,11 +1932,11 @@ public class FlightOperationModule
         
         for(FlightSchedulePlan flightSchedulePlan: flightSchedulePlans)
         {
-            if(flightSchedulePlan.getFlightSchedulePlanType().equals("OUTBOUND"))
+            if(flightSchedulePlan.getFlightSchedulePlanType().equals("OUTBOUND") && flightSchedulePlan.getEnabled() == true)
             {
                 outboundFlightSchedulePlans.add(flightSchedulePlan);
                 
-                if(flightSchedulePlan.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan.getFlightSchedulePlanId())
+                if(flightSchedulePlan.getReturnFlightSchedulePlan().getFlightSchedulePlanId() != flightSchedulePlan.getFlightSchedulePlanId() && flightSchedulePlan.getReturnFlightSchedulePlan().getEnabled() == true)
                 {
                     outboundFlightSchedulePlans.add(flightSchedulePlan.getReturnFlightSchedulePlan());
                 }
@@ -1945,7 +1996,7 @@ public class FlightOperationModule
                 calendar.add(GregorianCalendar.MINUTE, flightSchedule.getFlightMinutes());
                 Date arrivalDateTime = calendar.getTime();
                 //to add in time diff (arrival timezone)
-                calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedulePlan.getFlight().getFlightRoute().getDestination().getTimeZoneDiff());
+                calendar.add(GregorianCalendar.HOUR_OF_DAY, flightSchedulePlan.getFlight().getFlightRoute().getDestination().getTimeZoneDiff() - flightSchedulePlan.getFlight().getFlightRoute().getOrigin().getTimeZoneDiff());
                 Date arrivalDateTimeTimezone = calendar.getTime();
 
                 

@@ -196,6 +196,7 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
             flight.getAircraftConfig().getCabinClasses().size();
             flight.getFlightRoute();
             flight.getFlightSchedulePlans().size();
+            flight.getReturnFlight().getAircraftConfig().getCabinClasses().size();
             
             for(FlightSchedulePlan flightScheduleplan: flight.getFlightSchedulePlans())
             {
@@ -255,21 +256,9 @@ public class FlightSessionBean implements FlightSessionBeanRemote, FlightSession
             List<Flight> flights = getAllFlights();
             List<String> flightNumList = new ArrayList<>();
             
-            for(Flight flight1:flights)
-            {
-                flightNumList.add(flight1.getFlightNumber());
-            }
-                    
-            if(!flightNumList.contains(flight.getFlightNumber()))
-            {
                 flightToUpdate.setFlightNumber(flight.getFlightNumber());
                 flightToUpdate.setFlightRoute(flight.getFlightRoute());
-                flightToUpdate.setAircraftConfig(flight.getAircraftConfig());
-            }
-            else
-            {
-                throw new FlightNumExistException("Flight number exist!");
-            }  
+                flightToUpdate.setAircraftConfig(flight.getAircraftConfig());  
         }
         else
         {

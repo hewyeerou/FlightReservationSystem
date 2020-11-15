@@ -163,6 +163,7 @@ public class SalesManagementModule {
             catch (FlightNotFoundException ex) 
             {
                 System.out.println("An error has occurred while creating flight: flight does not exist!\n");
+                break;
             } 
         }
     }
