@@ -15,6 +15,7 @@ import entity.Person;
 import entity.SeatInventory;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -183,8 +184,6 @@ public class FlightReservationRecordSessionBean implements FlightReservationReco
                 seatInventory.getCabinClass().getFares().size();
             }
         }
-        
-        
         return flightReservationRecord;
     }
     

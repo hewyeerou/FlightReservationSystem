@@ -29,4 +29,5 @@ public interface FlightReservationRecordSessionBeanLocal {
     public List<FlightReservationRecord> retrieveReservationRecordsByCustomerIdUnmanaged(Long personId);
 
     public FlightReservationRecord retrieveReservationRecordByIdUnmanaged(Long recordId, Long personId) throws FlightReservationRecordNotFoundException;
+
 }

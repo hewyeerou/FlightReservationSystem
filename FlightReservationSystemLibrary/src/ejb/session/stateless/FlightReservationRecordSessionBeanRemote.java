@@ -25,4 +25,5 @@ public interface FlightReservationRecordSessionBeanRemote {
     public FlightReservationRecord retrieveReservationRecordById(Long recordId, Long personId) throws FlightReservationRecordNotFoundException;
     
     public FlightReservationRecord getFlightReservationRecordByFlightScheduleId(Long flightReservationRecordId);
+
 }

@@ -271,19 +271,26 @@ public class SalesManagementModule {
         
         System.out.printf("%20s%20s%20s\n", "Seat Number" , "Passenger Name", "Fare Basis Code");
         
+
         for(FlightReservationRecord flightReservationRecord: flightReservationRecordList)
         {
+            String seatTaken = "";
+            String passengerName = "";
+            String fareBasisCode = "";
             for(Passenger passenger: flightReservationRecord.getPassengers())
             {
                 for(CabinSeatInventory cabinSeatInventory: passenger.getCabinSeats())
                 {
                     SeatInventory seatInventory = cabinSeatInventory.getSeatInventory();
+                    seatTaken = cabinSeatInventory.getSeatTaken();
                     
                     for(Fare fare: seatInventory.getCabinClass().getFares())
                     {
-                        System.out.printf("%20s%20s%20s\n", cabinSeatInventory.getSeatTaken(), passenger.getFirstName() + " " + passenger.getLastName(), fare.getFareBasisCode());
+                        fareBasisCode = fare.getFareBasisCode();
                     }
                 }
+                passengerName = passenger.getFirstName() + " " + passenger.getLastName();
+                System.out.printf("%20s%20s%20s\n", seatTaken, passengerName, fareBasisCode);
             }
         }   
     }
